@@ -1,19 +1,19 @@
-"use client";
+'use client'
 
-import dynamic from "next/dynamic";
-import React, { useState } from "react";
+import dynamic from 'next/dynamic'
+import React, { useState } from 'react'
 
-const Terminal = dynamic(() => import("@/components/terminal"), { ssr: false });
+const Terminal = dynamic(() => import('@/components/terminal'), { ssr: false })
 
 export default function Home() {
-  const [WS_URL, setWS_URL] = useState("");
+  const [WS_URL, setWS_URL] = useState('')
 
-  const [showTerminal, setShowTerminal] = useState(false);
+  const [showTerminal, setShowTerminal] = useState(false)
 
   const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setShowTerminal(!showTerminal);
-  };
+    e.preventDefault()
+    setShowTerminal(!showTerminal)
+  }
 
   return (
     <div>
@@ -31,10 +31,10 @@ export default function Home() {
           </>
         )}
 
-        <button>{showTerminal ? "Hide Terminal" : "Show Terminal"}</button>
+        <button>{showTerminal ? 'Hide Terminal' : 'Show Terminal'}</button>
       </form>
 
       {showTerminal && <Terminal WS_URL={WS_URL} />}
     </div>
-  );
+  )
 }

@@ -1,7 +1,7 @@
-import {WebSocket} from 'ws';
-import { spawn } from 'node-pty';
+import { WebSocket } from 'ws'
+import { spawn } from 'node-pty'
 
-const wss = new WebSocket.Server({ port: 3001 });
+const wss = new WebSocket.Server({ port: 3001 })
 
 wss.on('connection', (ws: WebSocket) => {
   const term = spawn('zsh', [], {
@@ -9,18 +9,18 @@ wss.on('connection', (ws: WebSocket) => {
     cols: 80,
     rows: 24,
     cwd: process.env.HOME,
-    env: process.env
-  });
+    env: process.env,
+  })
 
-  term.onData(data => {
-    ws.send(data);
-  });
+  term.onData((data) => {
+    ws.send(data)
+  })
 
   ws.on('message', (message: string) => {
-    term.write(message);
-  });
+    term.write(message)
+  })
 
   ws.on('close', () => {
-    term.kill();
-  });
-});
+    term.kill()
+  })
+})

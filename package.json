@@ -1,0 +1,19 @@
+{
+  "name": "coedit",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "format": "prettier --write . --cache",
+    "cspell": "cspell ** --gitignore --cache",
+    "fix": "run-s format cspell"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cspell": "^8.6.0",
+    "npm-run-all2": "^6.1.2",
+    "prettier": "^3.2.5"
+  }
+}
