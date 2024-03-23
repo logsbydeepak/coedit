@@ -1,6 +1,6 @@
 {
   "version": "0.2",
   "language": "en",
-  "words": ["webgl", "coedit", "envman"],
+  "words": ["webgl", "coedit", "envman", "outfile"],
   "ignorePaths": ["bun.lockb"]
 }

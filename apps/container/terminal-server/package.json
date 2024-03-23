@@ -4,15 +4,21 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "swc-node src"
+    "dev": "swc-node src",
+    "build": "bun x esbuild src/index.ts --outfile=build/index.js --bundle  --platform=node --packages=external --minify --tree-shaking=true",
+    "start": "node build/index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/ws": "^8.5.10",
     "node-pty": "^1.0.0",
-    "swc-node": "^1.0.0",
     "ws": "^8.16.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.10",
+    "esbuild": "^0.20.2",
+    "swc-node": "^1.0.0",
+    "typescript": "^5.4.3"
   }
 }
