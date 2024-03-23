@@ -1,0 +1,29 @@
+FROM ubuntu:20.04
+
+RUN apt-get update
+RUN apt-get install -y curl unzip git make build-essential python3
+
+RUN useradd --create-home --user-group coedit
+
+USER coedit
+
+RUN curl -sS https://webi.sh/bun | sh
+RUN curl -sS https://webi.sh/node | sh
+
+USER root
+COPY docker-entrypoint.sh /usr/local/bin
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+
+USER coedit
+WORKDIR /home/coedit/app
+COPY src src/
+COPY ./package.json  ./
+
+SHELL ["/bin/bash", "-c", "-l"]
+RUN bun install
+
+EXPOSE 3001
+
+ENTRYPOINT [ "/usr/local/bin/docker-entrypoint.sh" ]
+CMD ["bun", "run", "dev"]

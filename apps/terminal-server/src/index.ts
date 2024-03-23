@@ -4,7 +4,7 @@ import { spawn } from 'node-pty'
 const wss = new WebSocket.Server({ port: 3001 })
 
 wss.on('connection', (ws: WebSocket) => {
-  const term = spawn('zsh', [], {
+  const term = spawn('bash', [], {
     name: 'xterm-color',
     cols: 80,
     rows: 24,
