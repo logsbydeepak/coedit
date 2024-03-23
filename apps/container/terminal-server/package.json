@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node src"
+    "dev": "swc-node src"
   },
   "keywords": [],
   "author": "",
@@ -12,7 +12,7 @@
   "dependencies": {
     "@types/ws": "^8.5.10",
     "node-pty": "^1.0.0",
-    "ts-node": "^10.9.2",
+    "swc-node": "^1.0.0",
     "ws": "^8.16.0"
   }
 }
