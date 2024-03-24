@@ -1,4 +1,4 @@
-DOCKER_FILE=dockerfile.coedit
+DOCKER_FILE=coedit.dockerfile
 DOCKER_IMAGE=coedit:latest
 DOCKER_CONTAINER=coedit
 

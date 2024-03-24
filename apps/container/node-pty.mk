@@ -1,4 +1,4 @@
-DOCKER_FILE=dockerfile.node-pty
+DOCKER_FILE=node-pty.dockerfile
 DOCKER_IMAGE=node-pty:build
 DOCKER_CONTAINER=node-pty-build
 OUTPUT_DIR=./node-pty
