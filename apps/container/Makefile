@@ -1,4 +1,4 @@
-build-final-image: build-node-pty build-server
+build-final-image: build-node-pty build-server build-coedit-image
 
 build-node-pty:
 	@echo "-> RUN:node-pty.mk"
@@ -7,4 +7,8 @@ build-node-pty:
 build-server:
 	@echo "-> RUN:server.mk"
 	make -f server.mk
+
+build-coedit-image:
+	@echo "-> RUN:final-image.mk"
+	make -f coedit.mk
 
