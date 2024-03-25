@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import React, { useState } from 'react'
+import TextEdit from '@/components/editor'
 
 const Terminal = dynamic(() => import('@/components/terminal'), { ssr: false })
 
@@ -35,6 +36,7 @@ export default function Home() {
       </form>
 
       {showTerminal && <Terminal WS_URL={WS_URL} />}
+      <TextEdit />
     </div>
   )
 }
