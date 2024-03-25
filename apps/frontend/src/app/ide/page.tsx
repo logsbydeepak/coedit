@@ -5,6 +5,10 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from '@/components/ui/resizable'
+import dynamic from 'next/dynamic'
+
+const Editor = dynamic(() => import('./editor'), { ssr: false })
+const Terminal = dynamic(() => import('./terminal'), { ssr: false })
 
 export default function Page() {
   return (
@@ -13,7 +17,7 @@ export default function Page() {
         <FileExplorer />
       </ResizablePanel>
 
-      <ResizableHandle withHandle />
+      <ResizableHandle />
 
       <ResizablePanel defaultSize={50}>
         <ResizablePanelGroup direction="vertical">
@@ -36,14 +40,6 @@ export default function Page() {
       </ResizablePanel>
     </ResizablePanelGroup>
   )
-}
-
-function Terminal() {
-  return <h1>Terminal</h1>
-}
-
-function Editor() {
-  return <h1>Editor</h1>
 }
 
 function FileExplorer() {
