@@ -1,35 +1,50 @@
 'use client'
-
-import React, { useRef } from 'react'
-import { Terminal } from 'xterm'
-import { WebglAddon } from 'xterm-addon-webgl'
-
 import 'xterm/css/xterm.css'
 
+import React from 'react'
+import { Terminal } from 'xterm'
+import { WebglAddon } from 'xterm-addon-webgl'
+import { FitAddon } from 'xterm-addon-fit'
+
 export default function Term() {
-  const terminalRef = useRef<HTMLDivElement | null>(null)
+  return (
+    <div
+      className="overflow-hidden size-full"
+      ref={(e) => {
+        if (e === null) return
 
-  React.useEffect(() => {
-    if (terminalRef.current) {
-      const term = new Terminal()
+        const term = new Terminal({})
+        const webglAddon = new WebglAddon()
+        const fitAddon = new FitAddon()
 
-      term.open(terminalRef.current)
+        term.loadAddon(webglAddon)
+        term.loadAddon(fitAddon)
 
-      const addon = new WebglAddon()
+        term.open(e)
 
-      term.onResize((size) => {
-        console.log(size)
-      })
+        term.write('hi')
 
-      term.open(terminalRef.current)
-      term.loadAddon(addon)
+        term.onKey((e) => {
+          term.write(e.key)
+        })
 
-      return () => {
-        addon.dispose()
-        term.dispose()
-      }
-    }
-  }, [])
+        webglAddon.onContextLoss((e) => {
+          webglAddon.dispose()
+        })
 
-  return <div ref={terminalRef} />
+        const resizeObserver = new ResizeObserver(() => {
+          fitAddon.fit()
+        })
+
+        resizeObserver.observe(e)
+
+        return () => {
+          resizeObserver.disconnect()
+          webglAddon.dispose()
+          fitAddon.dispose()
+          term.dispose()
+        }
+      }}
+    />
+  )
 }
