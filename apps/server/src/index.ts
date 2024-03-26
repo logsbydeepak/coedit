@@ -1,9 +1,7 @@
 import { Hono } from 'hono'
+import { usersApp } from './route/user'
 
-const app = new Hono()
+const app = new Hono().route('/user', usersApp)
 
-app.get('/', (c) => {
-  return c.text('Hello Hono!')
-})
-
+export type AppType = typeof app
 export default app
