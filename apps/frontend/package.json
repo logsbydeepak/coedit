@@ -9,7 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@coedit/app-server": "*",
     "@monaco-editor/react": "^4.6.0",
+    "hono": "^4.1.4",
     "lucide-react": "^0.363.0",
     "next": "14.1.4",
     "react": "^18",
@@ -19,8 +21,7 @@
     "xterm": "^5.3.0",
     "xterm-addon-attach": "^0.9.0",
     "xterm-addon-fit": "^0.8.0",
-    "xterm-addon-webgl": "^0.16.0",
-    "@coedit/app-server": "*"
+    "xterm-addon-webgl": "^0.16.0"
   },
   "devDependencies": {
     "typescript": "^5",
