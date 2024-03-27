@@ -8,7 +8,9 @@
     "deploy": "wrangler deploy --minify src/index.ts"
   },
   "dependencies": {
-    "hono": "^4.1.4"
+    "@hono/zod-validator": "^0.2.1",
+    "hono": "^4.1.4",
+    "@coedit/package-zschema": "*"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240208.0",

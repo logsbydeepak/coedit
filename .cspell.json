@@ -1,6 +1,14 @@
 {
   "version": "0.2",
   "language": "en",
-  "words": ["webgl", "coedit", "envman", "outfile", "WORKDIR", "Hono"],
+  "words": [
+    "webgl",
+    "coedit",
+    "envman",
+    "outfile",
+    "WORKDIR",
+    "Hono",
+    "zschema"
+  ],
   "ignorePaths": ["bun.lockb"]
 }
