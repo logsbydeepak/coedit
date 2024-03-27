@@ -5,7 +5,10 @@
   "main": "src/index.ts",
   "scripts": {
     "dev": "wrangler dev src/index.ts",
-    "deploy": "wrangler deploy --minify src/index.ts"
+    "deploy": "wrangler deploy --minify src/index.ts",
+    "db:gen": "drizzle-kit generate:mysql",
+    "db:push": "drizzle-kit push:pg",
+    "db:gen:push": "run-s db:gen db:push"
   },
   "dependencies": {
     "@coedit/package-zschema": "*",
