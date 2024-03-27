@@ -8,12 +8,15 @@
     "deploy": "wrangler deploy --minify src/index.ts"
   },
   "dependencies": {
+    "@coedit/package-zschema": "*",
     "@hono/zod-validator": "^0.2.1",
+    "drizzle-orm": "^0.30.5",
     "hono": "^4.1.4",
-    "@coedit/package-zschema": "*"
+    "postgres": "^3.4.4"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240208.0",
+    "drizzle-kit": "^0.20.14",
     "wrangler": "^3.32.0"
   }
 }
