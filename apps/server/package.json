@@ -13,8 +13,11 @@
   "dependencies": {
     "@coedit/package-zschema": "*",
     "@hono/zod-validator": "^0.2.1",
+    "@types/ms": "^0.7.34",
+    "@upstash/redis": "^1.29.0",
     "drizzle-orm": "^0.30.5",
     "hono": "^4.1.4",
+    "ms": "^2.1.3",
     "postgres": "^3.4.4",
     "resend": "^3.2.0"
   },

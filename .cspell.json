@@ -9,7 +9,8 @@
     "WORKDIR",
     "Hono",
     "zschema",
-    "compat"
+    "compat",
+    "upstash"
   ],
   "ignorePaths": ["bun.lockb"]
 }
