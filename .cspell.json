@@ -10,7 +10,8 @@
     "Hono",
     "zschema",
     "compat",
-    "upstash"
+    "upstash",
+    "ulidx"
   ],
   "ignorePaths": ["bun.lockb"]
 }

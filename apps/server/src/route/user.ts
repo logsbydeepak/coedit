@@ -1,10 +1,13 @@
 import { Hono } from 'hono'
-import { zEmail, zObject } from '@coedit/package-zschema'
+import { zEmail, zNumber, zObject } from '@coedit/package-zschema'
 import { zValidator } from '@hono/zod-validator'
 import { db, dbSchema } from '../db'
 import { eq } from 'drizzle-orm'
 import { resend, redis } from '../lib/config'
 import ms from 'ms'
+import * as jose from 'jose'
+import { setCookie } from 'hono/cookie'
+import { ulid } from 'ulidx'
 
 type ENV = {
   RESEND_API_KEY: string
@@ -12,13 +15,39 @@ type ENV = {
   DB_URL: string
   UPSTASH_REDIS_REST_URL: string
   UPSTASH_REDIS_REST_TOKEN: string
+  JWT_SECRET: string
 }
 
 const zUserEmail = zObject({
   email: zEmail,
 })
 
+const zCode = zObject({
+  email: zEmail,
+  code: zNumber,
+})
+
 const codeGenerator = () => Math.floor(100000 + Math.random() * 900000)
+
+function genExpTime(ExpMs: number) {
+  return Date.now() + ExpMs
+}
+const maxAge = ms('30 days')
+
+const generateAuthToken = async ({
+  JWT_SECRET,
+  userId,
+}: {
+  JWT_SECRET: string
+  userId: string
+}) => {
+  const secret = jose.base64url.decode(JWT_SECRET)
+  return await new jose.EncryptJWT({ userId })
+    .setProtectedHeader({ alg: 'dir', enc: 'A128CBC-HS256' })
+    .setAudience('auth')
+    .setExpirationTime(genExpTime(maxAge))
+    .encrypt(secret)
+}
 
 export const usersApp = new Hono<{
   Bindings: ENV
@@ -28,6 +57,9 @@ export const usersApp = new Hono<{
   })
   .post('/login', zValidator('json', zUserEmail), (c) => {
     return c.text('login')
+  })
+  .post('/login/validate', zValidator('form', zCode), (c) => {
+    return c.text('validate')
   })
   .post('/register', zValidator('json', zUserEmail), async (c) => {
     const input = c.req.valid('json')
@@ -70,4 +102,37 @@ export const usersApp = new Hono<{
     })
 
     return c.json({ success: true })
+  })
+  .post('/register/validate', zValidator('form', zCode), async (c) => {
+    const input = c.req.valid('form')
+
+    const redisClient = redis(c.env)
+    const code = await redisClient.get(`register:${input.email}`)
+
+    if (code === null) {
+      return c.json({ error: 'code expired' })
+    }
+
+    if (code !== input.code) {
+      return c.json({ error: 'code not match' })
+    }
+    await redisClient.del(`register:${input.email}`)
+
+    const userId = ulid()
+    await db(c.env).insert(dbSchema.users).values({
+      id: userId,
+      email: input.email,
+      name: 'Hi',
+    })
+
+    const token = await generateAuthToken({ ...c.env, userId })
+    setCookie(c, 'x-auth', token, {
+      httpOnly: true,
+      path: '/',
+      sameSite: 'Strict',
+      secure: true,
+      maxAge,
+    })
+
+    return c.text('validate')
   })
