@@ -1,4 +1,4 @@
 import { AppType } from '@coedit/app-server'
 import { hc } from 'hono/client'
 
-const apiClient = hc<AppType>('')
+export const apiClient = hc<AppType>('')
