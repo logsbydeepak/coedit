@@ -1,22 +1,13 @@
 import { zEmail, zNumber, zObject } from '@coedit/package-zschema'
 import { zValidator } from '@hono/zod-validator'
-import { db, dbSchema } from '../db'
 import { eq } from 'drizzle-orm'
 import { resend, redis } from '../lib/config'
 import ms from 'ms'
 import * as jose from 'jose'
 import { setCookie } from 'hono/cookie'
 import { ulid } from 'ulidx'
-import { h } from '../utils/h'
-
-type ENV = {
-  RESEND_API_KEY: string
-  RESEND_FROM: string
-  DB_URL: string
-  UPSTASH_REDIS_REST_URL: string
-  UPSTASH_REDIS_REST_TOKEN: string
-  JWT_SECRET: string
-}
+import { h } from '@/utils/h'
+import { db, dbSchema } from '@/db'
 
 const zUserEmail = zObject({
   email: zEmail,
@@ -70,7 +61,7 @@ const generateAuthToken = async ({
     .encrypt(secret)
 }
 
-const login = h().get('/', zValidator('json', zUserEmail), async (c) => {
+const login = h().post('/', zValidator('json', zUserEmail), async (c) => {
   const input = c.req.valid('json')
   const redisClient = redis(c.env)
   const redisRes = await redisClient.exists(`login:${input.email}`)
