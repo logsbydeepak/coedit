@@ -34,6 +34,27 @@ function genExpTime(ExpMs: number) {
 }
 const maxAge = ms('30 days')
 
+const sendAuthEmail = ({
+  RESEND_API_KEY,
+  RESEND_FROM,
+  email,
+  code,
+}: {
+  RESEND_API_KEY: string
+  RESEND_FROM: string
+  email: string
+  code: number
+}) => {
+  return resend({
+    RESEND_API_KEY: RESEND_API_KEY,
+  }).emails.send({
+    from: RESEND_FROM,
+    to: email,
+    subject: `coedit: code ${code}`,
+    text: `coedit: code ${code}`,
+  })
+}
+
 const generateAuthToken = async ({
   JWT_SECRET,
   userId,
@@ -55,11 +76,84 @@ export const usersApp = new Hono<{
   .get('/', (c) => {
     return c.text('ok')
   })
-  .post('/login', zValidator('json', zUserEmail), (c) => {
-    return c.text('login')
+  .post('/login', zValidator('json', zUserEmail), async (c) => {
+    const input = c.req.valid('json')
+
+    const redisClient = redis(c.env)
+    const redisRes = await redisClient.exists(`login:${input.email}`)
+    if (redisRes) {
+      return c.json({
+        error: 'email already sent',
+      })
+    }
+
+    const dbClient = db(c.env)
+    const [user] = await dbClient
+      .select()
+      .from(dbSchema.users)
+      .where(eq(dbSchema.users.email, input.email))
+
+    if (!user) {
+      return c.json({ error: 'user not found' })
+    }
+
+    const code = codeGenerator()
+
+    const { error } = await sendAuthEmail({
+      ...c.env,
+      code,
+      email: input.email,
+    })
+
+    if (error) {
+      throw new Error("can't send email")
+    }
+
+    await redisClient.set(`login:${input.email}`, code, {
+      px: ms('15 minutes'),
+    })
+
+    return c.json({ success: true })
   })
-  .post('/login/validate', zValidator('form', zCode), (c) => {
-    return c.text('validate')
+  .post('/login/validate', zValidator('form', zCode), async (c) => {
+    const input = c.req.valid('form')
+
+    const redisClient = redis(c.env)
+    const code = await redisClient.get(`login:${input.email}`)
+
+    if (code === null) {
+      return c.json({ error: 'code expired' })
+    }
+
+    if (code !== input.code) {
+      return c.json({ error: 'code not match' })
+    }
+    await redisClient.del(`login:${input.email}`)
+
+    const userId = ulid()
+
+    const user = await db(c.env)
+      .select()
+      .from(dbSchema.users)
+      .where(eq(dbSchema.users.email, input.email))
+
+    if (!user) {
+      return c.json({ error: 'user not found' })
+    }
+
+    const token = await generateAuthToken({ ...c.env, userId })
+
+    setCookie(c, 'x-auth', token, {
+      httpOnly: true,
+      path: '/',
+      sameSite: 'Strict',
+      secure: true,
+      maxAge,
+    })
+
+    return c.json({
+      success: true,
+    })
   })
   .post('/register', zValidator('json', zUserEmail), async (c) => {
     const input = c.req.valid('json')
@@ -83,14 +177,10 @@ export const usersApp = new Hono<{
     }
 
     const code = codeGenerator()
-
-    const { error } = await resend({
-      RESEND_API_KEY: c.env.RESEND_API_KEY,
-    }).emails.send({
-      from: c.env.RESEND_FROM,
-      to: input.email,
-      subject: `coedit: code ${code}`,
-      text: `coedit: code ${code}`,
+    const { error } = await sendAuthEmail({
+      ...c.env,
+      code,
+      email: input.email,
     })
 
     if (error) {
@@ -122,10 +212,11 @@ export const usersApp = new Hono<{
     await db(c.env).insert(dbSchema.users).values({
       id: userId,
       email: input.email,
-      name: 'Hi',
+      name: 'test',
     })
 
     const token = await generateAuthToken({ ...c.env, userId })
+
     setCookie(c, 'x-auth', token, {
       httpOnly: true,
       path: '/',
@@ -134,5 +225,7 @@ export const usersApp = new Hono<{
       maxAge,
     })
 
-    return c.text('validate')
+    return c.json({
+      success: true,
+    })
   })
