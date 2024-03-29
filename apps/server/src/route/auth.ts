@@ -1,4 +1,3 @@
-import { Hono } from 'hono'
 import { zEmail, zNumber, zObject } from '@coedit/package-zschema'
 import { zValidator } from '@hono/zod-validator'
 import { db, dbSchema } from '../db'
@@ -8,6 +7,7 @@ import ms from 'ms'
 import * as jose from 'jose'
 import { setCookie } from 'hono/cookie'
 import { ulid } from 'ulidx'
+import { h } from '../utils/h'
 
 type ENV = {
   RESEND_API_KEY: string
@@ -33,12 +33,6 @@ function genExpTime(ExpMs: number) {
   return Date.now() + ExpMs
 }
 const maxAge = ms('30 days')
-
-const app = () => {
-  return new Hono<{
-    Bindings: ENV
-  }>()
-}
 
 const sendAuthEmail = ({
   RESEND_API_KEY,
@@ -76,7 +70,7 @@ const generateAuthToken = async ({
     .encrypt(secret)
 }
 
-const login = app().get('/', zValidator('json', zUserEmail), async (c) => {
+const login = h().get('/', zValidator('json', zUserEmail), async (c) => {
   const input = c.req.valid('json')
   const redisClient = redis(c.env)
   const redisRes = await redisClient.exists(`login:${input.email}`)
@@ -115,7 +109,7 @@ const login = app().get('/', zValidator('json', zUserEmail), async (c) => {
   return c.json({ success: true })
 })
 
-const loginVerify = app().post('/', zValidator('form', zCode), async (c) => {
+const loginVerify = h().post('/', zValidator('form', zCode), async (c) => {
   const input = c.req.valid('form')
 
   const redisClient = redis(c.env)
@@ -156,7 +150,7 @@ const loginVerify = app().post('/', zValidator('form', zCode), async (c) => {
   })
 })
 
-const register = app().post('/', zValidator('json', zUserEmail), async (c) => {
+const register = h().post('/', zValidator('json', zUserEmail), async (c) => {
   const input = c.req.valid('json')
 
   const redisClient = redis(c.env)
@@ -195,7 +189,7 @@ const register = app().post('/', zValidator('json', zUserEmail), async (c) => {
   return c.json({ success: true })
 })
 
-const registerVerify = app().post('/', zValidator('form', zCode), async (c) => {
+const registerVerify = h().post('/', zValidator('form', zCode), async (c) => {
   const input = c.req.valid('form')
 
   const redisClient = redis(c.env)
@@ -232,7 +226,7 @@ const registerVerify = app().post('/', zValidator('form', zCode), async (c) => {
   })
 })
 
-export const authRoute = app()
+export const authRoute = h()
   .route('/login', login)
   .route('/register', register)
   .route('/login/verify', loginVerify)

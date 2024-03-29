@@ -1,8 +1,8 @@
-import { Hono } from 'hono'
-import { usersApp } from './route/user'
+import { userRoute } from './route/user'
 import { authRoute } from './route/auth'
+import { h } from './utils/h'
 
-const app = new Hono().route('/user', usersApp).route('/auth', authRoute)
+const app = h().route('/user', userRoute).route('/auth', authRoute)
 
 export type AppType = typeof app
 export default app
