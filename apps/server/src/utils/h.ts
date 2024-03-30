@@ -1,6 +1,8 @@
 import { Hono } from 'hono'
+import { checkIsAuth } from './auth'
+import { HTTPException } from 'hono/http-exception'
 
-type ENV = {
+export type ENV = {
   RESEND_API_KEY: string
   RESEND_FROM: string
   DB_URL: string
@@ -13,6 +15,28 @@ export const h = () => {
   return new Hono<{
     Bindings: ENV
   }>()
+}
+
+export const hAuth = () => {
+  return new Hono<{
+    Bindings: ENV
+    Variables: {
+      'x-userId': string
+    }
+  }>().use(async (c, next) => {
+    const authToken = c.req.header('x-auth')
+    const isAuth = await checkIsAuth(c.env, authToken)
+
+    if (isAuth.code !== 'OK') {
+      const errorResponse = new Response('Unauthorized', {
+        status: 401,
+      })
+      throw new HTTPException(401, { res: errorResponse })
+    }
+
+    c.set('x-userId', isAuth.userId)
+    await next()
+  })
 }
 
 type Prettify<T> = {
