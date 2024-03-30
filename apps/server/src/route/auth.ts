@@ -154,10 +154,12 @@ const registerVerify = h().post('/', zValidator('form', zCode), async (c) => {
   }
 
   const userId = ulid()
+  const name = input.email.split('@')[0]
+
   const user = await db(c.env).insert(dbSchema.users).values({
     id: userId,
     email: input.email,
-    name: 'test',
+    name,
   })
   if (!user) {
     throw new Error("can't create user")
