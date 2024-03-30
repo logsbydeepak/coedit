@@ -1,6 +1,9 @@
 import * as jose from 'jose'
 import { ENV, r } from './h'
-import { redis } from '@/lib/config'
+import { redis, resend } from '@/lib/config'
+import ms from 'ms'
+import { setCookie } from 'hono/cookie'
+import { Context } from 'hono'
 
 export async function checkIsAuth(env: ENV, token?: string) {
   try {
@@ -22,4 +25,57 @@ export async function checkIsAuth(env: ENV, token?: string) {
   } catch (error) {
     return r('ERROR')
   }
+}
+
+export const codeGenerator = () => Math.floor(100000 + Math.random() * 900000)
+
+function genExpTime(ExpMs: number) {
+  return Date.now() + ExpMs
+}
+const maxAge = ms('30 days')
+
+export const sendAuthEmail = (
+  env: ENV,
+  {
+    email,
+    code,
+  }: {
+    email: string
+    code: number
+  }
+) => {
+  const text = `coedit: code ${code}`
+  return resend({
+    RESEND_API_KEY: env.RESEND_API_KEY,
+  }).emails.send({
+    from: env.RESEND_FROM,
+    to: email,
+    subject: text,
+    text,
+  })
+}
+
+export const generateAuthToken = async ({
+  JWT_SECRET,
+  userId,
+}: {
+  JWT_SECRET: string
+  userId: string
+}) => {
+  const secret = jose.base64url.decode(JWT_SECRET)
+  return await new jose.EncryptJWT({ userId })
+    .setProtectedHeader({ alg: 'dir', enc: 'A128CBC-HS256' })
+    .setAudience('auth')
+    .setExpirationTime(genExpTime(maxAge))
+    .encrypt(secret)
+}
+
+export const setAuthCookie = (c: Context, token: string) => {
+  setCookie(c, 'x-auth', token, {
+    httpOnly: true,
+    path: '/',
+    sameSite: 'Strict',
+    secure: true,
+    maxAge,
+  })
 }

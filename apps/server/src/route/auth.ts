@@ -1,13 +1,17 @@
 import { zEmail, zNumber, zObject } from '@coedit/package-zschema'
 import { zValidator } from '@hono/zod-validator'
 import { eq } from 'drizzle-orm'
-import { resend, redis } from '../lib/config'
+import { redis } from '@/lib/config'
 import ms from 'ms'
-import * as jose from 'jose'
-import { setCookie } from 'hono/cookie'
 import { ulid } from 'ulidx'
-import { h } from '@/utils/h'
 import { db, dbSchema } from '@/db'
+import {
+  codeGenerator,
+  generateAuthToken,
+  sendAuthEmail,
+  setAuthCookie,
+} from '@/utils/auth'
+import { h } from '@/utils/h'
 
 const zUserEmail = zObject({
   email: zEmail,
@@ -17,49 +21,6 @@ const zCode = zObject({
   email: zEmail,
   code: zNumber,
 })
-
-const codeGenerator = () => Math.floor(100000 + Math.random() * 900000)
-
-function genExpTime(ExpMs: number) {
-  return Date.now() + ExpMs
-}
-const maxAge = ms('30 days')
-
-const sendAuthEmail = ({
-  RESEND_API_KEY,
-  RESEND_FROM,
-  email,
-  code,
-}: {
-  RESEND_API_KEY: string
-  RESEND_FROM: string
-  email: string
-  code: number
-}) => {
-  return resend({
-    RESEND_API_KEY: RESEND_API_KEY,
-  }).emails.send({
-    from: RESEND_FROM,
-    to: email,
-    subject: `coedit: code ${code}`,
-    text: `coedit: code ${code}`,
-  })
-}
-
-const generateAuthToken = async ({
-  JWT_SECRET,
-  userId,
-}: {
-  JWT_SECRET: string
-  userId: string
-}) => {
-  const secret = jose.base64url.decode(JWT_SECRET)
-  return await new jose.EncryptJWT({ userId })
-    .setProtectedHeader({ alg: 'dir', enc: 'A128CBC-HS256' })
-    .setAudience('auth')
-    .setExpirationTime(genExpTime(maxAge))
-    .encrypt(secret)
-}
 
 const login = h().post('/', zValidator('json', zUserEmail), async (c) => {
   const input = c.req.valid('json')
@@ -83,8 +44,7 @@ const login = h().post('/', zValidator('json', zUserEmail), async (c) => {
 
   const code = codeGenerator()
 
-  const { error } = await sendAuthEmail({
-    ...c.env,
+  const { error } = await sendAuthEmail(c.env, {
     code,
     email: input.email,
   })
@@ -127,14 +87,7 @@ const loginVerify = h().post('/', zValidator('form', zCode), async (c) => {
   }
 
   const token = await generateAuthToken({ ...c.env, userId })
-
-  setCookie(c, 'x-auth', token, {
-    httpOnly: true,
-    path: '/',
-    sameSite: 'Strict',
-    secure: true,
-    maxAge,
-  })
+  setAuthCookie(c, token)
 
   return c.json({
     success: true,
@@ -163,8 +116,7 @@ const register = h().post('/', zValidator('json', zUserEmail), async (c) => {
   }
 
   const code = codeGenerator()
-  const { error } = await sendAuthEmail({
-    ...c.env,
+  const { error } = await sendAuthEmail(c.env, {
     code,
     email: input.email,
   })
@@ -203,14 +155,7 @@ const registerVerify = h().post('/', zValidator('form', zCode), async (c) => {
   })
 
   const token = await generateAuthToken({ ...c.env, userId })
-
-  setCookie(c, 'x-auth', token, {
-    httpOnly: true,
-    path: '/',
-    sameSite: 'Strict',
-    secure: true,
-    maxAge,
-  })
+  setAuthCookie(c, token)
 
   return c.json({
     success: true,
