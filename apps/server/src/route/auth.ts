@@ -1,4 +1,4 @@
-import { zEmail, zNumber, zObject } from '@coedit/package-zschema'
+import { zEmail, zObject, zReqString } from '@coedit/package-zschema'
 import { zValidator } from '@hono/zod-validator'
 import { eq } from 'drizzle-orm'
 import { redis } from '@/lib/config'
@@ -11,7 +11,7 @@ import {
   sendAuthEmail,
   setAuthCookie,
 } from '@/utils/auth'
-import { h } from '@/utils/h'
+import { h, r } from '@/utils/h'
 
 const zUserEmail = zObject({
   email: zEmail,
@@ -19,17 +19,16 @@ const zUserEmail = zObject({
 
 const zCode = zObject({
   email: zEmail,
-  code: zNumber,
+  code: zReqString,
 })
 
 const login = h().post('/', zValidator('json', zUserEmail), async (c) => {
   const input = c.req.valid('json')
   const redisClient = redis(c.env)
-  const redisRes = await redisClient.exists(`login:${input.email}`)
-  if (redisRes) {
-    return c.json({
-      error: 'email already sent',
-    })
+
+  const isCodeSent = await redisClient.exists(`login:${input.email}`)
+  if (isCodeSent) {
+    return c.json(r('EMAIL_ALREADY_SENT'))
   }
 
   const dbClient = db(c.env)
@@ -39,11 +38,10 @@ const login = h().post('/', zValidator('json', zUserEmail), async (c) => {
     .where(eq(dbSchema.users.email, input.email))
 
   if (!user) {
-    return c.json({ error: 'user not found' })
+    return c.json(r('USER_NOT_FOUND'))
   }
 
   const code = codeGenerator()
-
   const { error } = await sendAuthEmail(c.env, {
     code,
     email: input.email,
@@ -53,66 +51,67 @@ const login = h().post('/', zValidator('json', zUserEmail), async (c) => {
     throw new Error("can't send email")
   }
 
-  await redisClient.set(`login:${input.email}`, code, {
+  const addToSendList = await redisClient.set(`login:${input.email}`, code, {
     px: ms('15 minutes'),
   })
+  if (addToSendList !== 'OK') {
+    throw new Error("can't set redis key")
+  }
 
-  return c.json({ success: true })
+  return c.json(r('OK'))
 })
 
 const loginVerify = h().post('/', zValidator('form', zCode), async (c) => {
   const input = c.req.valid('form')
 
   const redisClient = redis(c.env)
-  const code = await redisClient.get(`login:${input.email}`)
-
-  if (code === null) {
-    return c.json({ error: 'code expired' })
+  const code = await redisClient.get<string>(`login:${input.email}`)
+  if (!code) {
+    return c.json(r('CODE_EXPIRED'))
   }
 
   if (code !== input.code) {
-    return c.json({ error: 'code not match' })
+    return c.json(r('CODE_NOT_MATCH'))
   }
-  await redisClient.del(`login:${input.email}`)
+
+  const deleteCode = await redisClient.del(`login:${input.email}`)
+  if (!deleteCode) {
+    throw new Error("can't delete redis key")
+  }
 
   const userId = ulid()
-
-  const user = await db(c.env)
+  const [user] = await db(c.env)
     .select()
     .from(dbSchema.users)
     .where(eq(dbSchema.users.email, input.email))
 
   if (!user) {
-    return c.json({ error: 'user not found' })
+    return c.json(r('USER_NOT_FOUND'))
   }
 
   const token = await generateAuthToken({ ...c.env, userId })
   setAuthCookie(c, token)
 
-  return c.json({
-    success: true,
-  })
+  return c.json(r('OK'))
 })
 
 const register = h().post('/', zValidator('json', zUserEmail), async (c) => {
   const input = c.req.valid('json')
 
   const redisClient = redis(c.env)
-  const redisRes = await redisClient.exists(`register${input.email}`)
-  if (redisRes) {
-    return c.json({
-      error: 'email already sent',
-    })
+
+  const isCodeSent = await redisClient.exists(`register:${input.email}`)
+  if (isCodeSent) {
+    return c.json(r('EMAIL_ALREADY_SENT'))
   }
 
-  const dbClient = db(c.env)
-  const isUserExist = await dbClient
+  const [user] = await db(c.env)
     .select()
     .from(dbSchema.users)
     .where(eq(dbSchema.users.email, input.email))
 
-  if (isUserExist.length !== 0) {
-    return c.json({ error: 'user already exist' })
+  if (user) {
+    return c.json(r('USER_ALREADY_EXIST'))
   }
 
   const code = codeGenerator()
@@ -125,41 +124,49 @@ const register = h().post('/', zValidator('json', zUserEmail), async (c) => {
     throw new Error("can't send email")
   }
 
-  await redisClient.set(`register:${input.email}`, code, {
+  const addToSendList = await redisClient.set(`register:${input.email}`, code, {
     px: ms('15 minutes'),
   })
+  if (addToSendList !== 'OK') {
+    throw new Error("can't set redis key")
+  }
 
-  return c.json({ success: true })
+  return c.json(r('OK'))
 })
 
 const registerVerify = h().post('/', zValidator('form', zCode), async (c) => {
   const input = c.req.valid('form')
 
   const redisClient = redis(c.env)
-  const code = await redisClient.get(`register:${input.email}`)
 
-  if (code === null) {
-    return c.json({ error: 'code expired' })
+  const code = await redisClient.get<string>(`register:${input.email}`)
+  if (!code) {
+    return c.json(r('CODE_EXPIRED'))
   }
 
   if (code !== input.code) {
-    return c.json({ error: 'code not match' })
+    return c.json(r('CODE_NOT_MATCH'))
   }
-  await redisClient.del(`register:${input.email}`)
+
+  const deleteCode = await redisClient.del(`register:${input.email}`)
+  if (!deleteCode) {
+    throw new Error("can't delete redis key")
+  }
 
   const userId = ulid()
-  await db(c.env).insert(dbSchema.users).values({
+  const user = await db(c.env).insert(dbSchema.users).values({
     id: userId,
     email: input.email,
     name: 'test',
   })
+  if (!user) {
+    throw new Error("can't create user")
+  }
 
   const token = await generateAuthToken({ ...c.env, userId })
   setAuthCookie(c, token)
 
-  return c.json({
-    success: true,
-  })
+  return c.json(r('OK'))
 })
 
 export const authRoute = h()

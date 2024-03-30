@@ -3,7 +3,12 @@ import { ENV, r } from './h'
 import { redis, resend } from '@/lib/config'
 import ms from 'ms'
 import { setCookie } from 'hono/cookie'
+
 import { Context } from 'hono'
+function genExpTime(ExpMs: number) {
+  return Date.now() + ExpMs
+}
+const maxAge = ms('30 days')
 
 export async function checkIsAuth(env: ENV, token?: string) {
   try {
@@ -28,11 +33,6 @@ export async function checkIsAuth(env: ENV, token?: string) {
 }
 
 export const codeGenerator = () => Math.floor(100000 + Math.random() * 900000)
-
-function genExpTime(ExpMs: number) {
-  return Date.now() + ExpMs
-}
-const maxAge = ms('30 days')
 
 export const sendAuthEmail = (
   env: ENV,
