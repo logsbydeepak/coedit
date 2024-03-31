@@ -70,22 +70,31 @@ export const generateAuthToken = async ({
     .encrypt(secret)
 }
 
-export const setAuthCookie = (c: Context, token: string) => {
+export const setAuthCookie = (
+  c: Context<{
+    Bindings: ENV
+  }>,
+  token: string
+) => {
   setCookie(c, 'x-auth', token, {
     httpOnly: true,
     path: '/',
     sameSite: 'Strict',
-    secure: true,
+    secure: c.env.RUNTIME === 'production',
     maxAge,
   })
 }
 
-export const removeAuthCookie = (c: Context) => {
+export const removeAuthCookie = (
+  c: Context<{
+    Bindings: ENV
+  }>
+) => {
   setCookie(c, 'x-auth', '', {
     httpOnly: true,
     path: '/',
     sameSite: 'Strict',
-    secure: true,
+    secure: c.env.RUNTIME === 'production',
     maxAge: 0,
   })
 }

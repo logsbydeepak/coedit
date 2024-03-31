@@ -10,6 +10,7 @@ export type ENV = {
   UPSTASH_REDIS_REST_URL: string
   UPSTASH_REDIS_REST_TOKEN: string
   JWT_SECRET: string
+  RUNTIME: 'deployment' | 'production'
 }
 
 export const h = () => {
