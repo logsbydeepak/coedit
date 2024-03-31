@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { checkIsAuth } from './auth'
 import { HTTPException } from 'hono/http-exception'
 import { secureHeaders } from 'hono/secure-headers'
+import { cors } from 'hono/cors'
 
 export type ENV = {
   RESEND_API_KEY: string
@@ -16,7 +17,9 @@ export type ENV = {
 export const h = () => {
   return new Hono<{
     Bindings: ENV
-  }>().use(secureHeaders())
+  }>()
+    .use(cors())
+    .use(secureHeaders())
 }
 
 export const hAuth = () => {
@@ -27,6 +30,7 @@ export const hAuth = () => {
       'x-auth': string
     }
   }>()
+    .use(cors())
     .use(secureHeaders())
     .use(async (c, next) => {
       const authToken = c.req.header('x-auth')

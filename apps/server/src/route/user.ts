@@ -1,10 +1,10 @@
-import { db, dbSchema } from '@/db'
-import { redis } from '@/lib/config'
-import { removeAuthCookie } from '@/utils/auth'
-import { hAuth, r } from '@/utils/h'
+import { db, dbSchema } from '../db'
+import { redis } from '../lib/config'
+import { removeAuthCookie } from '../utils/auth'
+import { h, hAuth, r } from '../utils/h'
 import { eq } from 'drizzle-orm'
 
-export const userRoute = hAuth().get('/', async (c) => {
+const user = hAuth().get('/', async (c) => {
   const userId = c.get('x-userId')
 
   const [user] = await db(c.env)
@@ -23,12 +23,14 @@ export const userRoute = hAuth().get('/', async (c) => {
   )
 })
 
-export const logout = hAuth().patch('/', async (c) => {
-  const userId = c.get('x-userId')
-  const token = c.get('x-auth')
-  const redisRes = await redis(c.env).set(`logout:${token}`, userId)
-  if (redisRes !== 'OK') throw new Error('Failed to set logout token in redis')
+// const logout = hAuth().patch('/', async (c) => {
+//   const userId = c.get('x-userId')
+//   const token = c.get('x-auth')
+//   const redisRes = await redis(c.env).set(`logout:${token}`, userId)
+//   if (redisRes !== 'OK') throw new Error('Failed to set logout token in redis')
 
-  removeAuthCookie(c)
-  return c.json(r('OK'))
-})
+//   removeAuthCookie(c)
+//   return c.json(r('OK'))
+// })
+
+export const userRoute = h().route('/', user)

@@ -1,6 +1,6 @@
 import * as jose from 'jose'
 import { ENV, r } from './h'
-import { redis, resend } from '@/lib/config'
+import { redis, resend } from '../lib/config'
 import ms from 'ms'
 import { setCookie } from 'hono/cookie'
 

@@ -1,17 +1,17 @@
 import { zEmail, zObject, zReqString } from '@coedit/package-zschema'
 import { zValidator } from '@hono/zod-validator'
 import { eq } from 'drizzle-orm'
-import { redis } from '@/lib/config'
+import { redis } from '../lib/config'
 import ms from 'ms'
 import { ulid } from 'ulidx'
-import { db, dbSchema } from '@/db'
+import { db, dbSchema } from '../db'
 import {
   codeGenerator,
   generateAuthToken,
   sendAuthEmail,
   setAuthCookie,
-} from '@/utils/auth'
-import { h, r } from '@/utils/h'
+} from '../utils/auth'
+import { h, r } from '../utils/h'
 
 const zUserEmail = zObject({
   email: zEmail,
