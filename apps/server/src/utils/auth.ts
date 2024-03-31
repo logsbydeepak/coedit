@@ -79,3 +79,13 @@ export const setAuthCookie = (c: Context, token: string) => {
     maxAge,
   })
 }
+
+export const removeAuthCookie = (c: Context) => {
+  setCookie(c, 'x-auth', '', {
+    httpOnly: true,
+    path: '/',
+    sameSite: 'Strict',
+    secure: true,
+    maxAge: 0,
+  })
+}

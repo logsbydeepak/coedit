@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { checkIsAuth } from './auth'
 import { HTTPException } from 'hono/http-exception'
+import { secureHeaders } from 'hono/secure-headers'
 
 export type ENV = {
   RESEND_API_KEY: string
@@ -14,7 +15,7 @@ export type ENV = {
 export const h = () => {
   return new Hono<{
     Bindings: ENV
-  }>()
+  }>().use(secureHeaders())
 }
 
 export const hAuth = () => {
@@ -22,21 +23,25 @@ export const hAuth = () => {
     Bindings: ENV
     Variables: {
       'x-userId': string
+      'x-auth': string
     }
-  }>().use(async (c, next) => {
-    const authToken = c.req.header('x-auth')
-    const isAuth = await checkIsAuth(c.env, authToken)
+  }>()
+    .use(secureHeaders())
+    .use(async (c, next) => {
+      const authToken = c.req.header('x-auth')
+      const isAuth = await checkIsAuth(c.env, authToken)
 
-    if (isAuth.code !== 'OK') {
-      const errorResponse = new Response('Unauthorized', {
-        status: 401,
-      })
-      throw new HTTPException(401, { res: errorResponse })
-    }
+      if (isAuth.code !== 'OK') {
+        const errorResponse = new Response('Unauthorized', {
+          status: 401,
+        })
+        throw new HTTPException(401, { res: errorResponse })
+      }
 
-    c.set('x-userId', isAuth.userId)
-    await next()
-  })
+      c.set('x-userId', isAuth.userId)
+      c.set('x-auth', isAuth.token)
+      await next()
+    })
 }
 
 type Prettify<T> = {
