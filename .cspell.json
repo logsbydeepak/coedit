@@ -11,7 +11,8 @@
     "zschema",
     "compat",
     "upstash",
-    "ulidx"
+    "ulidx",
+    "jiti"
   ],
   "ignorePaths": ["bun.lockb"]
 }
