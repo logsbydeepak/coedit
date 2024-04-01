@@ -17,5 +17,9 @@ export default function Layout({ children }: React.PropsWithChildren) {
     return null
   }
 
-  return children
+  return (
+    <div className="absolute flex min-h-full w-full items-center justify-center">
+      <div className="flex flex-col space-y-4 w-96 p-6">{children}</div>
+    </div>
+  )
 }

@@ -6,6 +6,10 @@
   html {
     color-scheme: dark;
   }
+
+  svg {
+    @apply size-full;
+  }
 }
 
 @layer base {
