@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { cn } from '@/utils/style'
 import { QueryProvider } from '@/components/provider'
+import { Provider } from 'jotai'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -19,7 +20,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={cn(inter.className, 'bg-gray-2 text-gray-12')}>
-        <QueryProvider>{children}</QueryProvider>
+        <QueryProvider>
+          <Provider>{children}</Provider>
+        </QueryProvider>
       </body>
     </html>
   )

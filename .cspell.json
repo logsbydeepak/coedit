@@ -12,7 +12,8 @@
     "compat",
     "upstash",
     "ulidx",
-    "jiti"
+    "jiti",
+    "zustand"
   ],
   "ignorePaths": ["bun.lockb"]
 }

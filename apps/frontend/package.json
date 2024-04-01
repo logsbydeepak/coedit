@@ -15,6 +15,7 @@
     "@tanstack/react-query": "^5.28.9",
     "add": "^2.0.6",
     "hono": "^4.1.4",
+    "jotai": "^2.7.2",
     "lucide-react": "^0.363.0",
     "next": "14.1.4",
     "react": "^18",
@@ -25,7 +26,8 @@
     "xterm-addon-attach": "^0.9.0",
     "xterm-addon-fit": "^0.8.0",
     "xterm-addon-webgl": "^0.16.0",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "typescript": "^5",

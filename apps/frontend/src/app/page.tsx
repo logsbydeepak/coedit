@@ -1,13 +1,17 @@
 'use client'
 
-import { apiClient } from '@/utils/hc'
-import { useQuery } from '@tanstack/react-query'
+import HomePage from '@/app/home/page'
+import AppPage from '@/app/(app)/app/page'
+import { useAtomValue } from 'jotai'
+import React from 'react'
+import { isAuthAtom } from '@/store'
 
-export default function Home() {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['user'],
-    queryFn: apiClient.user.$get,
-  })
+export default function Page() {
+  const isAuth = useAtomValue(isAuthAtom)
 
-  return <h1>hi</h1>
+  if (isAuth) {
+    return <AppPage />
+  }
+
+  return <HomePage />
 }
