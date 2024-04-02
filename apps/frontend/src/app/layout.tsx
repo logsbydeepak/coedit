@@ -22,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={cn(inter.className, 'bg-gray-1 text-gray-12')}>
+      <body className={cn(inter.className, 'bg-gray-2 text-gray-12')}>
         <QueryProvider>
           <Provider>{children}</Provider>
         </QueryProvider>

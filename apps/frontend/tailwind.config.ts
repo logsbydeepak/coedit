@@ -16,7 +16,7 @@ const colorNumber = [
   '12',
 ]
 
-const colorName = ['gray', 'blue']
+const colorName = ['gray', 'blue', 'iris', 'sage', 'red']
 
 const newColor: { [key: string]: { [key: string]: string } } = {}
 

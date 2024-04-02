@@ -4,6 +4,7 @@ import React from 'react'
 import { useRouter } from 'next/navigation'
 import { useAtomValue } from 'jotai'
 
+import { LogoIcon } from '#/components/icons/logo'
 import { isAuthAtom } from '#/store'
 
 export default function Layout({ children }: React.PropsWithChildren) {
@@ -20,7 +21,13 @@ export default function Layout({ children }: React.PropsWithChildren) {
 
   return (
     <div className="absolute flex min-h-full w-full items-center justify-center">
-      <div className="flex flex-col space-y-4 w-96 p-6">{children}</div>
+      <div className="flex flex-col space-y-4 w-96 p-6 border-gray-1">
+        <div className="flex justify-center">
+          <LogoIcon className="text-sage-9 size-10" />
+        </div>
+
+        {children}
+      </div>
     </div>
   )
 }

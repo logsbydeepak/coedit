@@ -1,11 +1,13 @@
 'use client'
 
+import Link from 'next/link'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { Head } from '#/components/head'
+import { LogoIcon } from '#/components/icons/logo'
 import { Button } from '#/components/ui/button'
 import {
   FormError,
@@ -50,7 +52,8 @@ export default function Page() {
   return (
     <>
       <Head title="Register" />
-      <Heading>Register</Heading>
+
+      <Heading>Create new account</Heading>
       <FormRoot onSubmit={handleSubmit(onSubmit)} className="space-y-5 w-full">
         <FormFieldset className="space-y-2.5" disabled={isPending}>
           <FormLabel htmlFor="email">Email</FormLabel>
@@ -63,11 +66,21 @@ export default function Page() {
           <FormError>{errors.email?.message}</FormError>
         </FormFieldset>
         <FormFieldset disabled={isPending}>
-          <Button type="submit" className="w-full" isLoading={isPending}>
-            Submit
+          <Button
+            type="submit"
+            className="w-full font-mono"
+            isLoading={isPending}
+          >
+            Continue
           </Button>
         </FormFieldset>
       </FormRoot>
+      <Link
+        href="/login"
+        className="text-center text-sm font-medium text-gray-11 hover:text-gray-12"
+      >
+        Login?
+      </Link>
     </>
   )
 }

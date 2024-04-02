@@ -1,5 +1,5 @@
 import React from 'react'
-import { XCircleIcon } from 'lucide-react'
+import { XIcon } from 'lucide-react'
 
 import { cn } from '#/utils/style'
 
@@ -21,7 +21,7 @@ const FormInput = React.forwardRef<
     ref={ref}
     {...props}
     className={cn(
-      'mb-2 mt-0.5 w-full rounded-md border border-gray-4 px-3 py-1 ring-offset-4 ring-offset-black placeholder:text-sm placeholder:text-gray-11 focus-visible:border-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-9 disabled:text-gray-9',
+      'w-full rounded-md px-3 py-1.5 focus:outline-sage-9 bg-gray-1 border border-gray-4 placeholder:text-gray-9',
       className
     )}
   />
@@ -47,10 +47,10 @@ const FormError = React.forwardRef<
       <p
         {...props}
         ref={ref}
-        className="inline-flex items-center rounded-full bg-red-2 px-2 py-0.5 text-xs font-medium text-red-11"
+        className="inline-flex items-center rounded-full text-xs font-medium text-red-11"
       >
-        <span className="mr-1 size-2">
-          <XCircleIcon strokeWidth={3} />
+        <span className="mr-1 size-3">
+          <XIcon strokeWidth={3} />
         </span>
         {children}
       </p>
