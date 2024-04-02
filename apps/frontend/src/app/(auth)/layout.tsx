@@ -1,9 +1,10 @@
 'use client'
 
-import { isAuthAtom } from '@/store'
-import { useAtomValue } from 'jotai'
-import { useRouter } from 'next/navigation'
 import React from 'react'
+import { useRouter } from 'next/navigation'
+import { useAtomValue } from 'jotai'
+
+import { isAuthAtom } from '#/store'
 
 export default function Layout({ children }: React.PropsWithChildren) {
   const isAuth = useAtomValue(isAuthAtom)

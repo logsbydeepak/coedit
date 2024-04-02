@@ -1,8 +1,7 @@
-import { db, dbSchema } from '../db'
-import { redis } from '../lib/config'
-import { removeAuthCookie } from '../utils/auth'
-import { h, hAuth, r } from '../utils/h'
 import { eq } from 'drizzle-orm'
+
+import { db, dbSchema } from '#/db'
+import { h, hAuth, r } from '#/utils/h'
 
 const user = hAuth().get('/', async (c) => {
   const userId = c.get('x-userId')

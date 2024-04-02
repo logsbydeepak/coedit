@@ -1,11 +1,12 @@
 'use client'
 
+import dynamic from 'next/dynamic'
+
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from '@/components/ui/resizable'
-import dynamic from 'next/dynamic'
+} from '#/components/ui/resizable'
 
 const Editor = dynamic(() => import('./editor'), { ssr: false })
 const Terminal = dynamic(() => import('./terminal'), { ssr: false })

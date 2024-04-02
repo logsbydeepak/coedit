@@ -1,5 +1,5 @@
-import { WebSocket } from 'ws'
 import { spawn } from 'node-pty'
+import { WebSocket } from 'ws'
 
 const wss = new WebSocket.Server({ port: 3001 })
 

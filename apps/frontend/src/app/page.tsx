@@ -1,10 +1,11 @@
 'use client'
 
-import HomePage from '@/app/home/page'
-import AppPage from '@/app/(app)/app/page'
-import { useAtomValue } from 'jotai'
 import React from 'react'
-import { isAuthAtom } from '@/store'
+import { useAtomValue } from 'jotai'
+
+import AppPage from '#/app/(app)/app/page'
+import HomePage from '#/app/home/page'
+import { isAuthAtom } from '#/store'
 
 export default function Page() {
   const isAuth = useAtomValue(isAuthAtom)

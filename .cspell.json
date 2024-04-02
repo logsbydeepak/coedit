@@ -13,7 +13,8 @@
     "upstash",
     "ulidx",
     "jiti",
-    "zustand"
+    "zustand",
+    "ianvs"
   ],
   "ignorePaths": ["bun.lockb"]
 }

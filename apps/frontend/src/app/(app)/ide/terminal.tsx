@@ -1,10 +1,11 @@
 'use client'
+
 import 'xterm/css/xterm.css'
 
 import React from 'react'
 import { Terminal } from 'xterm'
-import { WebglAddon } from 'xterm-addon-webgl'
 import { FitAddon } from 'xterm-addon-fit'
+import { WebglAddon } from 'xterm-addon-webgl'
 
 export default function Term() {
   return (

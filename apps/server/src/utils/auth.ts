@@ -1,10 +1,12 @@
-import * as jose from 'jose'
-import { ENV, r } from './h'
-import { redis, resend } from '../lib/config'
-import ms from 'ms'
-import { setCookie } from 'hono/cookie'
-
 import { Context } from 'hono'
+import { setCookie } from 'hono/cookie'
+import * as jose from 'jose'
+import ms from 'ms'
+
+import { redis, resend } from '#/lib/config'
+
+import { ENV, r } from './h'
+
 function genExpTime(ExpMs: number) {
   return Date.now() + ExpMs
 }
@@ -45,9 +47,11 @@ export const sendAuthEmail = (
   }
 ) => {
   const text = `coedit: code ${code}`
-  return resend({
+  const resendClient = resend({
     RESEND_API_KEY: env.RESEND_API_KEY,
-  }).emails.send({
+  })
+
+  return resendClient.emails.send({
     from: env.RESEND_FROM,
     to: email,
     subject: text,

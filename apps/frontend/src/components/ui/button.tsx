@@ -2,7 +2,7 @@ import React from 'react'
 import { cva, type VariantProps } from 'cva'
 import { LoaderIcon } from 'lucide-react'
 
-import { cn } from '@/utils/style'
+import { cn } from '#/utils/style'
 
 export const buttonStyle = cva({
   base: 'flex items-center justify-center space-x-1.5 rounded-lg border border-transparent px-4 py-2.5 text-sm font-medium text-gray-12 ring-offset-gray-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',

@@ -1,6 +1,7 @@
 'use client'
-import { Head } from '@/components/head'
-import { Heading } from '../_component'
+
+import { Heading } from '#/_component'
+import { Head } from '#/components/head'
 
 export default function Page() {
   return (

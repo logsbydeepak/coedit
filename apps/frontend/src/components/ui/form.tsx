@@ -1,7 +1,7 @@
 import React from 'react'
 import { XCircleIcon } from 'lucide-react'
 
-import { cn } from '@/utils/style'
+import { cn } from '#/utils/style'
 
 const FormRoot = React.forwardRef<
   HTMLFormElement,

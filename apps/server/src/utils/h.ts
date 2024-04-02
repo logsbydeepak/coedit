@@ -1,8 +1,9 @@
 import { Hono } from 'hono'
-import { checkIsAuth } from './auth'
+import { cors } from 'hono/cors'
 import { HTTPException } from 'hono/http-exception'
 import { secureHeaders } from 'hono/secure-headers'
-import { cors } from 'hono/cors'
+
+import { checkIsAuth } from './auth'
 
 export type ENV = {
   RESEND_API_KEY: string

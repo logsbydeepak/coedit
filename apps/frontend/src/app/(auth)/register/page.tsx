@@ -1,20 +1,22 @@
 'use client'
 
-import { Head } from '@/components/head'
-import { Heading } from '../_component'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation } from '@tanstack/react-query'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+
+import { Head } from '#/components/head'
+import { Button } from '#/components/ui/button'
 import {
   FormError,
   FormFieldset,
   FormInput,
   FormLabel,
   FormRoot,
-} from '@/components/ui/form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { Button } from '@/components/ui/button'
-import { useMutation } from '@tanstack/react-query'
-import { apiClient } from '@/utils/hc'
+} from '#/components/ui/form'
+import { apiClient } from '#/utils/hc'
+
+import { Heading } from '../_component'
 
 const zSchema = z.object({
   email: z.string().email(),
