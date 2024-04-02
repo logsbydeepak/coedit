@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm'
 import ms from 'ms'
 import { ulid } from 'ulidx'
 
-import { zEmail, zObject, zReqString } from '@coedit/package-zschema'
+import { zEmail, zObject, zReqString } from '@coedit/zschema'
 
 import { db, dbSchema } from '#/db'
 import { redis } from '#/lib/config'

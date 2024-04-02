@@ -1,5 +1,5 @@
 {
-  "name": "@coedit/package-zschema",
+  "name": "@coedit/zschema",
   "private": true,
   "version": "1.0.0",
   "main": "./index.ts",

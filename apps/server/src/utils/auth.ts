@@ -36,7 +36,7 @@ export async function checkIsAuth(env: ENV, token?: string) {
 
 export const codeGenerator = () => Math.floor(100000 + Math.random() * 900000)
 
-export const sendAuthEmail = (
+export function sendAuthEmail(
   env: ENV,
   {
     email,
@@ -45,7 +45,7 @@ export const sendAuthEmail = (
     email: string
     code: number
   }
-) => {
+) {
   const text = `coedit: code ${code}`
   const resendClient = resend({
     RESEND_API_KEY: env.RESEND_API_KEY,
