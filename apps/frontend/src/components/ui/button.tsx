@@ -11,7 +11,7 @@ export const buttonStyle = cva({
       primary:
         'bg-sage-9 hover:bg-sage-10 text-white focus-visible:ring-blue-9 disabled:border-gray-3 disabled:bg-gray-5 disabled:text-gray-10 dark:focus-visible:ring-blue-6',
       secondary:
-        'border-gray-3 bg-gray-1 text-gray-11 focus-visible:ring-black disabled:border-gray-3 disabled:bg-gray-2 disabled:text-gray-10 dark:focus-visible:ring-gray-6',
+        'border-gray-5 bg-gray-2 hover:bg-gray-3 hover:border-gray-6 focus-visible:ring-black disabled:border-gray-4 disabled:bg-gray-2 disabled:text-gray-10 dark:focus-visible:ring-gray-6',
       destructive: 'bg-red-6 focus-visible:ring-red-6',
       ghost:
         'rounded-md px-1.5 py-1 text-xs font-medium text-gray-11 hover:bg-gray-3 hover:text-gray-12 focus-visible:ring-gray-6 focus-visible:ring-offset-0',
