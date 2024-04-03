@@ -4,7 +4,8 @@
   "scripts": {
     "format": "prettier --write . --cache",
     "cspell": "cspell ** --gitignore --cache",
-    "fix": "run-s format cspell"
+    "frontend:fix": "bun run --cwd apps/frontend fix",
+    "fix": "run-s format cspell frontend:fix"
   },
   "keywords": [],
   "author": "",

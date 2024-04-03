@@ -7,7 +7,6 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { Head } from '#/components/head'
-import { LogoIcon } from '#/components/icons/logo'
 import { Button } from '#/components/ui/button'
 import {
   FormError,
@@ -65,6 +64,7 @@ export default function Page() {
           />
           <FormError>{errors.email?.message}</FormError>
         </FormFieldset>
+
         <FormFieldset disabled={isPending}>
           <Button
             type="submit"

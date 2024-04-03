@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "lint:fix": "next lint --fix"
+    "lint:fix": "next lint --fix",
+    "fix": "run-s lint:fix"
   },
   "dependencies": {
     "@coedit/server": "workspace:app/server",
@@ -19,6 +20,7 @@
     "cva": "1.0.0-beta.1",
     "eslint-plugin-tailwindcss": "^3.15.1",
     "hono": "^4.1.4",
+    "input-otp": "^1.2.4",
     "jotai": "^2.7.2",
     "lucide-react": "^0.363.0",
     "next": "14.1.4",
