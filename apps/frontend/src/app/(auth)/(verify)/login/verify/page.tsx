@@ -21,7 +21,7 @@ import {
 } from '#/components/ui/input-otp'
 import { apiClient } from '#/utils/hc'
 
-import { Heading } from '../../_component'
+import { Heading } from '../../../_component'
 
 const zSchema = z.object({
   code: z.string({ required_error: 'required' }).length(6, 'required'),

@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
@@ -11,7 +10,6 @@ import { Button } from '#/components/ui/button'
 import {
   FormError,
   FormFieldset,
-  FormInput,
   FormLabel,
   FormRoot,
 } from '#/components/ui/form'
@@ -23,7 +21,7 @@ import {
 } from '#/components/ui/input-otp'
 import { apiClient } from '#/utils/hc'
 
-import { Heading } from '../../_component'
+import { Heading } from '../../../_component'
 
 const zSchema = z.object({
   code: z.string({ required_error: 'required' }).length(6, 'required'),
