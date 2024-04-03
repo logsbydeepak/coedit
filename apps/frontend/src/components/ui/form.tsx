@@ -21,7 +21,7 @@ const FormInput = React.forwardRef<
     ref={ref}
     {...props}
     className={cn(
-      'w-full rounded-md px-3 py-1.5 focus:outline-sage-9 bg-gray-1 border border-gray-4 placeholder:text-gray-9',
+      'w-full rounded-md border border-gray-4 bg-gray-1 px-3 py-1.5 placeholder:text-gray-9 focus:outline-sage-9',
       className
     )}
   />

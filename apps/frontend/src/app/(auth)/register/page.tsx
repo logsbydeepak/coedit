@@ -54,7 +54,7 @@ export default function Page() {
       <Head title="Register" />
 
       <Heading>Create new account</Heading>
-      <FormRoot onSubmit={handleSubmit(onSubmit)} className="space-y-5 w-full">
+      <FormRoot onSubmit={handleSubmit(onSubmit)} className="w-full space-y-5">
         <FormFieldset className="space-y-2.5" disabled={isPending}>
           <FormLabel htmlFor="email">Email</FormLabel>
           <FormInput
@@ -75,12 +75,14 @@ export default function Page() {
           </Button>
         </FormFieldset>
       </FormRoot>
-      <Link
-        href="/login"
-        className="text-center text-sm font-medium text-gray-11 hover:text-gray-12"
-      >
-        Login?
-      </Link>
+      <div className="text-center">
+        <Link
+          href="/login"
+          className="text-sm font-medium text-gray-11 hover:text-gray-12"
+        >
+          Login?
+        </Link>
+      </div>
     </>
   )
 }

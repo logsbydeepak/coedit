@@ -9,10 +9,10 @@ import { cn } from '#/utils/style'
 export default function Page() {
   return (
     <div className="absolute flex min-h-full w-full items-center justify-center">
-      <div className="flex flex-col space-y-6 w-80 p-4">
-        <div className="flex text-sage-9 items-center space-x-2 justify-center">
+      <div className="flex w-80 flex-col space-y-6 p-4">
+        <div className="flex items-center justify-center space-x-2 text-sage-9">
           <LogoIcon className="size-6" />
-          <p className="text-xl font-medium text-center font-mono text-white">
+          <p className="text-center font-mono text-xl font-medium text-white">
             coedit
           </p>
         </div>

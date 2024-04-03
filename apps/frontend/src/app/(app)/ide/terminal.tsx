@@ -10,7 +10,7 @@ import { WebglAddon } from 'xterm-addon-webgl'
 export default function Term() {
   return (
     <div
-      className="overflow-hidden size-full"
+      className="size-full overflow-hidden"
       ref={(e) => {
         if (e === null) return
 
