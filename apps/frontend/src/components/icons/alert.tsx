@@ -64,26 +64,29 @@ export function useAlert(alert?: {
     }
   })
 
-  const setAlert = (
-    a:
-      | {
-          message: string
-          type: AlertStyleProps['intent']
-        }
-      | 'close'
-  ) => {
-    if (typeof a === 'string') {
-      return _setAlert({
-        isOpen: false,
-      })
-    }
+  const setAlert = React.useCallback(
+    (
+      a:
+        | {
+            message: string
+            type: AlertStyleProps['intent']
+          }
+        | 'close'
+    ) => {
+      if (typeof a === 'string') {
+        return _setAlert({
+          isOpen: false,
+        })
+      }
 
-    _setAlert({
-      isOpen: true,
-      message: a.message,
-      type: a.type,
-    })
-  }
+      _setAlert({
+        isOpen: true,
+        message: a.message,
+        type: a.type,
+      })
+    },
+    []
+  )
 
   return {
     alert: _alert,
