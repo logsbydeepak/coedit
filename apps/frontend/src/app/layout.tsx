@@ -5,6 +5,7 @@ import './globals.css'
 
 import { Provider } from 'jotai'
 
+import { DelayRender } from '#/components/delay-render'
 import { QueryProvider } from '#/components/provider'
 import { cn } from '#/utils/style'
 
@@ -24,7 +25,9 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={cn(inter.className, 'bg-gray-2 text-gray-12')}>
         <QueryProvider>
-          <Provider>{children}</Provider>
+          <Provider>
+            <DelayRender>{children}</DelayRender>
+          </Provider>
         </QueryProvider>
       </body>
     </html>

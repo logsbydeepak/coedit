@@ -1,3 +1,5 @@
-import { atom } from 'jotai'
+'use client'
 
-export const isAuthAtom = atom(false)
+import { atomWithStorage } from 'jotai/utils'
+
+export const isAuthAtom = atomWithStorage('x-auth', false)
