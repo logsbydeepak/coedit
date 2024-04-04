@@ -10,7 +10,7 @@ import { ENV, r } from './h'
 function genExpTime(ExpMs: number) {
   return Date.now() + ExpMs
 }
-const maxAge = ms('30 days')
+const cookieMaxAge = ms('30 days') / 1000
 
 export async function checkIsAuth(env: ENV, token?: string) {
   try {
@@ -70,7 +70,7 @@ export const generateAuthToken = async ({
   return await new jose.EncryptJWT({ userId })
     .setProtectedHeader({ alg: 'dir', enc: 'A128CBC-HS256' })
     .setAudience('auth')
-    .setExpirationTime(genExpTime(maxAge))
+    .setExpirationTime(genExpTime(cookieMaxAge))
     .encrypt(secret)
 }
 
@@ -85,7 +85,7 @@ export const setAuthCookie = (
     path: '/',
     sameSite: 'Strict',
     secure: c.env.RUNTIME === 'production',
-    maxAge,
+    maxAge: cookieMaxAge,
   })
 }
 

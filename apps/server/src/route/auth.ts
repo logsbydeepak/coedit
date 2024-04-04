@@ -67,12 +67,12 @@ const loginVerify = h().post('/', zValidator('json', zCode), async (c) => {
   const input = c.req.valid('json')
 
   const redisClient = redis(c.env)
-  const code = await redisClient.get<string>(`login:${input.email}`)
+  const code = await redisClient.get<number>(`login:${input.email}`)
   if (!code) {
     return c.json(r('CODE_EXPIRED'))
   }
 
-  if (code !== input.code) {
+  if (code.toString() !== input.code) {
     return c.json(r('CODE_NOT_MATCH'))
   }
 
@@ -141,12 +141,12 @@ const registerVerify = h().post('/', zValidator('json', zCode), async (c) => {
 
   const redisClient = redis(c.env)
 
-  const code = await redisClient.get<string>(`register:${input.email}`)
+  const code = await redisClient.get<number>(`register:${input.email}`)
   if (!code) {
     return c.json(r('CODE_EXPIRED'))
   }
 
-  if (code !== input.code) {
+  if (code.toString() !== input.code) {
     return c.json(r('CODE_NOT_MATCH'))
   }
 
