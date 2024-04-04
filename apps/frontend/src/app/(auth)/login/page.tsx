@@ -1,12 +1,14 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { Head } from '#/components/head'
+import { Alert, useAlert } from '#/components/icons/alert'
 import { Button } from '#/components/ui/button'
 import {
   FormError,
@@ -26,6 +28,8 @@ const zSchema = z.object({
 type FromValues = z.infer<typeof zSchema>
 
 export default function Page() {
+  const router = useRouter()
+  const { alert, setAlert } = useAlert()
   const { mutateAsync, isPending } = useMutation({
     mutationFn: apiClient.auth.login.$post,
   })
@@ -39,18 +43,49 @@ export default function Page() {
   })
 
   const onSubmit = async (data: FromValues) => {
-    const res = await mutateAsync({
-      json: {
-        email: data.email,
-      },
-    })
-    const resData = await res.json()
-    console.log(resData)
+    try {
+      const res = await mutateAsync({
+        json: {
+          email: data.email,
+        },
+      })
+
+      const resData = await res.json()
+
+      switch (resData.code) {
+        case 'OK':
+          router.push(`/login/verify?email=${data.email}`)
+          return
+
+        case 'EMAIL_ALREADY_SENT':
+          setAlert({
+            type: 'destructive',
+            message: 'Email already sent!',
+          })
+          return
+
+        case 'USER_NOT_FOUND':
+          setAlert({
+            type: 'destructive',
+            message: 'User not found!',
+          })
+          return
+
+        default:
+          throw new Error('Something went wrong!')
+      }
+    } catch (e) {
+      setAlert({
+        type: 'destructive',
+        message: 'Something went wrong!',
+      })
+    }
   }
 
   return (
     <>
       <Head title="Login" />
+      <Alert {...alert} align="center" />
 
       <Heading>Welcome back</Heading>
       <FormRoot onSubmit={handleSubmit(onSubmit)} className="w-full space-y-5">
