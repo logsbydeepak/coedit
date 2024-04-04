@@ -1,12 +1,15 @@
 'use client'
 
+import React from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { Head } from '#/components/head'
+import { Alert, useAlert } from '#/components/icons/alert'
 import { Button } from '#/components/ui/button'
 import {
   FormError,
@@ -26,9 +29,12 @@ const zSchema = z.object({
 type FromValues = z.infer<typeof zSchema>
 
 export default function Page() {
+  const { alert, setAlert } = useAlert()
   const { mutateAsync, isPending } = useMutation({
     mutationFn: apiClient.auth.register.$post,
   })
+
+  const router = useRouter()
 
   const {
     register,
@@ -39,18 +45,52 @@ export default function Page() {
   })
 
   const onSubmit = async (data: FromValues) => {
-    const res = await mutateAsync({
-      json: {
-        email: data.email,
-      },
-    })
-    const resData = await res.json()
-    console.log(resData)
+    try {
+      const res = await mutateAsync({
+        json: {
+          email: data.email,
+        },
+      })
+      const resData = await res.json()
+
+      switch (resData.code) {
+        case 'OK':
+          router.push(`/register/verify?email=${data.email}`)
+          return
+
+        case 'EMAIL_ALREADY_SENT':
+          setAlert({
+            type: 'destructive',
+            message: 'Email already sent!',
+          })
+          return
+
+        case 'USER_ALREADY_EXIST':
+          setAlert({
+            type: 'destructive',
+            message: 'User already exist!',
+          })
+          return
+
+        default:
+          throw new Error('Something went wrong!')
+      }
+    } catch (e) {
+      setAlert({
+        type: 'destructive',
+        message: 'Something went wrong!',
+      })
+    }
   }
+
+  React.useEffect(() => {
+    if (isPending) setAlert('close')
+  }, [isPending, setAlert])
 
   return (
     <>
       <Head title="Register" />
+      <Alert {...alert} align="center" />
 
       <Heading>Create new account</Heading>
       <FormRoot onSubmit={handleSubmit(onSubmit)} className="w-full space-y-5">
