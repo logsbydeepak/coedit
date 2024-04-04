@@ -63,8 +63,8 @@ const login = h().post('/', zValidator('json', zUserEmail), async (c) => {
   return c.json(r('OK'))
 })
 
-const loginVerify = h().post('/', zValidator('form', zCode), async (c) => {
-  const input = c.req.valid('form')
+const loginVerify = h().post('/', zValidator('json', zCode), async (c) => {
+  const input = c.req.valid('json')
 
   const redisClient = redis(c.env)
   const code = await redisClient.get<string>(`login:${input.email}`)
@@ -136,8 +136,8 @@ const register = h().post('/', zValidator('json', zUserEmail), async (c) => {
   return c.json(r('OK'))
 })
 
-const registerVerify = h().post('/', zValidator('form', zCode), async (c) => {
-  const input = c.req.valid('form')
+const registerVerify = h().post('/', zValidator('json', zCode), async (c) => {
+  const input = c.req.valid('json')
 
   const redisClient = redis(c.env)
 
