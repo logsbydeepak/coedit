@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { compress } from 'hono/compress'
 import { cors } from 'hono/cors'
 import { HTTPException } from 'hono/http-exception'
 import { secureHeaders } from 'hono/secure-headers'
@@ -19,7 +20,12 @@ export const h = () => {
   return new Hono<{
     Bindings: ENV
   }>()
-    .use(cors())
+    .use(
+      cors({
+        origin: ['http://localhost:3000'],
+        credentials: true,
+      })
+    )
     .use(secureHeaders())
 }
 
@@ -31,7 +37,6 @@ export const hAuth = () => {
       'x-auth': string
     }
   }>()
-    .use(cors())
     .use(secureHeaders())
     .use(async (c, next) => {
       const authToken = c.req.header('x-auth')
