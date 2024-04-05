@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { compress } from 'hono/compress'
+import { getCookie } from 'hono/cookie'
 import { cors } from 'hono/cors'
 import { HTTPException } from 'hono/http-exception'
 import { secureHeaders } from 'hono/secure-headers'
@@ -39,7 +39,7 @@ export const hAuth = () => {
   }>()
     .use(secureHeaders())
     .use(async (c, next) => {
-      const authToken = c.req.header('x-auth')
+      const authToken = getCookie(c, 'x-auth')
       const isAuth = await checkIsAuth(c.env, authToken)
 
       if (isAuth.code !== 'OK') {

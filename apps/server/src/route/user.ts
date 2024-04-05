@@ -9,7 +9,8 @@ const user = hAuth().get('/', async (c) => {
   const [user] = await db(c.env)
     .select()
     .from(dbSchema.users)
-    .where(eq(dbSchema.users.email, userId))
+    .where(eq(dbSchema.users.id, userId))
+
   if (!user) {
     throw new Error('User not found')
   }

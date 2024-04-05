@@ -81,7 +81,6 @@ const loginVerify = h().post('/', zValidator('json', zCode), async (c) => {
     throw new Error("can't delete redis key")
   }
 
-  const userId = ulid()
   const [user] = await db(c.env)
     .select()
     .from(dbSchema.users)
@@ -91,7 +90,7 @@ const loginVerify = h().post('/', zValidator('json', zCode), async (c) => {
     return c.json(r('USER_NOT_FOUND'))
   }
 
-  const token = await generateAuthToken({ ...c.env, userId })
+  const token = await generateAuthToken({ ...c.env, userId: user.id })
   setAuthCookie(c, token)
 
   return c.json(r('OK'))
