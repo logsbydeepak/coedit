@@ -3,7 +3,7 @@
 import { useSearchParams } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
-import { useSetAtom } from 'jotai'
+import { useAtomValue, useSetAtom } from 'jotai'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -27,7 +27,7 @@ import {
 import { isAuthAtom } from '#/store'
 import { apiClient } from '#/utils/hc'
 
-import { Heading } from '../../../_component'
+import { Heading } from '../../_component'
 
 const zSchema = z.object({
   code: z.string({ required_error: 'required' }).length(6, 'required'),
@@ -36,12 +36,12 @@ const zSchema = z.object({
 type FromValues = z.infer<typeof zSchema>
 
 export default function Page() {
-  const { alert, setAlert } = useAlert()
   const setIsAuth = useSetAtom(isAuthAtom)
   const searchParams = useSearchParams()
+  const { alert, setAlert } = useAlert()
 
   const { isPending, mutateAsync } = useMutation({
-    mutationFn: apiClient.auth.register.verify.$post,
+    mutationFn: apiClient.auth.login.verify.$post,
   })
 
   const {
@@ -90,6 +90,12 @@ export default function Page() {
             message: 'Code not match!',
           })
           return
+        case 'USER_NOT_FOUND':
+          setAlert({
+            type: 'destructive',
+            message: 'User not found!',
+          })
+          return
         default:
           throw new Error('Something went wrong!')
       }
@@ -103,10 +109,10 @@ export default function Page() {
 
   return (
     <>
-      <Head title="Register code" />
+      <Head title="Login code" />
       <Alert {...alert} align="center" />
 
-      <Heading>Enter code to register</Heading>
+      <Heading>Enter code to login</Heading>
       <FormRoot onSubmit={handleSubmit(onSubmit)} className="w-full space-y-5">
         <FormFieldset className="space-y-2.5" disabled={isPending}>
           <FormLabel htmlFor="code">Code</FormLabel>
@@ -137,7 +143,7 @@ export default function Page() {
             className="w-full font-mono"
             isLoading={isPending}
           >
-            Register
+            Login
           </Button>
         </FormFieldset>
       </FormRoot>

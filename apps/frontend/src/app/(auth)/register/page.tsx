@@ -8,6 +8,8 @@ import { useMutation } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
+import { zEmail, zReqString } from '@coedit/zschema'
+
 import { Head } from '#/components/head'
 import { Alert, useAlert } from '#/components/icons/alert'
 import { Button } from '#/components/ui/button'
@@ -23,7 +25,8 @@ import { apiClient } from '#/utils/hc'
 import { Heading } from '../_component'
 
 const zSchema = z.object({
-  email: z.string().email(),
+  email: zEmail,
+  name: zReqString,
 })
 
 type FromValues = z.infer<typeof zSchema>
@@ -49,13 +52,14 @@ export default function Page() {
       const res = await mutateAsync({
         json: {
           email: data.email,
+          name: data.name,
         },
       })
       const resData = await res.json()
 
       switch (resData.code) {
         case 'OK':
-          router.push(`/register/verify?email=${data.email}`)
+          router.push(`/register/verify?email=${data.email}&name=${data.name}`)
           return
 
         case 'EMAIL_ALREADY_SENT':
@@ -94,7 +98,18 @@ export default function Page() {
 
       <Heading>Create new account</Heading>
       <FormRoot onSubmit={handleSubmit(onSubmit)} className="w-full space-y-5">
-        <FormFieldset className="space-y-2.5" disabled={isPending}>
+        <FormFieldset className="space-y-1" disabled={isPending}>
+          <FormLabel htmlFor="name">Name</FormLabel>
+          <FormInput
+            {...register('name')}
+            id="name"
+            name="name"
+            placeholder="Haven"
+          />
+          <FormError>{errors.name?.message}</FormError>
+        </FormFieldset>
+
+        <FormFieldset className="space-y-1" disabled={isPending}>
           <FormLabel htmlFor="email">Email</FormLabel>
           <FormInput
             {...register('email')}
