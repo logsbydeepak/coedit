@@ -2,4 +2,11 @@
 
 import { atomWithStorage } from 'jotai/utils'
 
-export const isAuthAtom = atomWithStorage('x-auth', false)
+const isAuth =
+  typeof window !== 'undefined'
+    ? localStorage.getItem('x-auth') === 'true'
+      ? true
+      : false
+    : false
+
+export const isAuthAtom = atomWithStorage('x-auth', isAuth)
