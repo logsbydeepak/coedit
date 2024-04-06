@@ -11,3 +11,16 @@ export const apiClient = hc<AppType>(env.NEXT_PUBLIC_API_URL, {
       credentials: 'include',
     }),
 })
+
+export const serverClient = (authToken: string) =>
+  hc<AppType>(env.NEXT_PUBLIC_API_URL, {
+    fetch: (input, requestInit, Env, executionCtx) =>
+      fetch(input, {
+        ...requestInit,
+        credentials: 'include',
+        headers: {
+          ...requestInit?.headers,
+          'x-auth': authToken,
+        },
+      }),
+  })

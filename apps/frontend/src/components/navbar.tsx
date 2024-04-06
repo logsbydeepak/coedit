@@ -7,19 +7,19 @@ import { apiClient } from '#/utils/hc'
 import { LogoIcon } from './icons/logo'
 
 export function Navbar() {
-  const { isLoading, data } = useQuery({
-    queryFn: async () => {
-      try {
-        const res = await apiClient.user.$get()
-        const resData = await res.json()
-        return resData
-      } catch (e) {
-        throw new Error('Something went wrong!')
-      }
-    },
-    queryKey: ['user'],
-    throwOnError: true,
-  })
+  // const { isLoading, data } = useQuery({
+  //   queryFn: async () => {
+  //     try {
+  //       const res = await apiClient.user.$get()
+  //       const resData = await res.json()
+  //       return resData
+  //     } catch (e) {
+  //       throw new Error('Something went wrong!')
+  //     }
+  //   },
+  //   queryKey: ['user'],
+  //   throwOnError: true,
+  // })
 
   return (
     <nav className="fixed inset-x-0">
@@ -31,15 +31,15 @@ export function Navbar() {
           </p>
         </div>
 
-        {isLoading && (
-          <div className="h-7 w-24 animate-pulse rounded-md bg-gray-4" />
-        )}
-
-        {data?.name && (
-          <p className="max-w-20 overflow-hidden text-ellipsis text-nowrap text-sm">
-            {data.name}
-          </p>
-        )}
+        {/* {isLoading && ( */}
+        {/*   <div className="h-7 w-24 animate-pulse rounded-md bg-gray-4" /> */}
+        {/* )} */}
+        {/**/}
+        {/* {data?.name && ( */}
+        {/*   <p className="max-w-20 overflow-hidden text-ellipsis text-nowrap text-sm"> */}
+        {/*     {data.name} */}
+        {/*   </p> */}
+        {/* )} */}
       </div>
     </nav>
   )

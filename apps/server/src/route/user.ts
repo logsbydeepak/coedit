@@ -23,6 +23,10 @@ const user = hAuth().get('/', async (c) => {
   )
 })
 
+const isAuth = hAuth().get('/', async (c) => {
+  return c.json(r('OK'))
+})
+
 // const logout = hAuth().patch('/', async (c) => {
 //   const userId = c.get('x-userId')
 //   const token = c.get('x-auth')
@@ -33,4 +37,4 @@ const user = hAuth().get('/', async (c) => {
 //   return c.json(r('OK'))
 // })
 
-export const userRoute = h().route('/', user)
+export const userRoute = h().route('/', user).route('/isAuth', isAuth)
