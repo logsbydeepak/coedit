@@ -15,9 +15,15 @@ export type ENV = {
   RUNTIME: 'deployment' | 'production'
 }
 
-export const h = () => {
-  return new Hono<{
+type Variables = {
+  'x-userId': string
+  'x-auth': string
+}
+
+const _h = <T extends Variables>() =>
+  new Hono<{
     Bindings: ENV
+    Variables: T
   }>()
     .use(
       cors({
@@ -26,33 +32,25 @@ export const h = () => {
       })
     )
     .use(secureHeaders())
-}
 
-export const hAuth = () => {
-  return new Hono<{
-    Bindings: ENV
-    Variables: {
-      'x-userId': string
-      'x-auth': string
+export const h = () => _h()
+
+export const hAuth = () =>
+  _h<Variables>().use(async (c, next) => {
+    const authToken = c.req.header('x-auth')
+    const isAuth = await checkIsAuth(c.env, authToken)
+
+    if (isAuth.code !== 'OK') {
+      const errorResponse = new Response('Unauthorized', {
+        status: 401,
+      })
+      throw new HTTPException(401, { res: errorResponse })
     }
-  }>()
-    .use(secureHeaders())
-    .use(async (c, next) => {
-      const authToken = c.req.header('x-auth')
-      const isAuth = await checkIsAuth(c.env, authToken)
 
-      if (isAuth.code !== 'OK') {
-        const errorResponse = new Response('Unauthorized', {
-          status: 401,
-        })
-        throw new HTTPException(401, { res: errorResponse })
-      }
-
-      c.set('x-userId', isAuth.userId)
-      c.set('x-auth', isAuth.token)
-      await next()
-    })
-}
+    c.set('x-userId', isAuth.userId)
+    c.set('x-auth', isAuth.token)
+    await next()
+  })
 
 type Prettify<T> = {
   [K in keyof T]: T[K]

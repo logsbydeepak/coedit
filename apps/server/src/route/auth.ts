@@ -4,7 +4,7 @@ import ms from 'ms'
 import { ulid } from 'ulidx'
 import { z } from 'zod'
 
-import { zEmail, zObject, zReqString } from '@coedit/zschema'
+import { zEmail, zReqString } from '@coedit/zschema'
 
 import { db, dbSchema } from '#/db'
 import { redis } from '#/lib/config'
