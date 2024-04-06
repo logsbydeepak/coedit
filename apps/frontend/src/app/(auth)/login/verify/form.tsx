@@ -1,7 +1,8 @@
 'use client'
 
+import React from 'react'
+import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -31,11 +32,9 @@ const zSchema = z.object({
 type FromValues = z.infer<typeof zSchema>
 
 export function Form({ email }: { email: string }) {
+  const [isPending, startTransition] = React.useTransition()
+  const router = useRouter()
   const { alert, setAlert } = useAlert()
-
-  const { isPending, mutateAsync } = useMutation({
-    mutationFn: apiClient.auth.login.verify.$post,
-  })
 
   const {
     handleSubmit,
@@ -50,45 +49,49 @@ export function Form({ email }: { email: string }) {
   })
 
   const onSubmit = async (data: FromValues) => {
-    try {
-      const res = await mutateAsync({
-        json: {
-          code: data.code,
-          email: data.email,
-        },
-      })
-      const resData = await res.json()
+    startTransition(async () => {
+      try {
+        const res = await apiClient.auth.login.verify.$post({
+          json: {
+            code: data.code,
+            email: data.email,
+          },
+        })
 
-      switch (resData.code) {
-        case 'OK':
-          return
-        case 'CODE_EXPIRED':
-          setAlert({
-            type: 'destructive',
-            message: 'Code expired!',
-          })
-          return
-        case 'CODE_NOT_MATCH':
-          setAlert({
-            type: 'destructive',
-            message: 'Code not match!',
-          })
-          return
-        case 'USER_NOT_FOUND':
-          setAlert({
-            type: 'destructive',
-            message: 'User not found!',
-          })
-          return
-        default:
-          throw new Error('Something went wrong!')
+        const resData = await res.json()
+
+        switch (resData.code) {
+          case 'OK':
+            router.push('/')
+            return
+          case 'CODE_EXPIRED':
+            setAlert({
+              type: 'destructive',
+              message: 'Code expired!',
+            })
+            return
+          case 'CODE_NOT_MATCH':
+            setAlert({
+              type: 'destructive',
+              message: 'Code not match!',
+            })
+            return
+          case 'USER_NOT_FOUND':
+            setAlert({
+              type: 'destructive',
+              message: 'User not found!',
+            })
+            return
+          default:
+            throw new Error('Something went wrong!')
+        }
+      } catch (e) {
+        setAlert({
+          type: 'destructive',
+          message: 'Something went wrong!',
+        })
       }
-    } catch (e) {
-      setAlert({
-        type: 'destructive',
-        message: 'Something went wrong!',
-      })
-    }
+    })
   }
 
   return (

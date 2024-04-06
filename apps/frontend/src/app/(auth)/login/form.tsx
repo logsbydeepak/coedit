@@ -1,9 +1,9 @@
 'use client'
 
+import React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -26,10 +26,8 @@ type FromValues = z.infer<typeof zSchema>
 
 export function Form() {
   const router = useRouter()
+  const [isPending, startTransition] = React.useTransition()
   const { alert, setAlert } = useAlert()
-  const { mutateAsync, isPending } = useMutation({
-    mutationFn: apiClient.auth.login.$post,
-  })
 
   const {
     register,
@@ -40,43 +38,44 @@ export function Form() {
   })
 
   const onSubmit = async (data: FromValues) => {
-    try {
-      const res = await mutateAsync({
-        json: {
-          email: data.email,
-        },
-      })
+    startTransition(async () => {
+      try {
+        const res = await apiClient.auth.login.$post({
+          json: {
+            email: data.email,
+          },
+        })
 
-      const resData = await res.json()
+        const resData = await res.json()
+        switch (resData.code) {
+          case 'OK':
+            router.push(`/login/verify?email=${data.email}`)
+            return
 
-      switch (resData.code) {
-        case 'OK':
-          router.push(`/login/verify?email=${data.email}`)
-          return
+          case 'EMAIL_ALREADY_SENT':
+            setAlert({
+              type: 'destructive',
+              message: 'Email already sent!',
+            })
+            return
 
-        case 'EMAIL_ALREADY_SENT':
-          setAlert({
-            type: 'destructive',
-            message: 'Email already sent!',
-          })
-          return
+          case 'USER_NOT_FOUND':
+            setAlert({
+              type: 'destructive',
+              message: 'User not found!',
+            })
+            return
 
-        case 'USER_NOT_FOUND':
-          setAlert({
-            type: 'destructive',
-            message: 'User not found!',
-          })
-          return
-
-        default:
-          throw new Error('Something went wrong!')
+          default:
+            throw new Error('Something went wrong!')
+        }
+      } catch (e) {
+        setAlert({
+          type: 'destructive',
+          message: 'Something went wrong!',
+        })
       }
-    } catch (e) {
-      setAlert({
-        type: 'destructive',
-        message: 'Something went wrong!',
-      })
-    }
+    })
   }
 
   return (

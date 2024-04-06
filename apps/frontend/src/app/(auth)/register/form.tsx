@@ -4,7 +4,6 @@ import React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -29,11 +28,8 @@ const zSchema = z.object({
 type FromValues = z.infer<typeof zSchema>
 
 export function Form() {
+  const [isPending, startTransition] = React.useTransition()
   const { alert, setAlert } = useAlert()
-  const { mutateAsync, isPending } = useMutation({
-    mutationFn: apiClient.auth.register.$post,
-  })
-
   const router = useRouter()
 
   const {
@@ -45,43 +41,48 @@ export function Form() {
   })
 
   const onSubmit = async (data: FromValues) => {
-    try {
-      const res = await mutateAsync({
-        json: {
-          email: data.email,
-          name: data.name,
-        },
-      })
-      const resData = await res.json()
+    startTransition(async () => {
+      try {
+        const res = await apiClient.auth.register.$post({
+          json: {
+            email: data.email,
+            name: data.name,
+          },
+        })
 
-      switch (resData.code) {
-        case 'OK':
-          router.push(`/register/verify?email=${data.email}&name=${data.name}`)
-          return
+        const resData = await res.json()
 
-        case 'EMAIL_ALREADY_SENT':
-          setAlert({
-            type: 'destructive',
-            message: 'Email already sent!',
-          })
-          return
+        switch (resData.code) {
+          case 'OK':
+            router.push(
+              `/register/verify?email=${data.email}&name=${data.name}`
+            )
+            return
 
-        case 'USER_ALREADY_EXIST':
-          setAlert({
-            type: 'destructive',
-            message: 'User already exist!',
-          })
-          return
+          case 'EMAIL_ALREADY_SENT':
+            setAlert({
+              type: 'destructive',
+              message: 'Email already sent!',
+            })
+            return
 
-        default:
-          throw new Error('Something went wrong!')
+          case 'USER_ALREADY_EXIST':
+            setAlert({
+              type: 'destructive',
+              message: 'User already exist!',
+            })
+            return
+
+          default:
+            throw new Error('Something went wrong!')
+        }
+      } catch (e) {
+        setAlert({
+          type: 'destructive',
+          message: 'Something went wrong!',
+        })
       }
-    } catch (e) {
-      setAlert({
-        type: 'destructive',
-        message: 'Something went wrong!',
-      })
-    }
+    })
   }
 
   React.useEffect(() => {

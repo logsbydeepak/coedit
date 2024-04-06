@@ -1,7 +1,5 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
-
 import { apiClient } from '#/utils/hc'
 
 import { LogoIcon } from './icons/logo'
