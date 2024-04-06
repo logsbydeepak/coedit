@@ -3,7 +3,6 @@
 import { useSearchParams } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
-import { useAtomValue, useSetAtom } from 'jotai'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -24,7 +23,6 @@ import {
   InputOTPSeparator,
   InputOTPSlot,
 } from '#/components/ui/input-otp'
-import { isAuthAtom } from '#/store'
 import { apiClient } from '#/utils/hc'
 
 import { Heading } from '../../_component'
@@ -36,7 +34,6 @@ const zSchema = z.object({
 type FromValues = z.infer<typeof zSchema>
 
 export default function Page() {
-  const setIsAuth = useSetAtom(isAuthAtom)
   const searchParams = useSearchParams()
   const { alert, setAlert } = useAlert()
 

@@ -7,9 +7,7 @@ export async function middleware(req: NextRequest) {
   try {
     const url = req.url
     const token = cookies().get('x-auth')?.value
-    const authData = await checkIsAuth(token)
-    const isAuth = authData.code === 'OK'
-    console.log({ isAuth })
+    const isAuth = await checkIsAuth(token)
 
     const { pathname } = req.nextUrl
 
@@ -73,16 +71,14 @@ export const config = {
 
 async function checkIsAuth(token?: string) {
   try {
-    if (!token) return { code: 'UNAUTHORIZED' }
+    if (!token) return false
     const res = await serverClient(token).user.isAuth.$get()
     const resData = await res.json()
 
     if (resData.code === 'OK') {
-      return {
-        code: 'OK',
-      }
+      return true
     }
-    throw new Error('Unauthorized')
+    return false
   } catch (error) {
     throw new Error('Something went wrong.')
   }

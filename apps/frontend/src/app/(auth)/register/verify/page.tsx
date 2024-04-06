@@ -3,7 +3,6 @@
 import { useSearchParams } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
-import { useSetAtom } from 'jotai'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -24,7 +23,6 @@ import {
   InputOTPSeparator,
   InputOTPSlot,
 } from '#/components/ui/input-otp'
-import { isAuthAtom } from '#/store'
 import { apiClient } from '#/utils/hc'
 
 import { Heading } from '../../_component'
@@ -37,7 +35,6 @@ type FromValues = z.infer<typeof zSchema>
 
 export default function Page() {
   const { alert, setAlert } = useAlert()
-  const setIsAuth = useSetAtom(isAuthAtom)
   const searchParams = useSearchParams()
 
   const { isPending, mutateAsync } = useMutation({
@@ -87,7 +84,6 @@ export default function Page() {
 
       switch (resData.code) {
         case 'OK':
-          setIsAuth(true)
           return
         case 'CODE_EXPIRED':
           setAlert({

@@ -3,10 +3,6 @@ import { Inter } from 'next/font/google'
 
 import './globals.css'
 
-import { Provider } from 'jotai'
-
-import { DelayRender } from '#/components/delay-render'
-import { QueryProvider } from '#/components/provider'
 import { cn } from '#/utils/style'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -24,11 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={cn(inter.className, 'bg-gray-2 text-gray-12')}>
-        <QueryProvider>
-          <Provider>
-            <DelayRender>{children}</DelayRender>
-          </Provider>
-        </QueryProvider>
+        {children}
       </body>
     </html>
   )
