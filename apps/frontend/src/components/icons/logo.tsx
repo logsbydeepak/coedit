@@ -1,4 +1,10 @@
-export function LogoIcon({ className }: { className?: string }) {
+export function LogoIcon({
+  className,
+  style,
+}: {
+  className?: string
+  style?: React.CSSProperties
+}) {
   return (
     <svg
       width="21"
@@ -7,6 +13,7 @@ export function LogoIcon({ className }: { className?: string }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
+      style={style}
     >
       <path
         d="M17.3199 6L13.8533 0H6.92009L3.45349 6H10.3867L17.3199 18L20.7734 12L17.3199 6Z"
