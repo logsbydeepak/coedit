@@ -15,3 +15,17 @@ export const users = pgTable(
     }
   }
 )
+
+export const projects = pgTable(
+  'projects',
+  {
+    id: id(),
+    name: varchar('name', { length: 256 }).notNull(),
+    userId: varchar('user_id', { length: 26 }).notNull(),
+  },
+  (table) => {
+    return {
+      userIdx: index('user_idx').on(table.userId),
+    }
+  }
+)
