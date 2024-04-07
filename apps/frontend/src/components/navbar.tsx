@@ -25,7 +25,7 @@ export function Navbar() {
 
   return (
     <nav className="fixed inset-x-0 border-b border-gray-4">
-      <div className="flex h-14 w-full items-center justify-between space-x-4 px-5">
+      <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between space-x-4 px-5">
         <Link href="/">
           <div className="flex items-center justify-center space-x-1 text-sage-9">
             <LogoIcon className="size-5" />
