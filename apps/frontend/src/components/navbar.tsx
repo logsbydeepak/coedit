@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
 
-import { apiClient } from '#/utils/hc'
+import { apiClient } from '#/utils/hc-client'
 
 import { Avatar } from './avatar'
 import { LogoIcon } from './icons/logo'

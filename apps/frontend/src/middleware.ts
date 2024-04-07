@@ -2,6 +2,7 @@ import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { serverClient } from './utils/hc'
+import { apiClient } from './utils/hc-server'
 
 export async function middleware(req: NextRequest) {
   try {
@@ -72,7 +73,7 @@ export const config = {
 async function checkIsAuth(token?: string) {
   try {
     if (!token) return false
-    const res = await serverClient(token).user.isAuth.$get()
+    const res = await apiClient.user.isAuth.$get()
     const resData = await res.json()
 
     if (resData.code === 'OK') {
