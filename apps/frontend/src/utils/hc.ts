@@ -20,7 +20,7 @@ export const serverClient = (authToken: string) =>
         credentials: 'include',
         headers: {
           ...requestInit?.headers,
-          'x-auth': authToken,
+          Cookie: `x-auth=${authToken}`,
         },
       }),
   })
