@@ -13,7 +13,7 @@ const Terminal = dynamic(() => import('./terminal'), { ssr: false })
 
 export default function Page() {
   return (
-    <ResizablePanelGroup direction="horizontal" className="absolute">
+    <ResizablePanelGroup direction="horizontal" className="absolute pt-14">
       <ResizablePanel defaultSize={20}>
         <FileExplorer />
       </ResizablePanel>

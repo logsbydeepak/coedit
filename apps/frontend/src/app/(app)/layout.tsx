@@ -8,7 +8,7 @@ export default function Layout({ children }: React.PropsWithChildren) {
       <QueryProvider>
         <AppProvider>
           <Navbar />
-          <div className="mx-auto max-w-7xl px-5 pt-14">{children}</div>
+          {children}
         </AppProvider>
       </QueryProvider>
     </>
