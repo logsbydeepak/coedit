@@ -14,7 +14,12 @@
     "ulidx",
     "jiti",
     "zustand",
-    "ianvs"
+    "ianvs",
+    "binutils",
+    "adduser",
+    "usermod",
+    "NOPASSWD",
+    "devbox"
   ],
   "ignorePaths": ["bun.lockb"]
 }

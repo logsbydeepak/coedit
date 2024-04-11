@@ -1,0 +1,19 @@
+FROM ubuntu:22.04
+
+RUN apt-get update
+RUN apt-get -y install bash binutils git xz-utils wget sudo
+
+ENV NEW_USER=coedit
+RUN adduser $NEW_USER
+RUN usermod -aG sudo $NEW_USER
+RUN echo "coedit ALL=(ALL:ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/$NEW_USER
+USER $NEW_USER
+
+RUN wget --output-document=/dev/stdout https://nixos.org/nix/install | sh -s -- --no-daemon
+RUN . ~/.nix-profile/etc/profile.d/nix.sh
+
+ENV PATH="/home/${NEW_USER}/.nix-profile/bin:$PATH"
+
+RUN wget --quiet --output-document=/dev/stdout https://get.jetpack.io/devbox   | bash -s -- -f
+RUN chown -R "${NEW_USER}:${NEW_USER}" /usr/local/bin/devbox
+
