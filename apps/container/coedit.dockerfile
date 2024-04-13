@@ -1,33 +1,30 @@
-FROM ubuntu:20.04
+FROM node:20
 
-RUN apt-get update
-RUN apt-get install -y curl unzip git
+RUN apt update
+RUN apt -y install bash binutils git xz-utils wget curl sudo
 
-RUN useradd --create-home --user-group coedit
-USER coedit
+ENV NEW_USER=coedit
+RUN adduser $NEW_USER
+RUN usermod -aG sudo $NEW_USER
+RUN echo "coedit ALL=(ALL:ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/$NEW_USER
+USER $NEW_USER
 
-RUN curl -sS https://webi.sh/bun | sh
-RUN curl -sS https://webi.sh/node | sh
+RUN wget --output-document=/dev/stdout https://nixos.org/nix/install | sh -s -- --no-daemon
+RUN . ~/.nix-profile/etc/profile.d/nix.sh
+
+ENV PATH="/home/${NEW_USER}/.nix-profile/bin:$PATH"
+
+RUN wget --quiet --output-document=/dev/stdout https://get.jetpack.io/devbox   | bash -s -- -f
+RUN chown -R "${NEW_USER}:${NEW_USER}" /usr/local/bin/devbox
 
 USER root
-COPY docker-entrypoint.sh /usr/local/bin
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-USER coedit
+RUN curl -sS https://starship.rs/install.sh | sh -s -- --yes
+RUN echo "eval '$(starship init bash)'" >> /home/coedit/.bashrc
+COPY starship.toml /home/coedit/.config/
 
-WORKDIR /home/coedit/.coedit
-COPY ./terminal-server/package.json ./
-COPY ./terminal-server/build build/
-SHELL ["/bin/bash", "-c", "-l"]
-RUN bun install --ignore-scripts
-COPY ./node-pty /home/coedit/.coedit/node_modules/node-pty/build/Release
+COPY ./dist/ /root/coedit/
 
-WORKDIR /home/coedit/app
-RUN bun x create-next-app@latest . --use-bun --ts --tailwind --eslint  --app --src-dir --import-alias "@/*"
-RUN bun x next telemetry disable
+USER $NEW_USER
 
-EXPOSE 3001
-EXPOSE 3000
-
-ENTRYPOINT [ "/usr/local/bin/docker-entrypoint.sh" ]
-CMD [ "bun", "run", "--cwd", "../.coedit", "start" ]
+WORKDIR /home/coedit/workspace/
 

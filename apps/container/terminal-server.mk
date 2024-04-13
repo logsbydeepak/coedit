@@ -1,9 +1,9 @@
-DOCKER_FILE=node-pty.dockerfile
-DOCKER_IMAGE=node-pty:build
-DOCKER_CONTAINER=node-pty-build
-OUTPUT_DIR=./node-pty
+DOCKER_FILE=terminal-server.dockerfile
+DOCKER_IMAGE=terminal-server:build
+DOCKER_CONTAINER=terminal-server-build
+OUTPUT_DIR=./dist
 
-all: build run remove-output cp clean
+all: clean build run remove-output cp clean
 
 build:
 	@echo "-> Building image"
@@ -15,7 +15,7 @@ run:
 
 cp:
 	@echo "-> Copying from container to host"
-	docker cp $(DOCKER_CONTAINER):/home/coedit/node-pty/build/Release/ $(OUTPUT_DIR)
+	docker cp $(DOCKER_CONTAINER):/home/coedit/terminal-server/dist $(OUTPUT_DIR)
 
 remove-output:
 	@echo "-> Removing output"

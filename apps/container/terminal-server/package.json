@@ -22,6 +22,7 @@
   },
   "devDependencies": {
     "@types/ws": "^8.5.10",
+    "npm-run-all2": "^6.1.2",
     "swc-node": "^1.0.0"
   }
 }
