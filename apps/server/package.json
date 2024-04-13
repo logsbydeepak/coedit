@@ -11,6 +11,7 @@
     "db:gen:push": "run-s db:gen db:push"
   },
   "dependencies": {
+    "@aws-sdk/client-ecs": "^3.554.0",
     "@coedit/zschema": "workspace:packages/zschema",
     "@hono/zod-validator": "^0.2.1",
     "@types/ms": "^0.7.34",

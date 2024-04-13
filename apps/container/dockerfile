@@ -1,7 +1,7 @@
 FROM ubuntu:22.04
 
-RUN apt-get update
-RUN apt-get -y install bash binutils git xz-utils wget sudo
+RUN apt update
+RUN apt -y install bash binutils git xz-utils wget curl sudo
 
 ENV NEW_USER=coedit
 RUN adduser $NEW_USER
@@ -17,3 +17,11 @@ ENV PATH="/home/${NEW_USER}/.nix-profile/bin:$PATH"
 RUN wget --quiet --output-document=/dev/stdout https://get.jetpack.io/devbox   | bash -s -- -f
 RUN chown -R "${NEW_USER}:${NEW_USER}" /usr/local/bin/devbox
 
+USER root
+RUN curl -sS https://starship.rs/install.sh | sh -s -- --yes
+RUN echo "eval '$(starship init bash)'" >> /home/coedit/.bashrc
+COPY starship.toml /home/coedit/.config/
+
+USER $NEW_USER
+
+WORKDIR /home/coedit/workspace/
