@@ -29,3 +29,8 @@ export const projects = pgTable(
     }
   }
 )
+
+export const baseProjects = pgTable('base_projects', {
+  id: id(),
+  name: varchar('name', { length: 256 }).notNull(),
+})
