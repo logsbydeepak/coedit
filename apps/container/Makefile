@@ -1,10 +1,5 @@
-build-final-image: build-terminal-server build-coedit-image
+all: build-image
 
-build-terminal-server:
-	@echo "-> RUN:terminal-server.mk"
-	make -f terminal-server.mk
-
-build-coedit-image:
-	@echo "-> RUN:final-image.mk"
-	make -f coedit.mk
-
+build-image:
+	@echo "-> BUILDING IMAGE" 
+	docker build --tag coedit:latest .
