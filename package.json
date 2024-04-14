@@ -22,7 +22,7 @@
   "workspaces": [
     "apps/server",
     "apps/frontend",
-    "apps/container/terminal-server",
+    "apps/container",
     "packages/zschema"
   ],
   "trustedDependencies": [
