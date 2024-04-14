@@ -1,0 +1,17 @@
+{
+  "name": "@coedit/base-project",
+  "module": "index.ts",
+  "type": "module",
+  "script": {
+    "start": "bun index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.554.0"
+  }
+}

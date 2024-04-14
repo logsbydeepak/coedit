@@ -23,6 +23,7 @@
     "apps/server",
     "apps/frontend",
     "apps/container",
+    "apps/base-project",
     "packages/zschema"
   ],
   "trustedDependencies": [
