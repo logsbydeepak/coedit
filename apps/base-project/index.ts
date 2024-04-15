@@ -1,4 +1,5 @@
 import { readdir } from 'node:fs/promises'
+import path from 'path'
 import {
   DeleteObjectsCommand,
   ListObjectsV2Command,
@@ -6,72 +7,103 @@ import {
   S3Client,
   type PutObjectOutput,
 } from '@aws-sdk/client-s3'
+import { ulid } from 'ulidx'
+
+import { db, dbSchema } from '@coedit/server/src/db'
+
+if (
+  !process.env.AWS_REGION ||
+  !process.env.AWS_ACCESS_KEY_ID ||
+  !process.env.AWS_SECRET_ACCESS_KEY ||
+  !process.env.AWS_BUCKET ||
+  !process.env.DB_URL
+) {
+  console.log('ENV missing')
+  process.exit(1)
+}
+
+const s3 = new S3Client({
+  region: process.env.AWS_REGION!,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+  },
+})
+const Bucket = process.env.AWS_BUCKET!
+
+const dbClient = db({
+  DB_URL: process.env.DB_URL!,
+})
+
+const LOCAL_PROJECT_DIR = 'projects'
+const REMOTE_PROJECT_DIR = 'base-project'
 
 async function main() {
-  if (
-    !process.env.AWS_REGION ||
-    !process.env.AWS_ACCESS_KEY_ID ||
-    !process.env.AWS_SECRET_ACCESS_KEY ||
-    !process.env.AWS_BUCKET
-  ) {
-    console.log('ENV missing')
+  try {
+    console.log('-> DELETE DB ENTRY')
+    await dbClient.delete(dbSchema.baseProjects)
+
+    console.log('-> DELETE ALL REMOTE PROJECTS')
+    await deleteFolder({ location: REMOTE_PROJECT_DIR })
+
+    console.log('-> UPLOAD PROJECTS')
+    const values = await uploadFolder({ location: LOCAL_PROJECT_DIR })
+
+    const insertAll = values.map(({ name, id }) =>
+      dbClient.insert(dbSchema.baseProjects).values({ id, name })
+    )
+
+    console.log('-> INSERT PROJECT TO DB')
+    await Promise.all(insertAll)
+
+    process.exit(0)
+  } catch (error) {
+    console.log('ERROR')
+    console.log(error)
+    process.exit(1)
   }
+}
 
-  const s3 = new S3Client({
-    region: process.env.AWS_REGION!,
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-    },
-  })
-  const Bucket = process.env.AWS_BUCKET!
+async function uploadFolder({ location }: { location: string }) {
+  const entries: { name: string; id: string }[] = []
 
-  console.log('Deleting...')
-  await deleteFolder({ location: 'projects/', s3, Bucket })
-
-  const projects = await readdir(`${import.meta.dir}/projects`, {
+  const projects = await readdir(path.join(location), {
     withFileTypes: true,
   })
 
   const uploadArray: Promise<PutObjectOutput>[] = []
-  projects.forEach(async (project) => {
-    if (!project.isDirectory()) return
-    const files = await readdir(`${import.meta.dir}/projects/${project.name}`, {
-      withFileTypes: true,
+  for (const project of projects) {
+    if (!project.isDirectory()) continue
+    const projectId = ulid()
+
+    const files = await readdir(path.join(location, project.name), {
       recursive: true,
+      withFileTypes: true,
     })
 
-    files.forEach(async (file) => {
-      if (file.isDirectory()) return
-      const Key = `projects/${project.name}/${file.name}`
-
-      const read = await Bun.file(
-        `${import.meta.dir}/projects/${project.name}/${file.name}`
-      ).text()
-      uploadArray.push(
-        uploadLoadToS3({
-          Key,
-          Body: read,
-          s3,
-          Bucket,
-        })
-      )
+    entries.push({
+      name: project.name,
+      id: projectId,
     })
-  })
 
-  console.log('Uploading...')
-  await Promise.all(uploadArray).catch(console.error)
+    for (const file of files) {
+      if (file.isDirectory()) continue
+
+      const arrayBuffer = await Bun.file(
+        path.join(location, project.name, file.name)
+      ).arrayBuffer()
+
+      const Body = Buffer.from(arrayBuffer)
+      const Key = path.join(REMOTE_PROJECT_DIR, projectId, file.name)
+      uploadArray.push(uploadLoadToS3({ Body, Key }))
+    }
+  }
+
+  await Promise.all(uploadArray)
+  return entries
 }
 
-async function deleteFolder({
-  location,
-  s3,
-  Bucket,
-}: {
-  location: string
-  s3: S3Client
-  Bucket: string
-}) {
+async function deleteFolder({ location }: { location: string }) {
   const listCommand = new ListObjectsV2Command({
     Bucket,
     Prefix: location,
@@ -98,17 +130,7 @@ async function deleteFolder({
   return `${deleted.Deleted.length} files deleted.`
 }
 
-function uploadLoadToS3({
-  Key,
-  Body,
-  s3,
-  Bucket,
-}: {
-  Key: string
-  Body: string
-  s3: S3Client
-  Bucket: string
-}) {
+function uploadLoadToS3({ Key, Body }: { Key: string; Body: Buffer }) {
   return s3.send(
     new PutObjectCommand({
       Bucket,
