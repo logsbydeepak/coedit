@@ -43,7 +43,6 @@ export const h = () => _h()
 
 export const hAuth = () =>
   _h<Variables>().use(async (c, next) => {
-    console.log('hi')
     const authToken = getCookie(c, 'x-auth')
     const isAuth = await checkIsAuth(c.env, authToken)
 
