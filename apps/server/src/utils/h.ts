@@ -14,6 +14,11 @@ export type ENV = {
   UPSTASH_REDIS_REST_TOKEN: string
   JWT_SECRET: string
   RUNTIME: 'deployment' | 'production'
+
+  AWS_REGION: string
+  AWS_ACCESS_KEY_ID: string
+  AWS_SECRET_ACCESS_KEY: string
+  AWS_BUCKET: string
 }
 
 type Variables = {
@@ -38,6 +43,7 @@ export const h = () => _h()
 
 export const hAuth = () =>
   _h<Variables>().use(async (c, next) => {
+    console.log('hi')
     const authToken = getCookie(c, 'x-auth')
     const isAuth = await checkIsAuth(c.env, authToken)
 

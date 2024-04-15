@@ -14,3 +14,9 @@ JWT_SECRET=''
 # deployment OR production
 RUNTIME='deployment'
 
+# AWS
+AWS_REGION='us-east-1'
+AWS_ACCESS_KEY_ID=''
+AWS_SECRET_ACCESS_KEY=''
+AWS_BUCKET=''
+
