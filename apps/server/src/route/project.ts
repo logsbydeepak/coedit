@@ -74,7 +74,7 @@ async function copyFolder({
   s3: S3Client
 }) {
   try {
-    const recursiveCopy = async function(token?: string) {
+    const recursiveCopy = async function (token?: string) {
       const listCommand = new ListObjectsV2Command({
         Bucket: Bucket,
         Prefix: from,
@@ -113,13 +113,4 @@ async function copyFolder({
   }
 }
 
-const baseProjects = hAuth().get('/', async (c) => {
-  const projects = await db(c.env).select().from(dbSchema.baseProjects)
-  return c.json(
-    r('OK', {
-      projects,
-    })
-  )
-})
-
-export const projectRoute = h().route('/base', baseProjects).route('/', create)
+export const projectRoute = h().route('/', create)
