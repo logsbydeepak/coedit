@@ -1,9 +1,11 @@
 import {
   CopyObjectCommand,
+  CopyObjectOutput,
   ListObjectsV2Command,
   S3Client,
 } from '@aws-sdk/client-s3'
 import { zValidator } from '@hono/zod-validator'
+import { eq } from 'drizzle-orm'
 import { isValid, ulid } from 'ulidx'
 import { z } from 'zod'
 
@@ -15,80 +17,101 @@ import { h, hAuth, r } from '#/utils/h'
 
 const create = hAuth().post(
   '/',
-  zValidator('json', z.object({ baseProjectId: zReqString })),
+  zValidator('json', z.object({ templateId: zReqString, name: zReqString })),
   async (c) => {
     const userId = c.get('x-userId')
     const input = c.req.valid('json')
 
-    if (!isValid(input.baseProjectId)) {
-      return c.json(r('INVALID_PROJECT_ID'))
+    if (!isValid(input.templateId)) {
+      return c.json(r('INVALID_TEMPLATE_ID'))
+    }
+
+    const [dbTemplate] = await db(c.env)
+      .select()
+      .from(dbSchema.templates)
+      .where(eq(dbSchema.templates.id, input.templateId))
+
+    if (!dbTemplate) {
+      return c.json(r('INVALID_TEMPLATE_ID'))
     }
 
     const newProjectId = ulid()
 
-    await copyFolder({
+    const res = await copyFolder({
       s3: s3(c.env),
-      fromBucket: c.env.AWS_BUCKET,
-      toBucket: c.env.AWS_BUCKET,
-      fromLocation: `base-project/${input.baseProjectId}`,
-      toLocation: `projects/${userId}/${newProjectId}`,
+      Bucket: c.env.AWS_BUCKET,
+      from: `templates/${input.templateId}`,
+      to: `projects/${userId}/${newProjectId}`,
     })
 
-    return c.json(r('OK'))
+    if (res.code !== 'OK') {
+      throw new Error('Failed to copy template')
+    }
+
+    await db(c.env).insert(dbSchema.projects).values({
+      id: newProjectId,
+      userId: userId,
+      name: input.name,
+    })
+
+    return c.json(
+      r('OK', {
+        projectId: newProjectId,
+      })
+    )
   }
 )
 
 async function copyFolder({
-  fromBucket,
-  fromLocation,
-  toBucket = fromBucket,
-  toLocation,
+  Bucket: Bucket,
+  from: from,
+  to: to,
   s3,
 }: {
-  fromBucket: string
-  fromLocation: string
-  toBucket: string
-  toLocation: string
+  Bucket: string
+  from: string
+  to: string
   s3: S3Client
 }) {
-  let count = 0
+  try {
+    const recursiveCopy = async function(token?: string) {
+      const listCommand = new ListObjectsV2Command({
+        Bucket: Bucket,
+        Prefix: from,
+        ContinuationToken: token,
+      })
+      const list = await s3.send(listCommand)
 
-  const recursiveCopy = async function (token?: string) {
-    const listCommand = new ListObjectsV2Command({
-      Bucket: fromBucket,
-      Prefix: fromLocation,
-      ContinuationToken: token,
-    })
+      const copyPromises: Promise<CopyObjectOutput>[] = []
+      if (list.KeyCount && list.Contents) {
+        const fromObjectKeys = list.Contents.map((content) => content.Key)
 
-    const list = await s3.send(listCommand)
-    if (list.KeyCount && list.Contents) {
-      const fromObjectKeys = list.Contents.map((content) => content.Key)
-      for (let fromObjectKey of fromObjectKeys) {
-        if (!fromObjectKey) continue
+        for (let fromObjectKey of fromObjectKeys) {
+          if (!fromObjectKey) continue
 
-        const toObjectKey = fromObjectKey.replace(fromLocation, toLocation)
+          const toObjectKey = fromObjectKey.replace(from, to)
 
-        const copyCommand = new CopyObjectCommand({
-          Bucket: toBucket,
-          CopySource: `${fromBucket}/${fromObjectKey}`,
-          Key: toObjectKey,
-        })
-        await s3.send(copyCommand)
-        count += 1
+          const copyCommand = new CopyObjectCommand({
+            Bucket: Bucket,
+            CopySource: `${Bucket}/${fromObjectKey}`,
+            Key: toObjectKey,
+          })
+          copyPromises.push(s3.send(copyCommand))
+          await s3.send(copyCommand)
+        }
       }
-    }
-    if (list.NextContinuationToken) {
-      recursiveCopy(list.NextContinuationToken)
-    }
-    return `${count} files copied.`
-  }
-  return recursiveCopy()
-}
 
-// const get = hAuth().get('/:id', async (c) => { })
-// const getAll = hAuth().get('/', async (c) => { })
-// const update = hAuth().put('/:id', async (c) => { })
-// const remove = hAuth().delete('/:id', async (c) => { })
+      await Promise.all(copyPromises)
+      if (list.NextContinuationToken) {
+        recursiveCopy(list.NextContinuationToken)
+      }
+      return r('OK')
+    }
+    return recursiveCopy()
+  } catch (error) {
+    return r('ERROR')
+  }
+}
 
 const baseProjects = hAuth().get('/', async (c) => {
   const projects = await db(c.env).select().from(dbSchema.baseProjects)
@@ -100,7 +123,3 @@ const baseProjects = hAuth().get('/', async (c) => {
 })
 
 export const projectRoute = h().route('/base', baseProjects).route('/', create)
-// .route('/', get)
-// .route('/', getAll)
-// .route('/', update)
-// .route('/', remove)
