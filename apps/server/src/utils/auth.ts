@@ -3,9 +3,11 @@ import { setCookie } from 'hono/cookie'
 import * as jose from 'jose'
 import ms from 'ms'
 
+import { r } from '@coedit/r'
+
 import { redis, resend } from '#/lib/config'
 
-import { ENV, r } from './h'
+import { ENV } from './h'
 
 function genExpTime(ExpMs: number) {
   return Date.now() + ExpMs

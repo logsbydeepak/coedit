@@ -24,7 +24,8 @@
     "apps/frontend",
     "apps/container",
     "apps/templates",
-    "packages/zschema"
+    "packages/zschema",
+    "packages/r"
   ],
   "trustedDependencies": [
     "es5-ext"

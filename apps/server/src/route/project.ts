@@ -9,11 +9,12 @@ import { eq } from 'drizzle-orm'
 import { isValid, ulid } from 'ulidx'
 import { z } from 'zod'
 
+import { r } from '@coedit/r'
 import { zReqString } from '@coedit/zschema'
 
 import { db, dbSchema } from '#/db'
 import { s3 } from '#/lib/config'
-import { h, hAuth, r } from '#/utils/h'
+import { h, hAuth } from '#/utils/h'
 
 const create = hAuth().post(
   '/',

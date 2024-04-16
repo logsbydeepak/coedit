@@ -23,7 +23,8 @@
     "ms": "^2.1.3",
     "postgres": "^3.4.4",
     "resend": "^3.2.0",
-    "ulidx": "^2.3.0"
+    "ulidx": "^2.3.0",
+    "@coedit/r": "*"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240208.0",

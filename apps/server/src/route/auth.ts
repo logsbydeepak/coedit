@@ -4,6 +4,7 @@ import ms from 'ms'
 import { ulid } from 'ulidx'
 import { z } from 'zod'
 
+import { r } from '@coedit/r'
 import { zEmail, zReqString } from '@coedit/zschema'
 
 import { db, dbSchema } from '#/db'
@@ -14,7 +15,7 @@ import {
   sendAuthEmail,
   setAuthCookie,
 } from '#/utils/auth'
-import { h, r } from '#/utils/h'
+import { h } from '#/utils/h'
 
 const login = h().post(
   '/',
