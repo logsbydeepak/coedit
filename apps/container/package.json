@@ -5,7 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "swc-node src",
+    "dev": "swc-node --env-file .env.local --watch src/index.ts",
     "start": "node dist/index.js",
     "clean": "rm -rf dist",
     "compile": "ncc build src/index.ts --out dist --minify",
@@ -15,8 +15,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@hono/node-server": "^1.10.0",
     "@vercel/ncc": "^0.38.1",
+    "hono": "^4.2.4",
     "node-pty": "^1.0.0",
+    "pino": "^8.20.0",
+    "pino-pretty": "^11.0.0",
     "typescript": "^5.4.5",
     "ws": "^8.16.0"
   },
@@ -24,5 +28,8 @@
     "@types/ws": "^8.5.10",
     "npm-run-all2": "^6.1.2",
     "swc-node": "^1.0.0"
-  }
+  },
+  "trustedDependencies": [
+    "node-pty"
+  ]
 }

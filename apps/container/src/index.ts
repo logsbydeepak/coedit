@@ -1,26 +1,20 @@
-import { spawn } from 'node-pty'
-import { WebSocket } from 'ws'
+import { APIServer } from './api'
+import { logger } from './utils/logger'
+import { WSServer } from './ws'
 
-const wss = new WebSocket.Server({ port: 3001 })
+const main = () => {
+  try {
+    const API_PORT = Number(process.env.API_PORT)
+    const WS_PORT = Number(process.env.WS_PORT)
 
-wss.on('connection', (ws: WebSocket) => {
-  const term = spawn('bash', [], {
-    name: 'xterm-color',
-    cols: 80,
-    rows: 24,
-    cwd: process.env.HOME,
-    env: process.env,
-  })
+    APIServer({ port: API_PORT })
 
-  term.onData((data) => {
-    ws.send(data)
-  })
+    WSServer({
+      port: WS_PORT,
+    })
+  } catch (error) {
+    logger.error(error)
+  }
+}
 
-  ws.on('message', (message: string) => {
-    term.write(message)
-  })
-
-  ws.on('close', () => {
-    term.kill()
-  })
-})
+main()
