@@ -1,11 +1,12 @@
+import { RunTaskCommand } from '@aws-sdk/client-ecs'
 import {
   CopyObjectCommand,
   CopyObjectOutput,
   ListObjectsV2Command,
-  S3Client,
+  type S3Client,
 } from '@aws-sdk/client-s3'
 import { zValidator } from '@hono/zod-validator'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { isValid, ulid } from 'ulidx'
 import { z } from 'zod'
 
@@ -13,7 +14,7 @@ import { r } from '@coedit/r'
 import { zReqString } from '@coedit/zschema'
 
 import { db, dbSchema } from '#/db'
-import { s3 } from '#/lib/config'
+import { ecs, s3 } from '#/lib/config'
 import { h, hAuth } from '#/utils/h'
 
 const create = hAuth().post(
@@ -114,4 +115,33 @@ async function copyFolder({
   }
 }
 
-export const projectRoute = h().route('/', create)
+const startProject = hAuth().post(
+  '/start',
+  zValidator('json', z.object({ projectId: zReqString })),
+  async (c) => {
+    const userId = c.get('x-userId')
+    const input = c.req.valid('json')
+
+    if (!isValid(input.projectId)) {
+      return c.json(r('INVALID_PROJECT_ID'))
+    }
+
+    const [dbProject] = await db(c.env)
+      .select()
+      .from(dbSchema.projects)
+      .where(
+        and(
+          eq(dbSchema.projects.id, input.projectId),
+          eq(dbSchema.projects.userId, userId)
+        )
+      )
+
+    if (!dbProject) {
+      return c.json(r('INVALID_PROJECT_ID'))
+    }
+
+    return c.json(r('OK'))
+  }
+)
+
+export const projectRoute = h().route('/', create).route('/', startProject)
