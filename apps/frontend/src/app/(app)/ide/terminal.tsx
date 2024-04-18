@@ -10,9 +10,23 @@ import { WebglAddon } from 'xterm-addon-webgl'
 
 const WS_URL = 'ws://localhost:3001'
 
+function debounce(func: () => void, wait: number) {
+  let timeout: Timer | null = null
+  return () => {
+    if (timeout !== null) {
+      clearTimeout(timeout)
+    }
+    timeout = setTimeout(() => {
+      timeout = null
+      func()
+    }, wait)
+  }
+}
+
 export default function Term() {
   const termRef = React.useRef<HTMLDivElement | null>(null)
-  const { readyState, sendMessage, getWebSocket } = useWebSocket(WS_URL)
+  const { readyState, sendMessage, getWebSocket, sendJsonMessage } =
+    useWebSocket(WS_URL)
 
   const connectionStatus = {
     [ReadyState.CONNECTING]: 'connecting' as const,
@@ -28,7 +42,7 @@ export default function Term() {
     const ws = getWebSocket()
     if (!ws) return
 
-    const term = new Terminal({})
+    const term = new Terminal()
     const webglAddon = new WebglAddon()
     const fitAddon = new FitAddon()
 
@@ -37,7 +51,7 @@ export default function Term() {
     term.open(termRef.current)
 
     term.onData((data) => {
-      sendMessage(data)
+      sendJsonMessage({ type: 'input', data })
     })
 
     ws.onmessage = (event) => {
@@ -45,35 +59,43 @@ export default function Term() {
     }
 
     const resizeObserver = new ResizeObserver(() => {
+      sendJsonMessage({
+        type: 'resize',
+        data: {
+          cols: term.cols,
+          rows: term.rows,
+        },
+      })
       fitAddon.fit()
     })
 
     resizeObserver.observe(termRef.current)
-
     return () => {
       resizeObserver.disconnect()
       webglAddon.dispose()
       fitAddon.dispose()
       term.dispose()
     }
-  }, [connectionStatus, getWebSocket, sendMessage])
+  }, [connectionStatus, getWebSocket, sendJsonMessage])
 
   return (
     <>
-      <div className="flex size-full items-center justify-center">
-        {connectionStatus === 'connecting' && (
-          <div className="font-mono">connecting...</div>
-        )}
-        {connectionStatus === 'closing' && (
-          <div className="font-mono">closing...</div>
-        )}
-        {connectionStatus === 'closed' && (
-          <div className="font-mono">closed</div>
-        )}
-        {connectionStatus === 'uninstantiated' && (
-          <div className="font-mono">uninstantiated</div>
-        )}
-      </div>
+      {connectionStatus !== 'open' && (
+        <div className="flex size-full items-center justify-center">
+          {connectionStatus === 'connecting' && (
+            <div className="font-mono">connecting...</div>
+          )}
+          {connectionStatus === 'closing' && (
+            <div className="font-mono">closing...</div>
+          )}
+          {connectionStatus === 'closed' && (
+            <div className="font-mono">closed</div>
+          )}
+          {connectionStatus === 'uninstantiated' && (
+            <div className="font-mono">uninstantiated</div>
+          )}
+        </div>
+      )}
       {connectionStatus === 'open' && (
         <div ref={termRef} className="size-full" />
       )}
