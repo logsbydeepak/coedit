@@ -65,7 +65,7 @@ export const config = {
     '/register/:path*',
 
     '/app/:path*',
-    '/ide/:path*',
+    // '/ide/:path*',
   ],
 }
 

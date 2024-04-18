@@ -19,7 +19,8 @@
     "adduser",
     "usermod",
     "NOPASSWD",
-    "devbox"
+    "devbox",
+    "uninstantiated"
   ],
   "ignorePaths": ["bun.lockb"]
 }

@@ -16,7 +16,7 @@ import {
   FormLabel,
   FormRoot,
 } from '#/components/ui/form'
-import { apiClient } from '#/utils/hc'
+import { apiClient } from '#/utils/hc-client'
 
 const zSchema = z.object({
   email: z.string().email(),
