@@ -42,7 +42,13 @@ export default function Term() {
     const ws = getWebSocket()
     if (!ws) return
 
-    const term = new Terminal()
+    const term = new Terminal({
+      fontSize: 14,
+      fontFamily: 'var(--font-geist-mono)',
+      fontWeight: 'normal',
+      lineHeight: 1.5,
+      letterSpacing: -2,
+    })
     const webglAddon = new WebglAddon()
     const fitAddon = new FitAddon()
 

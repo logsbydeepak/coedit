@@ -42,6 +42,10 @@ const config: Config = {
     },
     extend: {
       backgroundImage: {},
+      fontFamily: {
+        sans: ['var(--font-geist-sans)'],
+        mono: ['var(--font-geist-mono)'],
+      },
       keyframes: {
         'caret-blink': {
           '0%,70%,100%': { opacity: '1' },
