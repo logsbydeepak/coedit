@@ -18,9 +18,22 @@ export const WSServer = ({ port }: { port: number }) => {
   })
 
   wss.on('connection', (ws: WebSocket) => {
-    const term = spawn('su', ['coedit', '--login', '--pty'], {
-      env: process.env,
-    })
+    const NEW_USER = process.env.NEW_USER
+    const PWD = process.env.PWD
+    if (!NEW_USER) {
+      logger.error('env NEW_USER missing')
+      process.exit(1)
+    }
+    if (!PWD) {
+      logger.error('env PWD missing')
+      process.exit(1)
+    }
+
+    const term = spawn(
+      'su',
+      [NEW_USER, '--login', '--pty', '-c', `cd ${PWD}; bash`],
+      {}
+    )
 
     term.onData((data) => {
       ws.send(data)
