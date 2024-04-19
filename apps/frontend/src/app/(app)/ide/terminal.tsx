@@ -10,23 +10,9 @@ import { WebglAddon } from 'xterm-addon-webgl'
 
 const WS_URL = 'ws://localhost:3001'
 
-function debounce(func: () => void, wait: number) {
-  let timeout: Timer | null = null
-  return () => {
-    if (timeout !== null) {
-      clearTimeout(timeout)
-    }
-    timeout = setTimeout(() => {
-      timeout = null
-      func()
-    }, wait)
-  }
-}
-
 export default function Term() {
   const termRef = React.useRef<HTMLDivElement | null>(null)
-  const { readyState, sendMessage, getWebSocket, sendJsonMessage } =
-    useWebSocket(WS_URL)
+  const { readyState, getWebSocket, sendJsonMessage } = useWebSocket(WS_URL)
 
   const connectionStatus = {
     [ReadyState.CONNECTING]: 'connecting' as const,

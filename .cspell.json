@@ -20,7 +20,9 @@
     "usermod",
     "NOPASSWD",
     "devbox",
-    "uninstantiated"
+    "uninstantiated",
+    "procs",
+    "mprocs"
   ],
   "ignorePaths": ["bun.lockb"]
 }

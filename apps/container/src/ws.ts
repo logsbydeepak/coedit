@@ -18,14 +18,16 @@ export const WSServer = ({ port }: { port: number }) => {
   })
 
   wss.on('connection', (ws: WebSocket) => {
-    const term = spawn('bash', [], {
-      name: 'xterm-color',
-      cols: 80,
-      rows: 24,
+    const term = spawn('su', ['coedit', '--login', '--pty'], {
+      env: process.env,
     })
 
     term.onData((data) => {
       ws.send(data)
+    })
+
+    term.onExit(() => {
+      ws.close()
     })
 
     ws.on('message', (message: string) => {
