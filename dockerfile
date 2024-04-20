@@ -8,13 +8,11 @@ USER coedit
 RUN curl -sS https://webi.sh/bun | sh
 
 WORKDIR /home/coedit/workspace
-COPY package.json .
-COPY tsconfig.json .
-COPY src src
+COPY --chown=coedit:coedit . .
 
 SHELL ["/bin/bash", "-c", "-l"]
 RUN bun install
-RUN bun run build
+RUN bun run --cwd apps/container build
 
 FROM node:20 as runner
 RUN apt update
@@ -39,7 +37,7 @@ RUN curl -sS https://starship.rs/install.sh | sh -s -- --yes
 RUN echo "eval '$(starship init bash)'" >> /home/coedit/.bashrc
 COPY starship.toml /home/coedit/.config/
 
-COPY --from=builder /home/coedit/workspace/dist/ /root/coedit/
+COPY --from=builder /home/coedit/workspace/apps/container/dist/ /root/coedit/
 
 USER $NEW_USER
 WORKDIR /home/coedit/workspace/
