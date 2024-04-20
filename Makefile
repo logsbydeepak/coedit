@@ -10,7 +10,14 @@ dev:
 
 dev-start:
 	@echo "-> DEV IMAGE START" 
-	docker run --name coedit-dev --user root -it -v .:/root/coedit -p 3001:3001 -p 3002:3002 coedit:dev bash
+	docker run --name coedit-dev \
+		--user root \
+		-it -v .:/root/coedit \
+		-e API_PORT=4000 \
+		-e WS_PORT=4001 \
+		-p 4001:4001 \
+		-p 4002:4002 \
+		coedit:dev bash
 
 dev-stop:
 	@echo "-> DEV IMAGE STOP" 

@@ -8,7 +8,7 @@ import useWebSocket, { ReadyState } from 'react-use-websocket'
 import { FitAddon } from 'xterm-addon-fit'
 import { WebglAddon } from 'xterm-addon-webgl'
 
-const WS_URL = 'ws://localhost:3001'
+const WS_URL = 'ws://localhost:4001'
 
 export default function Term() {
   const termRef = React.useRef<HTMLDivElement | null>(null)

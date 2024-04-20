@@ -4,8 +4,8 @@ import { WSServer } from './ws'
 
 const main = () => {
   try {
-    const API_PORT = process.env.API_PORT ? Number(process.env.API_PORT) : 3002
-    const WS_PORT = process.env.WS_PORT ? Number(process.env.WS_PORT) : 3001
+    const API_PORT = process.env.API_PORT ? Number(process.env.API_PORT) : 4000
+    const WS_PORT = process.env.WS_PORT ? Number(process.env.WS_PORT) : 4001
 
     APIServer({ port: API_PORT })
 

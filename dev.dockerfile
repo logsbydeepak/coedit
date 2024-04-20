@@ -23,5 +23,6 @@ RUN curl -sS https://starship.rs/install.sh | sh -s -- --yes
 RUN echo "eval '$(starship init bash)'" >> /home/coedit/.bashrc
 COPY starship.toml /home/coedit/.config/
 
+USER $NEW_USER
 WORKDIR /home/coedit/workspace/
 

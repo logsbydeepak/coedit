@@ -5,7 +5,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "swc-node --env-file .env.local --watch src/index.ts",
+    "dev": "dotenvx run -- swc-node --watch src/index.ts",
+    "dev:no-env": "swc-node --watch src/index.ts",
     "start": "node dist/index.js",
     "clean": "rm -rf dist",
     "compile": "ncc build src/index.ts --out dist --minify",
@@ -15,6 +16,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@dotenvx/dotenvx": "^0.35.1",
     "@hono/node-server": "^1.10.0",
     "@vercel/ncc": "^0.38.1",
     "hono": "^4.2.4",

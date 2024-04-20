@@ -6,9 +6,10 @@
     "cspell": "cspell ** --gitignore --cache",
     "frontend:fix": "bun run --cwd apps/frontend fix",
     "frontend:dev": "bun run --cwd apps/frontend dev",
+    "container:dev": "bun run --cwd apps/container dev",
     "server:dev": "bun run --cwd apps/server dev",
-    "fix": "run-s format cspell frontend:fix",
-    "dev": "run-p server:dev frontend:dev"
+    "dev": "run-p server:dev frontend:dev",
+    "fix": "run-s format cspell frontend:fix"
   },
   "keywords": [],
   "author": "",

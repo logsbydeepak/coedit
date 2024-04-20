@@ -18,20 +18,12 @@ export const WSServer = ({ port }: { port: number }) => {
   })
 
   wss.on('connection', (ws: WebSocket) => {
-    const NEW_USER = process.env.NEW_USER
-    const PWD = process.env.PWD
-    if (!NEW_USER) {
-      logger.error('env NEW_USER missing')
-      process.exit(1)
-    }
-    if (!PWD) {
-      logger.error('env PWD missing')
-      process.exit(1)
-    }
+    const USER = 'coedit'
+    const WORKSPACE = `/home/${USER}/workspace`
 
     const term = spawn(
       'su',
-      [NEW_USER, '--login', '--pty', '-c', `cd ${PWD}; bash`],
+      [USER, '--login', '--pty', '-c', `cd ${WORKSPACE}; bash`],
       {}
     )
 

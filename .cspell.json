@@ -22,7 +22,8 @@
     "devbox",
     "uninstantiated",
     "procs",
-    "mprocs"
+    "mprocs",
+    "dotenvx"
   ],
   "ignorePaths": ["bun.lockb"]
 }
