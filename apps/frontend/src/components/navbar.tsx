@@ -13,10 +13,15 @@ export function Navbar() {
     queryFn: async () => {
       try {
         const res = await apiClient.user.$get()
-        const resData = await res.json()
-        return resData
+
+        if (res.ok) {
+          const resData = await res.json()
+          return resData
+        }
+
+        throw new Error()
       } catch (e) {
-        throw new Error('Something went wrong!')
+        throw e
       }
     },
     queryKey: ['user'],

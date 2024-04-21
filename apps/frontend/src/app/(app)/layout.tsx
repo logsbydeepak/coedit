@@ -3,6 +3,7 @@ import { QueryProvider } from '#/components/provider'
 import { AppProvider } from '#/store/app'
 
 import { AllDialog } from './all-dialog'
+import { HandleUnauthorized } from './client-components'
 
 export default function Layout({ children }: React.PropsWithChildren) {
   return (
@@ -12,6 +13,7 @@ export default function Layout({ children }: React.PropsWithChildren) {
           <Navbar />
           {children}
           <AllDialog />
+          <HandleUnauthorized />
         </AppProvider>
       </QueryProvider>
     </>
