@@ -27,6 +27,7 @@
     "apps/server",
     "apps/frontend",
     "apps/container",
+    "apps/container-api",
     "apps/templates",
     "packages/zschema",
     "packages/r"

@@ -30,3 +30,8 @@ next-env.d.ts
 .cspellcache
 node-pty/
 dist/
+
+dist
+.wrangler
+.dev.vars
+drizzle

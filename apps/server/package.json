@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "wrangler dev src/index.ts",
+    "dev": "wrangler dev src/index.ts --port 5000",
     "deploy": "wrangler deploy --minify src/index.ts",
     "db:gen": "drizzle-kit generate:mysql",
     "db:push": "bun --env-file .dev.vars drizzle-kit push:pg",
