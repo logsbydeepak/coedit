@@ -1,8 +1,8 @@
 import { eq } from 'drizzle-orm'
 
+import { db, dbSchema } from '@coedit/db'
 import { r } from '@coedit/r'
 
-import { db, dbSchema } from '#/db'
 import { h, hAuth } from '#/utils/h'
 
 const user = hAuth().get('/', async (c) => {

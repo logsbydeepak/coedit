@@ -1,0 +1,16 @@
+{
+  "name": "@coedit/db",
+  "private": true,
+  "version": "1.0.0",
+  "main": "./index.ts",
+  "scripts": {
+    "db:gen": "drizzle-kit generate:mysql",
+    "db:push": "bun --env-file .env.local drizzle-kit push:pg",
+    "db:gen:push": "run-s db:gen db:push"
+  },
+  "dependencies": {
+    "drizzle-kit": "^0.20.17",
+    "drizzle-orm": "^0.30.8",
+    "postgres": "^3.4.4"
+  }
+}

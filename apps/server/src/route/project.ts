@@ -1,4 +1,3 @@
-import { RunTaskCommand } from '@aws-sdk/client-ecs'
 import {
   CopyObjectCommand,
   CopyObjectOutput,
@@ -10,11 +9,11 @@ import { and, eq } from 'drizzle-orm'
 import { isValid, ulid } from 'ulidx'
 import { z } from 'zod'
 
+import { db, dbSchema } from '@coedit/db'
 import { r } from '@coedit/r'
 import { zReqString } from '@coedit/zschema'
 
-import { db, dbSchema } from '#/db'
-import { ecs, s3 } from '#/lib/config'
+import { s3 } from '#/lib/config'
 import { h, hAuth } from '#/utils/h'
 
 const create = hAuth().post(

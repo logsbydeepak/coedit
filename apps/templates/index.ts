@@ -10,7 +10,7 @@ import {
 import { pino, type LoggerOptions } from 'pino'
 import { ulid } from 'ulidx'
 
-import { db, dbSchema } from '@coedit/server/src/db'
+import { db, dbSchema } from '@coedit/db'
 
 const pinoOptions: LoggerOptions = {}
 if (process.stdout.isTTY) {

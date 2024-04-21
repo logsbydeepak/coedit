@@ -30,7 +30,8 @@
     "apps/container-api",
     "apps/templates",
     "packages/zschema",
-    "packages/r"
+    "packages/r",
+    "packages/db"
   ],
   "trustedDependencies": [
     "es5-ext"
