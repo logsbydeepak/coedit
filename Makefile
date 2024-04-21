@@ -12,7 +12,9 @@ dev-start:
 	@echo "-> DEV IMAGE START" 
 	docker run --name coedit-dev \
 		--user root \
-		-it -v .:/root/coedit \
+		-it \
+		-v .:/root/coedit \
+		-v /root/coedit/node_modules/ \
 		-e API_PORT=4000 \
 		-e WS_PORT=4001 \
 		-p 4001:4001 \

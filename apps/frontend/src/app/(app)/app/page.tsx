@@ -1,4 +1,5 @@
-import { Button } from '#/components/ui/button'
+import { NewProjectButton } from './components'
+import { Templates } from './templates'
 
 const projects = [
   {
@@ -25,8 +26,13 @@ export default function Page() {
   return (
     <div className="mx-auto max-w-7xl px-5 pt-14">
       <div className="space-y-8 pt-6">
-        <div className="mx-auto flex h-44 max-w-xl items-center justify-center rounded-md border border-dashed border-gray-6 bg-gray-3">
-          <Button>New Project</Button>
+        <NewProjectButton />
+
+        <div className="space-y-4">
+          <h2 className="text-xl font-medium">Templates</h2>
+          <div className="grid grid-cols-3 gap-6">
+            <Templates />
+          </div>
         </div>
 
         <div className="space-y-4">

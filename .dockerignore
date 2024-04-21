@@ -29,3 +29,5 @@ next-env.d.ts
 .cspellcache
 dist/
 
+bun.lockb
+

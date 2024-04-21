@@ -22,7 +22,7 @@ import {
   InputOTPSeparator,
   InputOTPSlot,
 } from '#/components/ui/input-otp'
-import { apiClient } from '#/utils/hc'
+import { apiClient } from '#/utils/hc-client'
 
 const zSchema = z.object({
   code: zReqString.length(6, 'required'),

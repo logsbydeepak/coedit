@@ -9,19 +9,19 @@ import { Avatar } from './avatar'
 import { LogoIcon } from './icons/logo'
 
 export function Navbar() {
-  // const { isLoading, data } = useQuery({
-  //   queryFn: async () => {
-  //     try {
-  //       const res = await apiClient.user.$get()
-  //       const resData = await res.json()
-  //       return resData
-  //     } catch (e) {
-  //       throw new Error('Something went wrong!')
-  //     }
-  //   },
-  //   queryKey: ['user'],
-  //   throwOnError: true,
-  // })
+  const { isLoading, data } = useQuery({
+    queryFn: async () => {
+      try {
+        const res = await apiClient.user.$get()
+        const resData = await res.json()
+        return resData
+      } catch (e) {
+        throw new Error('Something went wrong!')
+      }
+    },
+    queryKey: ['user'],
+    throwOnError: true,
+  })
 
   return (
     <nav className="fixed inset-x-0 border-b border-gray-4">
@@ -35,15 +35,15 @@ export function Navbar() {
           </div>
         </Link>
 
-        {/* {isLoading && ( */}
-        {/*   <div className="size-9 animate-pulse rounded-full bg-gray-4" /> */}
-        {/* )} */}
+        {isLoading && (
+          <div className="size-9 animate-pulse rounded-full bg-gray-4" />
+        )}
 
-        {/* {data?.name && ( */}
-        {/*   <div className="size-9"> */}
-        {/*     <Avatar name={data.name} /> */}
-        {/*   </div> */}
-        {/* )} */}
+        {data?.name && (
+          <div className="size-9">
+            <Avatar name={data.name} />
+          </div>
+        )}
       </div>
     </nav>
   )
