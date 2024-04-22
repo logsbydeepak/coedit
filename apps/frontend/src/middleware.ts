@@ -73,12 +73,20 @@ async function checkIsAuth(token?: string) {
   try {
     if (!token) return false
     const res = await apiClient.user.isAuth.$get()
-    const resData = await res.json()
 
-    if (resData.code === 'OK') {
-      return true
+    if (res.status === 401) {
+      return false
     }
-    return false
+
+    if (res.ok) {
+      const resData = await res.json()
+
+      if (resData.code === 'OK') {
+        return true
+      }
+    }
+
+    throw new Error()
   } catch (error) {
     throw new Error('Something went wrong.')
   }

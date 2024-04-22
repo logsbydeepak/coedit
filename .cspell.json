@@ -23,7 +23,8 @@
     "uninstantiated",
     "procs",
     "mprocs",
-    "dotenvx"
+    "dotenvx",
+    "sonner"
   ],
   "ignorePaths": ["bun.lockb"]
 }

@@ -1,3 +1,5 @@
+import { toast, Toaster } from 'sonner'
+
 import { Navbar } from '#/components/navbar'
 import { QueryProvider } from '#/components/provider'
 import { AppProvider } from '#/store/app'
@@ -16,6 +18,7 @@ export default function Layout({ children }: React.PropsWithChildren) {
           <HandleUnauthorized />
         </AppProvider>
       </QueryProvider>
+      <Toaster theme="dark" />
     </>
   )
 }
