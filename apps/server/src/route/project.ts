@@ -2,6 +2,7 @@ import {
   CopyObjectCommand,
   CopyObjectOutput,
   ListObjectsV2Command,
+  waitForBucketExists,
   type S3Client,
 } from '@aws-sdk/client-s3'
 import { zValidator } from '@hono/zod-validator'
@@ -143,4 +144,27 @@ const startProject = hAuth().post(
   }
 )
 
-export const projectRoute = h().route('/', create).route('/', startProject)
+const allProjects = hAuth().get('/', async (c) => {
+  const userId = c.get('x-userId')
+
+  const dbProjects = await db(c.env)
+    .select()
+    .from(dbSchema.projects)
+    .where(eq(dbSchema.projects.userId, userId))
+
+  if (!dbProjects) {
+    return c.json(r('OK', { projects: [] }))
+  }
+
+  const projects = dbProjects.map((project) => ({
+    name: project.name,
+    id: project.id,
+  }))
+
+  return c.json(r('OK', { projects: projects }))
+})
+
+export const projectRoute = h()
+  .route('/', create)
+  .route('/', startProject)
+  .route('/', allProjects)

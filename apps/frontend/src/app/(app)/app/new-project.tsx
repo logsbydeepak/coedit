@@ -10,6 +10,7 @@ import { z } from 'zod'
 
 import { zReqString } from '@coedit/zschema'
 
+import { queryClient } from '#/components/provider'
 import { Button } from '#/components/ui/button'
 import {
   DialogClose,
@@ -89,6 +90,7 @@ function Content({
           const resData = await res.json()
           if (resData.code === 'OK') {
             toast.success('Project created successfully!')
+            queryClient.invalidateQueries({ queryKey: ['projects'] })
             handleClose()
             return
           }
