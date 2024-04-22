@@ -19,7 +19,6 @@ import {
 import { FormError, FormInput, FormLabel, FormRoot } from '#/components/ui/form'
 import { useAppStore } from '#/store/app'
 import { apiClient } from '#/utils/hc-client'
-import { cn } from '#/utils/style'
 
 export function NewProjectDialog() {
   const isOpen = useAppStore((s) => s.dialog.newProject)
@@ -148,6 +147,7 @@ function Templates({
     <RadioGroup.Root
       className="grid grid-cols-2 gap-6"
       value={value}
+      defaultValue={data.projects[0].id}
       onValueChange={onChange}
     >
       {data.projects.map((template) => (
@@ -155,7 +155,7 @@ function Templates({
           key={template.id}
           value={template.id}
           id={template.id}
-          className="h-8 flex items-center border border-gray-5 rounded-md p-4 data-[state=checked]:ring-sage-9 data-[state=checked]:border-sage-9 data-[state=checked]:ring-1 data-[state=checked]:bg-sage-3"
+          className="flex h-8 items-center rounded-md border border-gray-5 p-4 focus-visible:outline-2 focus-visible:outline-offset-[6px] focus-visible:outline-gray-5 data-[state=checked]:border-sage-9 data-[state=checked]:bg-sage-3 data-[state=checked]:ring-1 data-[state=checked]:ring-sage-9"
         >
           <p>{template.name}</p>
         </RadioGroup.Item>
