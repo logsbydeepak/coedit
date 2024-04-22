@@ -1,5 +1,4 @@
 import { NewProjectButton } from './components'
-import { Templates } from './templates'
 
 const projects = [
   {
@@ -27,13 +26,6 @@ export default function Page() {
     <div className="mx-auto max-w-7xl px-5 pt-14">
       <div className="space-y-8 pt-6">
         <NewProjectButton />
-
-        <div className="space-y-4">
-          <h2 className="text-xl font-medium">Templates</h2>
-          <div className="grid grid-cols-3 gap-6">
-            <Templates />
-          </div>
-        </div>
 
         <div className="space-y-4">
           <h2 className="text-xl font-medium">Projects</h2>
