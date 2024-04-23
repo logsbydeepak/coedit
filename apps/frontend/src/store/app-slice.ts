@@ -15,7 +15,7 @@ type RequireOnlyOne<T, Keys extends keyof T = keyof T> = Pick<
 
 const dialogState = {
   newProject: false,
-  editProject: null as string | null,
+  editProject: null as Project | null,
   deleteProject: null as Project | null,
 }
 

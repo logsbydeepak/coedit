@@ -1,6 +1,7 @@
 'use client'
 
 import { DeleteProjectDialog } from './app/delete-project'
+import { EditProjectDialog } from './app/edit-project'
 import { NewProjectDialog } from './app/new-project'
 
 export function AllDialog() {
@@ -8,6 +9,7 @@ export function AllDialog() {
     <>
       <NewProjectDialog />
       <DeleteProjectDialog />
+      <EditProjectDialog />
     </>
   )
 }

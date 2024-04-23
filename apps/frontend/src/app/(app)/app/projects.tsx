@@ -14,7 +14,6 @@ export function Projects() {
       const res = await apiClient.project.$get()
       return await res.json()
     },
-
     queryKey: ['projects'],
   })
 
@@ -83,7 +82,7 @@ function Project({ name, id }: Project) {
     {
       name: 'Edit',
       Icon: PencilIcon,
-      onClick: () => {},
+      onClick: () => setDialog({ editProject: { name, id } }),
     },
   ]
 

@@ -22,21 +22,27 @@ import { FormError, FormInput, FormLabel, FormRoot } from '#/components/ui/form'
 import { useAppStore } from '#/store/app'
 import { apiClient } from '#/utils/hc-client'
 import { cn } from '#/utils/style'
+import { Project } from '#/utils/types'
 
-export function NewProjectDialog() {
-  const isOpen = useAppStore((s) => s.dialog.newProject)
+export function EditProjectDialog() {
+  const editProject = useAppStore((s) => s.dialog.editProject)
   const setDialog = useAppStore((s) => s.setDialog)
   const [isPending, startTransition] = React.useTransition()
+
+  const isOpen = !!editProject
 
   const closeDialog = () => {
     if (isPending) return
     setDialog({ newProject: false })
   }
 
+  if (!editProject) return
+
   return (
     <DialogRoot open={isOpen} onOpenChange={closeDialog}>
       <DialogContent className="space-y-5">
         <Content
+          project={editProject}
           isPending={isPending}
           startTransition={startTransition}
           handleClose={closeDialog}
@@ -57,22 +63,21 @@ function Content({
   handleClose,
   startTransition,
   isPending,
+  project,
 }: {
   handleClose: () => void
   isPending: boolean
   startTransition: React.TransitionStartFunction
+  project: Project
 }) {
   const {
     register,
     formState: { errors },
-    setValue,
-    watch,
     handleSubmit,
   } = useForm<FormValues>({
     resolver: zodResolver(zSchema),
     defaultValues: {
-      name: '',
-      templateId: '',
+      ...project,
     },
   })
 
@@ -85,20 +90,6 @@ function Content({
             templateId: data.templateId,
           },
         })
-        const resData = await res.json()
-
-        switch (resData.code) {
-          case 'OK':
-            toast.success('Project created successfully!')
-            queryClient.invalidateQueries({ queryKey: ['projects'] })
-            handleClose()
-            return
-          case 'INVALID_TEMPLATE_ID':
-            toast.error('Invalid template!')
-            return
-          default:
-            throw new Error('Something went wrong!')
-        }
       } catch (error) {
         toast.error('Something went wrong!')
       }
@@ -108,7 +99,7 @@ function Content({
   return (
     <>
       <div>
-        <DialogTitle>New Project</DialogTitle>
+        <DialogTitle>Edit Project</DialogTitle>
       </div>
 
       <FormRoot onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -123,17 +114,6 @@ function Content({
           <FormError>{errors.name?.message}</FormError>
         </div>
 
-        <div className="space-y-2.5">
-          <FormLabel>Template</FormLabel>
-          <Templates
-            value={watch('templateId')}
-            onChange={(value) => {
-              setValue('templateId', value)
-            }}
-          />
-          <FormError>{errors.templateId?.message}</FormError>
-        </div>
-
         <fieldset className="flex space-x-4" disabled={isPending}>
           <DialogClose asChild>
             <Button intent="secondary" className="w-full">
@@ -141,64 +121,10 @@ function Content({
             </Button>
           </DialogClose>
           <Button className="w-full" isLoading={isPending}>
-            Create
+            Save
           </Button>
         </fieldset>
       </FormRoot>
     </>
-  )
-}
-
-function Templates({
-  value,
-  onChange,
-}: {
-  value: string
-  onChange: (value: string) => void
-}) {
-  const { isLoading, data } = useQuery({
-    queryFn: async () => {
-      try {
-        const res = await apiClient.template.$get()
-        const resData = await res.json()
-        return resData
-      } catch (e) {
-        throw new Error('Something went wrong!')
-      }
-    },
-    queryKey: ['templates'],
-    throwOnError: true,
-  })
-
-  if (isLoading) {
-    return <p>Loading....</p>
-  }
-
-  if (!data) {
-    return <p>Something went wrong!</p>
-  }
-
-  return (
-    <RadioGroup.Root
-      className="grid grid-cols-2 gap-6"
-      value={value}
-      onValueChange={onChange}
-    >
-      {data.projects.map((template) => (
-        <RadioGroup.Item
-          key={template.id}
-          value={template.id}
-          id={template.id}
-          className={cn(
-            'flex h-8 items-center rounded-md border border-gray-5 p-4',
-            'focus-visible:outline-2 focus-visible:outline-offset-[6px]',
-            'focus-visible:outline-gray-5 data-[state=checked]:border-sage-9',
-            'data-[state=checked]:bg-sage-3 data-[state=checked]:ring-1 data-[state=checked]:ring-sage-9'
-          )}
-        >
-          <p>{template.name}</p>
-        </RadioGroup.Item>
-      ))}
-    </RadioGroup.Root>
   )
 }
