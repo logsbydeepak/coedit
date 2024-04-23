@@ -4,6 +4,7 @@ import React, { HtmlHTMLAttributes } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { PencilIcon, PlayIcon, TrashIcon } from 'lucide-react'
 
+import { useAppStore } from '#/store/app'
 import { apiClient } from '#/utils/hc-client'
 import { cn } from '#/utils/style'
 
@@ -65,7 +66,9 @@ interface Project {
   id: string
 }
 
-function Project({ name }: Project) {
+function Project({ name, id }: Project) {
+  const setDialog = useAppStore((s) => s.setDialog)
+
   const actions = [
     {
       name: 'Play',
@@ -75,7 +78,7 @@ function Project({ name }: Project) {
     {
       name: 'Delete',
       Icon: TrashIcon,
-      onClick: () => {},
+      onClick: () => setDialog({ deleteProject: { name, id } }),
     },
     {
       name: 'Edit',
@@ -86,7 +89,7 @@ function Project({ name }: Project) {
 
   return (
     <ProjectContainer>
-      <p className="p-4 font-mono text-sm font-medium">{name}</p>
+      <p className="p-4 text-center font-mono text-sm font-medium">{name}</p>
 
       <div className="flex justify-between divide-x divide-gray-4 border-t border-gray-4">
         {actions.map((a) => (
@@ -123,9 +126,13 @@ function Loading() {
 
 function ActionButton({
   children,
+  ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button className="flex size-6 h-10 w-full items-center justify-center  text-gray-11 hover:bg-gray-3 hover:text-gray-12">
+    <button
+      {...props}
+      className="flex size-6 h-10 w-full items-center justify-center  text-gray-11 hover:bg-gray-3 hover:text-gray-12"
+    >
       {children}
     </button>
   )

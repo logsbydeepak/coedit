@@ -1,5 +1,7 @@
 import { StateCreator } from 'zustand'
 
+import { Project } from '#/utils/types'
+
 import { AppStore } from './app'
 
 type RequireOnlyOne<T, Keys extends keyof T = keyof T> = Pick<
@@ -14,7 +16,7 @@ type RequireOnlyOne<T, Keys extends keyof T = keyof T> = Pick<
 const dialogState = {
   newProject: false,
   editProject: null as string | null,
-  deleteProject: null as string | null,
+  deleteProject: null as Project | null,
 }
 
 const initialState = {
