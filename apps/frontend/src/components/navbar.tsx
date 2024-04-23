@@ -8,18 +8,7 @@ import { apiClient } from '#/utils/hc-client'
 import { Avatar } from './avatar'
 import { LogoIcon } from './icons/logo'
 
-const getUser = apiClient.user.$get
-
 export function Navbar() {
-  const { isLoading, data } = useQuery({
-    queryFn: async () => {
-      const res = await getUser()
-      return await res.json()
-    },
-    queryKey: ['user'],
-    throwOnError: true,
-  })
-
   return (
     <nav className="fixed inset-x-0 border-b border-gray-4">
       <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between space-x-4 px-5">
@@ -32,16 +21,29 @@ export function Navbar() {
           </div>
         </Link>
 
-        {isLoading && (
-          <div className="size-9 animate-pulse rounded-full bg-gray-4" />
-        )}
-
-        {data?.name && (
-          <div className="size-9">
-            <Avatar name={data.name} />
-          </div>
-        )}
+        <User />
       </div>
     </nav>
   )
+}
+
+function User() {
+  const { isLoading, data, isError } = useQuery({
+    queryFn: async () => {
+      const res = await apiClient.user.$get()
+      return await res.json()
+    },
+    queryKey: ['user'],
+    retry: 0,
+  })
+
+  if (isLoading) {
+    return <div className="size-9 animate-pulse rounded-full bg-gray-4" />
+  }
+
+  if (!data?.name || isError) {
+    return <p className="font-mono text-xs font-medium text-red-11">error</p>
+  }
+
+  return <Avatar name={data.name} className="size-9" />
 }
