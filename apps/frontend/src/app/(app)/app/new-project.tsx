@@ -85,23 +85,20 @@ function Content({
             templateId: data.templateId,
           },
         })
+        const resData = await res.json()
 
-        if (res.ok) {
-          const resData = await res.json()
-          if (resData.code === 'OK') {
+        switch (resData.code) {
+          case 'OK':
             toast.success('Project created successfully!')
             queryClient.invalidateQueries({ queryKey: ['projects'] })
             handleClose()
             return
-          }
-
-          if (resData.code === 'INVALID_TEMPLATE_ID') {
+          case 'INVALID_TEMPLATE_ID':
             toast.error('Invalid template!')
             return
-          }
+          default:
+            throw new Error('Something went wrong!')
         }
-
-        throw new Error('Something went wrong!')
       } catch (error) {
         toast.error('Something went wrong!')
       }

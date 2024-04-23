@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
+import { ResponseError } from './utils/error'
 import { apiClient } from './utils/hc-server'
 
 export async function middleware(req: NextRequest) {
@@ -73,21 +74,14 @@ async function checkIsAuth(token?: string) {
   try {
     if (!token) return false
     const res = await apiClient.user.isAuth.$get()
-
-    if (res.status === 401) {
-      return false
-    }
-
-    if (res.ok) {
-      const resData = await res.json()
-
-      if (resData.code === 'OK') {
-        return true
+    const resData = await res.json()
+    return resData.code === 'OK' ? true : false
+  } catch (error) {
+    if (error instanceof ResponseError) {
+      if (error.response.status === 401) {
+        return false
       }
     }
-
-    throw new Error()
-  } catch (error) {
     throw new Error('Something went wrong.')
   }
 }

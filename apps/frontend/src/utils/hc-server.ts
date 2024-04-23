@@ -7,6 +7,8 @@ import type { AppType } from '@coedit/server'
 
 import { env } from '#/env'
 
+import { ResponseError } from './error'
+
 export const apiClient = hc<AppType>(env.NEXT_PUBLIC_API_URL, {
   fetch: (input, requestInit, Env, executionCtx) =>
     fetch(input, {
@@ -16,5 +18,11 @@ export const apiClient = hc<AppType>(env.NEXT_PUBLIC_API_URL, {
         ...requestInit?.headers,
         Cookie: `x-auth=${cookies().get('x-auth')?.value}`,
       },
+    }).then((res) => {
+      if (!res.ok) {
+        throw new ResponseError(res.statusText, res)
+      }
+
+      return res
     }),
 })

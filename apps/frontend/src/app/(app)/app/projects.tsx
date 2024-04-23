@@ -7,18 +7,8 @@ import { apiClient } from '#/utils/hc-client'
 export function Projects() {
   const { isLoading, data } = useQuery({
     queryFn: async () => {
-      try {
-        const res = await apiClient.project.$get()
-
-        if (res.ok) {
-          const resData = await res.json()
-          return resData
-        }
-
-        throw new Error()
-      } catch (e) {
-        throw e
-      }
+      const res = await apiClient.project.$get()
+      return await res.json()
     },
     queryKey: ['projects'],
     throwOnError: true,

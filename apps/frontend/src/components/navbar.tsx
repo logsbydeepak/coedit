@@ -8,21 +8,13 @@ import { apiClient } from '#/utils/hc-client'
 import { Avatar } from './avatar'
 import { LogoIcon } from './icons/logo'
 
+const getUser = apiClient.user.$get
+
 export function Navbar() {
   const { isLoading, data } = useQuery({
     queryFn: async () => {
-      try {
-        const res = await apiClient.user.$get()
-
-        if (res.ok) {
-          const resData = await res.json()
-          return resData
-        }
-
-        throw new Error()
-      } catch (e) {
-        throw e
-      }
+      const res = await getUser()
+      return await res.json()
     },
     queryKey: ['user'],
     throwOnError: true,
