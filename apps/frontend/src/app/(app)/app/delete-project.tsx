@@ -1,5 +1,8 @@
 import React from 'react'
+import { toast } from 'sonner'
 
+import { Alert, useAlert } from '#/components/icons/alert'
+import { queryClient } from '#/components/provider'
 import { Button } from '#/components/ui/button'
 import {
   DialogClose,
@@ -9,6 +12,7 @@ import {
   DialogTitle,
 } from '#/components/ui/dialog'
 import { useAppStore } from '#/store/app'
+import { apiClient } from '#/utils/hc-client'
 import { Project } from '#/utils/types'
 
 export function DeleteProjectDialog() {
@@ -43,14 +47,47 @@ function Content({
   isPending,
   startTransition,
   project,
+  handleClose,
 }: {
   handleClose: () => void
   isPending: boolean
   startTransition: React.TransitionStartFunction
   project: Project
 }) {
+  const { alert, setAlert } = useAlert()
   const handleProject = () => {
-    startTransition(async () => {})
+    startTransition(async () => {
+      try {
+        const res = await apiClient.project[':id'].$delete({
+          param: {
+            id: project.id,
+          },
+        })
+
+        const resData = await res.json()
+
+        switch (resData.code) {
+          case 'OK':
+            toast.success('Project deleted successfully')
+            queryClient.invalidateQueries({ queryKey: ['projects'] })
+            handleClose()
+            break
+          case 'INVALID_PROJECT_ID':
+            setAlert({
+              type: 'destructive',
+              message: 'Invalid project id',
+            })
+            break
+          default:
+            throw new Error('Something went wrong!')
+        }
+      } catch (e) {
+        setAlert({
+          type: 'destructive',
+          message: 'Something went wrong!',
+        })
+      }
+    })
   }
 
   return (
@@ -63,6 +100,8 @@ function Content({
         </DialogDescription>
       </div>
 
+      <Alert align="center" {...alert} />
+
       <fieldset className="flex space-x-4" disabled={isPending}>
         <DialogClose asChild>
           <Button intent="secondary" className="w-full">
@@ -74,7 +113,7 @@ function Content({
           isLoading={isPending}
           onClick={handleProject}
         >
-          Submit
+          Delete
         </Button>
       </fieldset>
     </>

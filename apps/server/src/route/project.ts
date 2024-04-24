@@ -2,7 +2,6 @@ import {
   CopyObjectCommand,
   CopyObjectOutput,
   ListObjectsV2Command,
-  waitForBucketExists,
   type S3Client,
 } from '@aws-sdk/client-s3'
 import { zValidator } from '@hono/zod-validator'
@@ -166,7 +165,55 @@ const allProjects = hAuth().get('/', async (c) => {
   return c.json(r('OK', { projects: projects }))
 })
 
+const deleteProject = hAuth().delete(
+  '/:id',
+  zValidator(
+    'param',
+    z.object({
+      id: zReqString,
+    })
+  ),
+  async (c) => {
+    const input = c.req.valid('param')
+    const userId = c.get('x-userId')
+
+    if (!isValid(input.id)) {
+      return c.json(r('INVALID_PROJECT_ID'))
+    }
+
+    const [project] = await db(c.env)
+      .select()
+      .from(dbSchema.projects)
+      .where(
+        and(
+          eq(dbSchema.projects.id, input.id),
+          eq(dbSchema.projects.userId, userId)
+        )
+      )
+
+    if (!project) {
+      return c.json(r('INVALID_PROJECT_ID'))
+    }
+
+    const deleteRes = await db(c.env)
+      .delete(dbSchema.projects)
+      .where(
+        and(
+          eq(dbSchema.projects.id, input.id),
+          eq(dbSchema.projects.userId, userId)
+        )
+      )
+
+    if (!deleteRes) {
+      throw new Error('Failed to delete project')
+    }
+
+    return c.json(r('OK'))
+  }
+)
+
 export const projectRoute = h()
+  .route('/', deleteProject)
   .route('/', create)
   .route('/', startProject)
   .route('/', allProjects)

@@ -106,7 +106,10 @@ function Content({
             throw new Error('Something went wrong!')
         }
       } catch (error) {
-        toast.error('Something went wrong!')
+        setAlert({
+          type: 'destructive',
+          message: 'Something went wrong!',
+        })
       }
     })
   }
