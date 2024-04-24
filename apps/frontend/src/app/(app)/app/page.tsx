@@ -3,7 +3,7 @@ import { Projects } from './projects'
 
 export default function Page() {
   return (
-    <div className="mx-auto max-w-7xl px-5 pt-14">
+    <div className="mx-auto max-w-7xl px-5 py-14">
       <div className="space-y-8 pt-6">
         <NewProjectButton />
 

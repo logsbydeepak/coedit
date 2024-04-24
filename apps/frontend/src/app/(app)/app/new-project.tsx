@@ -10,6 +10,7 @@ import { z } from 'zod'
 
 import { zReqString } from '@coedit/zschema'
 
+import { Alert, useAlert } from '#/components/icons/alert'
 import { queryClient } from '#/components/provider'
 import { Button } from '#/components/ui/button'
 import {
@@ -62,6 +63,8 @@ function Content({
   isPending: boolean
   startTransition: React.TransitionStartFunction
 }) {
+  const { alert, setAlert } = useAlert()
+
   const {
     register,
     formState: { errors },
@@ -94,7 +97,10 @@ function Content({
             handleClose()
             return
           case 'INVALID_TEMPLATE_ID':
-            toast.error('Invalid template!')
+            setAlert({
+              message: 'Invalid template id',
+              type: 'destructive',
+            })
             return
           default:
             throw new Error('Something went wrong!')
@@ -105,11 +111,17 @@ function Content({
     })
   }
 
+  React.useEffect(() => {
+    if (isPending) setAlert('close')
+  }, [isPending, setAlert])
+
   return (
     <>
       <div>
         <DialogTitle>New Project</DialogTitle>
       </div>
+
+      <Alert align="center" {...alert} />
 
       <FormRoot onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div className="space-y-2.5">
@@ -156,31 +168,39 @@ function Templates({
   value: string
   onChange: (value: string) => void
 }) {
-  const { isLoading, data } = useQuery({
+  const { isLoading, data, isError } = useQuery({
     queryFn: async () => {
-      try {
-        const res = await apiClient.template.$get()
-        const resData = await res.json()
-        return resData
-      } catch (e) {
-        throw new Error('Something went wrong!')
-      }
+      const res = await apiClient.template.$get()
+      const resData = await res.json()
+      return resData
     },
     queryKey: ['templates'],
-    throwOnError: true,
   })
 
   if (isLoading) {
-    return <p>Loading....</p>
+    return (
+      <div className="grid grid-cols-2 gap-4">
+        {Array.from({ length: 2 }, (_, i) => (
+          <div
+            key={i}
+            className="h-[38px] animate-pulse rounded-md bg-gray-4"
+          />
+        ))}
+      </div>
+    )
   }
 
-  if (!data) {
-    return <p>Something went wrong!</p>
+  if (!data || isError) {
+    return <Message className="text-red-11">error</Message>
+  }
+
+  if (data.projects.length === 0) {
+    return <Message>No projects found</Message>
   }
 
   return (
     <RadioGroup.Root
-      className="grid grid-cols-2 gap-6"
+      className="grid grid-cols-2 gap-4"
       value={value}
       onValueChange={onChange}
     >
@@ -190,15 +210,31 @@ function Templates({
           value={template.id}
           id={template.id}
           className={cn(
-            'flex h-8 items-center rounded-md border border-gray-5 p-4',
+            'flex h-[38px] items-center justify-center rounded-md border border-gray-5 px-4',
             'focus-visible:outline-2 focus-visible:outline-offset-[6px]',
             'focus-visible:outline-gray-5 data-[state=checked]:border-sage-9',
             'data-[state=checked]:bg-sage-3 data-[state=checked]:ring-1 data-[state=checked]:ring-sage-9'
           )}
         >
-          <p>{template.name}</p>
+          {template.name}
         </RadioGroup.Item>
       ))}
     </RadioGroup.Root>
+  )
+}
+
+function Message({
+  className,
+  children,
+}: React.HtmlHTMLAttributes<HTMLParagraphElement>) {
+  return (
+    <p
+      className={cn(
+        'p-4 text-center font-mono text-sm font-medium text-gray-11',
+        className
+      )}
+    >
+      {children}
+    </p>
   )
 }

@@ -9,7 +9,7 @@ import { apiClient } from '#/utils/hc-client'
 import { cn } from '#/utils/style'
 
 export function Projects() {
-  const { isLoading, data } = useQuery({
+  const { isLoading, data, isError } = useQuery({
     queryFn: async () => {
       const res = await apiClient.project.$get()
       return await res.json()
@@ -27,7 +27,7 @@ export function Projects() {
     )
   }
 
-  if (!data) {
+  if (!data || isError) {
     return <Message className="text-red-11">error</Message>
   }
 

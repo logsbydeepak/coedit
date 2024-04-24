@@ -156,10 +156,12 @@ const allProjects = hAuth().get('/', async (c) => {
     return c.json(r('OK', { projects: [] }))
   }
 
-  const projects = dbProjects.map((project) => ({
-    name: project.name,
-    id: project.id,
-  }))
+  const projects = dbProjects
+    .map((project) => ({
+      name: project.name,
+      id: project.id,
+    }))
+    .reverse()
 
   return c.json(r('OK', { projects: projects }))
 })
