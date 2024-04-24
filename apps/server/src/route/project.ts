@@ -1,9 +1,3 @@
-import {
-  CopyObjectCommand,
-  CopyObjectOutput,
-  ListObjectsV2Command,
-  type S3Client,
-} from '@aws-sdk/client-s3'
 import { zValidator } from '@hono/zod-validator'
 import { and, eq } from 'drizzle-orm'
 import { isValid, ulid } from 'ulidx'
@@ -15,8 +9,9 @@ import { zReqString } from '@coedit/zschema'
 
 import { s3 } from '#/lib/config'
 import { h, hAuth } from '#/utils/h'
+import { copyFolder } from '#/utils/s3'
 
-const create = hAuth().post(
+const createProject = hAuth().post(
   '/',
   zValidator('json', z.object({ templateId: zReqString, name: zReqString })),
   async (c) => {
@@ -63,57 +58,6 @@ const create = hAuth().post(
   }
 )
 
-async function copyFolder({
-  Bucket: Bucket,
-  from: from,
-  to: to,
-  s3,
-}: {
-  Bucket: string
-  from: string
-  to: string
-  s3: S3Client
-}) {
-  try {
-    const recursiveCopy = async function (token?: string) {
-      const listCommand = new ListObjectsV2Command({
-        Bucket: Bucket,
-        Prefix: from,
-        ContinuationToken: token,
-      })
-      const list = await s3.send(listCommand)
-
-      const copyPromises: Promise<CopyObjectOutput>[] = []
-      if (list.KeyCount && list.Contents) {
-        const fromObjectKeys = list.Contents.map((content) => content.Key)
-
-        for (let fromObjectKey of fromObjectKeys) {
-          if (!fromObjectKey) continue
-
-          const toObjectKey = fromObjectKey.replace(from, to)
-
-          const copyCommand = new CopyObjectCommand({
-            Bucket: Bucket,
-            CopySource: `${Bucket}/${fromObjectKey}`,
-            Key: toObjectKey,
-          })
-          copyPromises.push(s3.send(copyCommand))
-          await s3.send(copyCommand)
-        }
-      }
-
-      await Promise.all(copyPromises)
-      if (list.NextContinuationToken) {
-        recursiveCopy(list.NextContinuationToken)
-      }
-      return r('OK')
-    }
-    return recursiveCopy()
-  } catch (error) {
-    return r('ERROR')
-  }
-}
-
 const startProject = hAuth().post(
   '/start',
   zValidator('json', z.object({ projectId: zReqString })),
@@ -143,7 +87,7 @@ const startProject = hAuth().post(
   }
 )
 
-const allProjects = hAuth().get('/', async (c) => {
+const getAllProject = hAuth().get('/', async (c) => {
   const userId = c.get('x-userId')
 
   const dbProjects = await db(c.env)
@@ -181,21 +125,7 @@ const deleteProject = hAuth().delete(
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
-    const [project] = await db(c.env)
-      .select()
-      .from(dbSchema.projects)
-      .where(
-        and(
-          eq(dbSchema.projects.id, input.id),
-          eq(dbSchema.projects.userId, userId)
-        )
-      )
-
-    if (!project) {
-      return c.json(r('INVALID_PROJECT_ID'))
-    }
-
-    const deleteRes = await db(c.env)
+    const [res] = await db(c.env)
       .delete(dbSchema.projects)
       .where(
         and(
@@ -203,9 +133,58 @@ const deleteProject = hAuth().delete(
           eq(dbSchema.projects.userId, userId)
         )
       )
+      .returning({
+        id: dbSchema.projects.id,
+      })
 
-    if (!deleteRes) {
-      throw new Error('Failed to delete project')
+    if (!res) {
+      return c.json(r('INVALID_PROJECT_ID'))
+    }
+
+    return c.json(r('OK'))
+  }
+)
+
+const editProject = hAuth().post(
+  '/:id',
+  zValidator(
+    'param',
+    z.object({
+      id: zReqString,
+    })
+  ),
+  zValidator(
+    'json',
+    z.object({
+      name: zReqString,
+    })
+  ),
+  async (c) => {
+    const projectId = c.req.valid('param').id
+    const userId = c.get('x-userId')
+    const input = c.req.valid('json')
+
+    if (!isValid(projectId)) {
+      return c.json(r('INVALID_PROJECT_ID'))
+    }
+
+    const [res] = await db(c.env)
+      .update(dbSchema.projects)
+      .set({
+        name: input.name,
+      })
+      .where(
+        and(
+          eq(dbSchema.projects.id, projectId),
+          eq(dbSchema.projects.userId, userId)
+        )
+      )
+      .returning({
+        id: dbSchema.projects.id,
+      })
+
+    if (!res) {
+      return c.json(r('INVALID_PROJECT_ID'))
     }
 
     return c.json(r('OK'))
@@ -214,6 +193,7 @@ const deleteProject = hAuth().delete(
 
 export const projectRoute = h()
   .route('/', deleteProject)
-  .route('/', create)
+  .route('/', editProject)
+  .route('/', createProject)
   .route('/', startProject)
-  .route('/', allProjects)
+  .route('/', getAllProject)

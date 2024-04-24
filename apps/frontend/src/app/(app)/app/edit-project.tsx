@@ -2,8 +2,6 @@
 
 import React from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
-import * as RadioGroup from '@radix-ui/react-radio-group'
-import { useQuery } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
@@ -11,6 +9,7 @@ import { z } from 'zod'
 import { zReqString } from '@coedit/zschema'
 
 import { Head } from '#/components/head'
+import { Alert, useAlert } from '#/components/icons/alert'
 import { queryClient } from '#/components/provider'
 import { Button } from '#/components/ui/button'
 import {
@@ -22,7 +21,6 @@ import {
 import { FormError, FormInput, FormLabel, FormRoot } from '#/components/ui/form'
 import { useAppStore } from '#/store/app'
 import { apiClient } from '#/utils/hc-client'
-import { cn } from '#/utils/style'
 import { Project } from '#/utils/types'
 
 export function EditProjectDialog() {
@@ -71,6 +69,7 @@ function Content({
   startTransition: React.TransitionStartFunction
   project: Project
 }) {
+  const { alert, setAlert } = useAlert()
   const {
     register,
     formState: { errors },
@@ -78,21 +77,45 @@ function Content({
   } = useForm<FormValues>({
     resolver: zodResolver(zSchema),
     defaultValues: {
-      ...project,
+      name: project.name,
+      templateId: project.id,
     },
   })
 
   const onSubmit = (data: FormValues) => {
     startTransition(async () => {
       try {
-        const res = await apiClient.project.$post({
+        const res = await apiClient.project[':id'].$post({
           json: {
             name: data.name,
-            templateId: data.templateId,
+          },
+          param: {
+            id: data.templateId,
           },
         })
-      } catch (error) {
-        toast.error('Something went wrong!')
+
+        const resData = await res.json()
+
+        switch (resData.code) {
+          case 'OK':
+            toast.success('Project edited successfully')
+            queryClient.invalidateQueries({ queryKey: ['projects'] })
+            handleClose()
+            break
+          case 'INVALID_PROJECT_ID':
+            setAlert({
+              type: 'destructive',
+              message: 'Invalid project id',
+            })
+            break
+          default:
+            throw new Error('Something went wrong!')
+        }
+      } catch (e) {
+        setAlert({
+          type: 'destructive',
+          message: 'Something went wrong!',
+        })
       }
     })
   }
@@ -103,6 +126,8 @@ function Content({
       <div>
         <DialogTitle>Edit Project</DialogTitle>
       </div>
+
+      <Alert align="center" {...alert} />
 
       <FormRoot onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div className="space-y-2.5">
