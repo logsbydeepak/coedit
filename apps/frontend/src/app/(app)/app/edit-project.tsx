@@ -10,6 +10,7 @@ import { z } from 'zod'
 
 import { zReqString } from '@coedit/zschema'
 
+import { Head } from '#/components/head'
 import { queryClient } from '#/components/provider'
 import { Button } from '#/components/ui/button'
 import {
@@ -98,6 +99,7 @@ function Content({
 
   return (
     <>
+      <Head title={`Edit ${project.name}`} />
       <div>
         <DialogTitle>Edit Project</DialogTitle>
       </div>

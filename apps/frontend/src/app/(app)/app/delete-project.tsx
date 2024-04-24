@@ -1,6 +1,7 @@
 import React from 'react'
 import { toast } from 'sonner'
 
+import { Head } from '#/components/head'
 import { Alert, useAlert } from '#/components/icons/alert'
 import { queryClient } from '#/components/provider'
 import { Button } from '#/components/ui/button'
@@ -92,6 +93,7 @@ function Content({
 
   return (
     <>
+      <Head title={`delete ${project.name}`} />
       <div>
         <DialogTitle>Delete Project</DialogTitle>
         <DialogDescription>
