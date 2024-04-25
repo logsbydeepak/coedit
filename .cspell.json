@@ -24,7 +24,10 @@
     "procs",
     "mprocs",
     "dotenvx",
-    "sonner"
+    "sonner",
+    "hset",
+    "hmset",
+    "hgetall"
   ],
   "ignorePaths": ["bun.lockb"]
 }

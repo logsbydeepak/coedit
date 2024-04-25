@@ -18,14 +18,16 @@ import {
 } from '#/utils/auth'
 import { h } from '#/utils/h'
 
-function KVAuth(redis: Redis, type: 'login' | 'register') {
-  async function exists(email: string) {
-    const res = await redis.exists(`${type}:${email}`)
+function KVAuth(redis: Redis, type: 'login' | 'register', email: string) {
+  const key = `${type}:$${email}`
+
+  async function exists() {
+    const res = await redis.exists(key)
     return !!res
   }
 
-  async function set(email: string, code: number) {
-    const res = await redis.set(`${type}:${email}`, code, {
+  async function set(code: number) {
+    const res = await redis.set(key, code, {
       px: ms('15 minutes'),
     })
     if (res !== 'OK') {
@@ -33,13 +35,13 @@ function KVAuth(redis: Redis, type: 'login' | 'register') {
     }
   }
 
-  async function get(email: string) {
-    const res = await redis.get<number>(`${type}:${email}`)
+  async function get() {
+    const res = await redis.get<number>(key)
     return res
   }
 
-  async function remove(email: string) {
-    const res = await redis.del(`${type}:${email}`)
+  async function remove() {
+    const res = await redis.del(key)
     return !!res
   }
 
@@ -57,8 +59,8 @@ const login = h().post(
   async (c) => {
     const input = c.req.valid('json')
 
-    const KVAuthClient = KVAuth(redis(c.env), 'login')
-    const isCodeSent = await KVAuthClient.exists(input.email)
+    const KVAuthClient = KVAuth(redis(c.env), 'login', input.email)
+    const isCodeSent = await KVAuthClient.exists()
     if (isCodeSent) {
       return c.json(r('EMAIL_ALREADY_SENT'))
     }
@@ -83,7 +85,7 @@ const login = h().post(
       throw new Error("can't send email")
     }
 
-    await KVAuthClient.set(input.email, code)
+    await KVAuthClient.set(code)
     return c.json(r('OK'))
   }
 )
@@ -100,9 +102,9 @@ const loginVerify = h().post(
   async (c) => {
     const input = c.req.valid('json')
 
-    const KVAuthClient = KVAuth(redis(c.env), 'login')
+    const KVAuthClient = KVAuth(redis(c.env), 'login', input.email)
 
-    const code = await KVAuthClient.get(input.email)
+    const code = await KVAuthClient.get()
     if (!code) {
       return c.json(r('CODE_EXPIRED'))
     }
@@ -111,7 +113,7 @@ const loginVerify = h().post(
       return c.json(r('CODE_NOT_MATCH'))
     }
 
-    const deleteCode = await KVAuthClient.remove(input.email)
+    const deleteCode = await KVAuthClient.remove()
     if (!deleteCode) {
       throw new Error("can't delete redis key")
     }
@@ -144,9 +146,9 @@ const register = h().post(
   async (c) => {
     const input = c.req.valid('json')
 
-    const KVAuthClient = KVAuth(redis(c.env), 'register')
+    const KVAuthClient = KVAuth(redis(c.env), 'register', input.email)
 
-    const isCodeSent = await KVAuthClient.exists(input.email)
+    const isCodeSent = await KVAuthClient.exists()
     if (isCodeSent) {
       return c.json(r('EMAIL_ALREADY_SENT'))
     }
@@ -170,7 +172,7 @@ const register = h().post(
       throw new Error("can't send email")
     }
 
-    await KVAuthClient.set(input.email, code)
+    await KVAuthClient.set(code)
     return c.json(r('OK'))
   }
 )
@@ -188,9 +190,9 @@ const registerVerify = h().post(
   async (c) => {
     const input = c.req.valid('json')
 
-    const KVAuthClient = KVAuth(redis(c.env), 'register')
+    const KVAuthClient = KVAuth(redis(c.env), 'register', input.email)
 
-    const code = await KVAuthClient.get(input.email)
+    const code = await KVAuthClient.get()
     if (!code) {
       return c.json(r('CODE_EXPIRED'))
     }
@@ -199,7 +201,7 @@ const registerVerify = h().post(
       return c.json(r('CODE_NOT_MATCH'))
     }
 
-    const deleteCode = await KVAuthClient.remove(input.email)
+    const deleteCode = await KVAuthClient.remove()
     if (!deleteCode) {
       throw new Error("can't delete redis key")
     }
