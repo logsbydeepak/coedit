@@ -7,7 +7,7 @@ import { db, dbSchema } from '@coedit/db'
 import { r } from '@coedit/r'
 import { zReqString } from '@coedit/zschema'
 
-import { s3 } from '#/lib/config'
+import { redis, s3 } from '#/lib/config'
 import { h, hAuth } from '#/utils/h'
 import { copyFolder } from '#/utils/s3'
 
@@ -87,6 +87,8 @@ const startProject = hAuth().post(
     if (!dbProject) {
       return c.json(r('INVALID_PROJECT_ID'))
     }
+
+    const res = redis(c.env).set(`project:${input.id}`)
 
     return c.json(r('OK'))
   }

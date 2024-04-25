@@ -77,16 +77,17 @@ export const generateAuthToken = async ({
 }
 
 export const setAuthCookie = (
-  c: Context<{
-    Bindings: ENV
-  }>,
+  c: Context,
+  env: {
+    RUNTIME: string
+  },
   token: string
 ) => {
   setCookie(c, 'x-auth', token, {
     httpOnly: true,
     path: '/',
     sameSite: 'Strict',
-    secure: c.env.RUNTIME === 'production',
+    secure: env.RUNTIME === 'production',
     maxAge: cookieMaxAge,
   })
 }
