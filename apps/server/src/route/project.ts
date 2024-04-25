@@ -59,13 +59,18 @@ const createProject = hAuth().post(
 )
 
 const startProject = hAuth().post(
-  '/start',
-  zValidator('json', z.object({ projectId: zReqString })),
+  '/start/:id',
+  zValidator(
+    'param',
+    z.object({
+      id: zReqString,
+    })
+  ),
   async (c) => {
+    const input = c.req.valid('param')
     const userId = c.get('x-userId')
-    const input = c.req.valid('json')
 
-    if (!isValid(input.projectId)) {
+    if (!isValid(input.id)) {
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
@@ -74,7 +79,7 @@ const startProject = hAuth().post(
       .from(dbSchema.projects)
       .where(
         and(
-          eq(dbSchema.projects.id, input.projectId),
+          eq(dbSchema.projects.id, input.id),
           eq(dbSchema.projects.userId, userId)
         )
       )

@@ -1,6 +1,7 @@
 'use client'
 
 import React, { HtmlHTMLAttributes } from 'react'
+import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { PencilIcon, PlayIcon, TrashIcon } from 'lucide-react'
 
@@ -69,12 +70,13 @@ interface Project {
 
 function Project({ name, id }: Project) {
   const setDialog = useAppStore((s) => s.setDialog)
+  const route = useRouter()
 
   const actions = [
     {
       name: 'Play',
       Icon: PlayIcon,
-      onClick: () => {},
+      onClick: () => route.push(`/ide/${id}`),
     },
     {
       name: 'Delete',
