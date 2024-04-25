@@ -9,7 +9,7 @@ import { apiClient } from '#/utils/hc-client'
 import { cn } from '#/utils/style'
 
 export function Projects() {
-  const { isLoading, data, isError } = useQuery({
+  const { isLoading, data, isError, isFetching } = useQuery({
     queryFn: async () => {
       const res = await apiClient.project.$get()
       return await res.json()
@@ -37,6 +37,8 @@ export function Projects() {
 
   return (
     <Grid>
+      {isFetching && <Loading />}
+
       {data.projects.map((project: Project) => (
         <Project key={project.id} name={project.name} id={project.id} />
       ))}
@@ -88,7 +90,9 @@ function Project({ name, id }: Project) {
 
   return (
     <ProjectContainer>
-      <p className="p-4 text-center font-mono text-sm font-medium">{name}</p>
+      <p className="overflow-hidden text-ellipsis p-4 text-center font-mono text-sm font-medium">
+        {name}
+      </p>
 
       <div className="flex justify-between divide-x divide-gray-4 border-t border-gray-4">
         {actions.map((a) => (
@@ -138,5 +142,9 @@ function ActionButton({
 }
 
 function Grid({ children }: React.PropsWithChildren) {
-  return <div className="grid grid-cols-3 gap-6">{children}</div>
+  return (
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(230px,1fr))] gap-6">
+      {children}
+    </div>
+  )
 }

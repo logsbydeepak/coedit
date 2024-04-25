@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
@@ -10,7 +11,6 @@ import { zReqString } from '@coedit/zschema'
 
 import { Head } from '#/components/head'
 import { Alert, useAlert } from '#/components/icons/alert'
-import { queryClient } from '#/components/provider'
 import { Button } from '#/components/ui/button'
 import {
   DialogClose,
@@ -69,7 +69,9 @@ function Content({
   startTransition: React.TransitionStartFunction
   project: Project
 }) {
+  const queryClient = useQueryClient()
   const { alert, setAlert } = useAlert()
+
   const {
     register,
     formState: { errors },
@@ -96,10 +98,11 @@ function Content({
 
         const resData = await res.json()
 
+        queryClient.invalidateQueries({ queryKey: ['projects'] })
+
         switch (resData.code) {
           case 'OK':
             toast.success('Project edited successfully')
-            queryClient.invalidateQueries({ queryKey: ['projects'] })
             handleClose()
             break
           case 'INVALID_PROJECT_ID':

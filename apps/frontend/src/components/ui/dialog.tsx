@@ -65,7 +65,10 @@ const DialogDescription = React.forwardRef<
   <DialogDescriptionPrimitive
     {...props}
     ref={ref}
-    className={cn('text-sm text-gray-11', className)}
+    className={cn(
+      'overflow-hidden text-ellipsis text-sm text-gray-11',
+      className
+    )}
   >
     {children}
   </DialogDescriptionPrimitive>

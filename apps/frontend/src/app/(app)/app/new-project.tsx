@@ -3,7 +3,7 @@
 import React from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as RadioGroup from '@radix-ui/react-radio-group'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
@@ -12,7 +12,6 @@ import { zReqString } from '@coedit/zschema'
 
 import { Head } from '#/components/head'
 import { Alert, useAlert } from '#/components/icons/alert'
-import { queryClient } from '#/components/provider'
 import { Button } from '#/components/ui/button'
 import {
   DialogClose,
@@ -65,6 +64,7 @@ function Content({
   startTransition: React.TransitionStartFunction
 }) {
   const { alert, setAlert } = useAlert()
+  const queryClient = useQueryClient()
 
   const {
     register,
@@ -90,11 +90,10 @@ function Content({
           },
         })
         const resData = await res.json()
-
+        queryClient.invalidateQueries({ queryKey: ['projects'] })
         switch (resData.code) {
           case 'OK':
             toast.success('Project created successfully!')
-            queryClient.invalidateQueries({ queryKey: ['projects'] })
             handleClose()
             return
           case 'INVALID_TEMPLATE_ID':

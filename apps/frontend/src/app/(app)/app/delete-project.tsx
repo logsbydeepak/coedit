@@ -1,9 +1,9 @@
 import React from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 import { Head } from '#/components/head'
 import { Alert, useAlert } from '#/components/icons/alert'
-import { queryClient } from '#/components/provider'
 import { Button } from '#/components/ui/button'
 import {
   DialogClose,
@@ -56,6 +56,8 @@ function Content({
   project: Project
 }) {
   const { alert, setAlert } = useAlert()
+  const queryClient = useQueryClient()
+
   const handleProject = () => {
     startTransition(async () => {
       try {
@@ -66,11 +68,11 @@ function Content({
         })
 
         const resData = await res.json()
+        queryClient.invalidateQueries({ queryKey: ['projects'] })
 
         switch (resData.code) {
           case 'OK':
             toast.success('Project deleted successfully')
-            queryClient.invalidateQueries({ queryKey: ['projects'] })
             handleClose()
             break
           case 'INVALID_PROJECT_ID':
@@ -97,8 +99,8 @@ function Content({
       <div>
         <DialogTitle>Delete Project</DialogTitle>
         <DialogDescription>
-          Are you sure you want to
-          <i> {project.name} </i>delete?
+          Are you sure you want to delete?{' '}
+          <i className="font-mono"> {project.name} </i>
         </DialogDescription>
       </div>
 
