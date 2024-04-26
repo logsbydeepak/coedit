@@ -7,7 +7,23 @@ import { LoaderIcon } from 'lucide-react'
 
 import { apiClient } from '#/utils/hc-client'
 
+import { IDE } from './ide'
+
 export default function Page() {
+  const [isReady, setIsReady] = React.useState(false)
+
+  if (!isReady) {
+    return <Init setIsReady={setIsReady} />
+  }
+
+  return <IDE />
+}
+
+function Init({
+  setIsReady,
+}: {
+  setIsReady: React.Dispatch<React.SetStateAction<boolean>>
+}) {
   const params = useParams<{ id: string }>()
 
   const findQuery = useQuery({
@@ -67,6 +83,12 @@ export default function Page() {
       if (statusQuery.data.status === 'RUNNING') {
         return 'running'
       }
+      if (statusQuery.data.status === 'INITIALIZING') {
+        return 'initializing'
+      }
+      if (statusQuery.data.status === 'STARTING') {
+        return 'starting'
+      }
     }
 
     return 'error'
@@ -77,6 +99,14 @@ export default function Page() {
     findQuery.data?.code,
     statusQuery.data,
   ])
+
+  React.useEffect(() => {
+    if (statusQuery.data?.code === 'OK') {
+      if (statusQuery.data.status === 'RUNNING') {
+        return setIsReady(true)
+      }
+    }
+  }, [statusQuery.data, setIsReady])
 
   return (
     <Container>

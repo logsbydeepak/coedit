@@ -133,7 +133,7 @@ const startProject = hAuth().post(
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
-    KVProject(redis(c.env), input.id).set('RUNNING', 'http:127.0.0.1')
+    KVProject(redis(c.env), input.id).set('STARTING', 'http:127.0.0.1')
 
     return c.json(r('OK'))
   }
