@@ -133,9 +133,40 @@ const startProject = hAuth().post(
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
-    const res = redis(c.env).set(`project:${input.id}`)
+    KVProject(redis(c.env), input.id).set('RUNNING', 'http:127.0.0.1')
 
     return c.json(r('OK'))
+  }
+)
+
+const projectStatus = hAuth().get(
+  '/start/:id',
+  zValidator(
+    'param',
+    z.object({
+      id: zReqString,
+    })
+  ),
+  async (c) => {
+    const input = c.req.valid('param')
+
+    if (!isValid(input.id)) {
+      return c.json(r('INVALID_PROJECT_ID'))
+    }
+
+    const KVProjectClient = KVProject(redis(c.env), input.id)
+
+    const data = await KVProjectClient.get()
+    if (!data) {
+      return c.json(r('INVALID_PROJECT_ID'))
+    }
+
+    return c.json(
+      r('OK', {
+        status: data.status,
+        url: data.url,
+      })
+    )
   }
 )
 
@@ -244,6 +275,7 @@ const editProject = hAuth().post(
 )
 
 export const projectRoute = h()
+  .route('/', projectStatus)
   .route('/', deleteProject)
   .route('/', editProject)
   .route('/', createProject)
