@@ -6,12 +6,11 @@ import { useQuery } from '@tanstack/react-query'
 import { LoaderIcon } from 'lucide-react'
 
 import { apiClient } from '#/utils/hc-client'
-import { cn } from '#/utils/style'
 
 export default function Page() {
   const params = useParams<{ id: string }>()
 
-  const { isLoading, isError, data } = useQuery({
+  const findQuery = useQuery({
     queryFn: async () => {
       const res = await apiClient.project.start[':id'].$post({
         param: {
@@ -28,49 +27,69 @@ export default function Page() {
     refetchOnWindowFocus: false,
   })
 
-  if (isLoading) {
-    return (
-      <Container>
-        <LoaderIcon className="size-6 animate-spin text-gray-9" />
-      </Container>
-    )
-  }
+  const statusQuery = useQuery({
+    queryFn: async () => {
+      const res = await apiClient.project.status[':id'].$get({
+        param: {
+          id: params.id,
+        },
+      })
 
-  if (isError || !data || !data?.code) {
-    return (
-      <Container>
-        <Message className="text-red-11">error</Message>
-      </Container>
-    )
-  }
+      return await res.json()
+    },
+    enabled: findQuery.data?.code === 'OK',
+    queryKey: ['status'],
+    refetchInterval: 4000,
+  })
 
-  if (data.code === 'INVALID_PROJECT_ID')
-    return (
-      <Container>
-        <Message>No projects found</Message>
-      </Container>
-    )
+  const isError = React.useMemo(
+    () => findQuery.isError || statusQuery.isError,
+    [findQuery.isError, statusQuery.isError]
+  )
+
+  const message: string = React.useMemo(() => {
+    if (findQuery.isLoading || statusQuery.isLoading) {
+      return 'loading'
+    }
+
+    if (isError) {
+      return 'error'
+    }
+
+    if (
+      findQuery.data?.code === 'INVALID_PROJECT_ID' ||
+      statusQuery.data?.code === 'INVALID_PROJECT_ID'
+    ) {
+      return 'not found'
+    }
+
+    if (statusQuery.data?.code === 'OK') {
+      if (statusQuery.data.status === 'RUNNING') {
+        return 'running'
+      }
+    }
+
+    return 'error'
+  }, [
+    findQuery.isLoading,
+    statusQuery.isLoading,
+    isError,
+    findQuery.data?.code,
+    statusQuery.data,
+  ])
 
   return (
     <Container>
-      <Status />
+      <Status
+        isLoading={
+          !isError ||
+          findQuery.data?.code !== 'INVALID_PROJECT_ID' ||
+          statusQuery.data?.code !== 'INVALID_PROJECT_ID'
+        }
+      >
+        {message}
+      </Status>
     </Container>
-  )
-}
-
-function Message({
-  className,
-  children,
-}: React.HtmlHTMLAttributes<HTMLParagraphElement>) {
-  return (
-    <p
-      className={cn(
-        'p-10 text-center font-mono text-sm font-medium text-gray-11',
-        className
-      )}
-    >
-      {children}
-    </p>
   )
 }
 
@@ -82,6 +101,14 @@ function Container({ children }: React.HtmlHTMLAttributes<HTMLDivElement>) {
   )
 }
 
-function Status() {
-  return <h1>STATUS</h1>
+function Status({
+  children,
+  isLoading,
+}: React.PropsWithChildren<{ isLoading: boolean }>) {
+  return (
+    <div className="flex items-center space-x-2 rounded-full bg-gray-5 px-5 py-2 font-mono text-sm">
+      {isLoading && <LoaderIcon className="size-4 animate-spin text-gray-11" />}
+      <p>{children}</p>
+    </div>
+  )
 }

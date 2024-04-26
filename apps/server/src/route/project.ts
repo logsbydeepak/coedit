@@ -42,7 +42,7 @@ function KVProject(redis: Redis, id: string) {
 
   async function get() {
     const res = await redis.hgetall<{
-      status: string
+      status: ProjectStatus
       url: string
     }>(key)
     return res
@@ -140,7 +140,7 @@ const startProject = hAuth().post(
 )
 
 const projectStatus = hAuth().get(
-  '/start/:id',
+  '/status/:id',
   zValidator(
     'param',
     z.object({
