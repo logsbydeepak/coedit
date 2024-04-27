@@ -15,14 +15,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@aws-sdk/client-ecs": "^3.556.0",
     "@ianvs/prettier-plugin-sort-imports": "^4.2.1",
-    "@radix-ui/react-dialog": "^1.0.5",
     "cspell": "^8.6.0",
-    "mprocs": "^0.6.4",
     "npm-run-all2": "^6.1.2",
     "prettier": "^3.2.5",
-    "react-use-websocket": "^4.8.1"
+    "swc-node": "^1.0.0"
   },
   "workspaces": [
     "apps/server",

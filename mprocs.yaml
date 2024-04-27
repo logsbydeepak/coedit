@@ -1,7 +1,0 @@
-procs:
-  frontend:
-    shell: 'bun run --cwd apps/frontend dev'
-  server:
-    shell: 'bun run --cwd apps/server dev'
-  container:
-    shell: 'bun run --cwd apps/container dev'
