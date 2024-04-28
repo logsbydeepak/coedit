@@ -29,7 +29,8 @@
     "apps/templates",
     "packages/zschema",
     "packages/r",
-    "packages/db"
+    "packages/db",
+    "packages/KVProject"
   ],
   "trustedDependencies": [
     "es5-ext"

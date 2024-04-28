@@ -1,0 +1,6 @@
+{
+  "name": "@coedit/kv-project",
+  "private": true,
+  "version": "1.0.0",
+  "main": "./index.ts"
+}

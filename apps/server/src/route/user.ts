@@ -26,7 +26,11 @@ const user = hAuth().get('/', async (c) => {
 })
 
 const isAuth = hAuth().get('/', async (c) => {
-  return c.json(r('OK'))
+  return c.json(
+    r('OK', {
+      id: c.get('x-userId'),
+    })
+  )
 })
 
 // const logout = hAuth().patch('/', async (c) => {

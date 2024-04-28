@@ -27,7 +27,8 @@
     "sonner",
     "hset",
     "hmset",
-    "hgetall"
+    "hgetall",
+    "presigner"
   ],
   "ignorePaths": ["bun.lockb"]
 }
