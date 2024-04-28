@@ -1,16 +1,19 @@
 import { APIServer } from './api'
 import { ENV } from './env'
+import { init } from './init'
 import { logger } from './utils/logger'
 import { WSServer } from './ws'
 
-const main = () => {
+const main = async () => {
   try {
+    await init()
     APIServer({ port: ENV.API_PORT })
     WSServer({
       port: ENV.WS_PORT,
     })
   } catch (error) {
     logger.error(error)
+    process.exit(1)
   }
 }
 

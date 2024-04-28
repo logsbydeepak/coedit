@@ -37,12 +37,9 @@ const app = new Hono<{
       throw new Error('Failed to get files')
     }
 
-    if (!update) {
-      return c.json(r('PROJECT_NOT_FOUND'))
-    }
-
     return c.json(r('OK', { files: files.files }))
   }
 )
 
+export type AppType = typeof app
 export default app

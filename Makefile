@@ -19,6 +19,7 @@ dev-start:
 		-p 4001:4001 \
 		-p 5000:5000 \
 		-p 5001:5001 \
+		--add-host host.docker.internal:host-gateway \
 		coedit:dev bash
 
 dev-attach:

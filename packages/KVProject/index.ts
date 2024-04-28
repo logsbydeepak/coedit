@@ -16,10 +16,9 @@ export function KVProject(redis: Redis, id: string) {
   }
 
   async function update(status: ProjectStatus) {
-    const res = await redis.hset(key, {
+    await redis.hset(key, {
       status,
     })
-    return !!res
   }
 
   async function remove() {

@@ -7,6 +7,7 @@ const schema = z.object({
   WS_PORT: z.coerce.number().gte(1000).lte(9999),
   CONTAINER_ID: zReqString,
   USER_API: zReqString.url(),
+  USER_ID: zReqString,
   CONTAINER_API: zReqString.url(),
 })
 

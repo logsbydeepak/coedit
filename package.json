@@ -7,8 +7,9 @@
     "frontend:fix": "bun run --cwd apps/frontend fix",
     "frontend:dev": "bun run --cwd apps/frontend dev",
     "container:dev": "bun run --cwd apps/container dev",
+    "container-api:dev": "bun run --cwd apps/container-api dev",
     "server:dev": "bun run --cwd apps/server dev",
-    "dev": "run-p server:dev frontend:dev",
+    "dev": "run-p server:dev frontend:dev container-api:dev",
     "fix": "run-s format cspell frontend:fix"
   },
   "keywords": [],

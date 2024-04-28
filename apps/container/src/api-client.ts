@@ -2,6 +2,9 @@
 
 import { hc } from 'hono/client'
 
+import { AppType as ContainerAPIType } from '@coedit/container-api'
+import { AppType as UserAPIType } from '@coedit/server'
+
 import { ENV } from '#/env'
 
 export class ResponseError extends Error {
@@ -13,7 +16,7 @@ export class ResponseError extends Error {
   }
 }
 
-export const userClient = hc(ENV.USER_API, {
+export const userClient = hc<UserAPIType>(ENV.USER_API, {
   fetch: (input, requestInit, Env, executionCtx) =>
     fetch(input, {
       ...requestInit,
@@ -27,7 +30,7 @@ export const userClient = hc(ENV.USER_API, {
     }),
 })
 
-export const containerClient = hc(ENV.CONTAINER_API, {
+export const containerClient = hc<ContainerAPIType>(ENV.CONTAINER_API, {
   fetch: (input, requestInit, Env, executionCtx) =>
     fetch(input, {
       ...requestInit,
