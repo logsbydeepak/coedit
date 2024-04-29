@@ -75,6 +75,11 @@ const startProject = hAuth().post(
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
+    const isExists = await KVProject(redis(c.env), input.id).exists()
+    if (isExists) {
+      return c.json(r('PROJECT_ALREADY_STARTED'))
+    }
+
     const [dbProject] = await db(c.env)
       .select()
       .from(dbSchema.projects)
@@ -89,7 +94,7 @@ const startProject = hAuth().post(
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
-    KVProject(redis(c.env), input.id).set('STARTING', 'http:127.0.0.1')
+    await KVProject(redis(c.env), input.id).set('STARTING', 'http:127.0.0.1')
 
     return c.json(r('OK'))
   }

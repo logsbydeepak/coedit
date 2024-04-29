@@ -26,6 +26,11 @@ export function KVProject(redis: Redis, id: string) {
     return !!res
   }
 
+  async function exists() {
+    const res = await redis.exists(key)
+    return res === 1
+  }
+
   async function get() {
     const res = await redis.hgetall<{
       status: ProjectStatus
@@ -39,5 +44,6 @@ export function KVProject(redis: Redis, id: string) {
     remove,
     update,
     set,
+    exists,
   })
 }

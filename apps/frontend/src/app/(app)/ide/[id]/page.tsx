@@ -53,7 +53,9 @@ function Init({
 
       return await res.json()
     },
-    enabled: findQuery.data?.code === 'OK',
+    enabled:
+      findQuery.data?.code === 'OK' ||
+      findQuery.data?.code === 'PROJECT_ALREADY_STARTED',
     queryKey: ['status'],
     refetchInterval: 4000,
   })
@@ -77,6 +79,10 @@ function Init({
       statusQuery.data?.code === 'INVALID_PROJECT_ID'
     ) {
       return 'not found'
+    }
+
+    if (findQuery.data?.code === 'PROJECT_ALREADY_STARTED') {
+      return 'already started'
     }
 
     if (statusQuery.data?.code === 'OK') {
