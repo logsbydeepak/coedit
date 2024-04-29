@@ -9,6 +9,19 @@ import { logger } from './utils/logger'
 export async function init() {
   try {
     logger.info('Initializing container')
+    const initRes = await containerClient.status.$post({
+      json: {
+        id: ENV.CONTAINER_ID,
+        userId: ENV.USER_ID,
+        status: 'INITIALIZING',
+      },
+    })
+
+    const initResData = await initRes.json()
+    if (initResData.code !== 'OK') {
+      throw new Error('Failed to initialize container')
+    }
+
     const res = await containerClient.files.$post({
       json: {
         id: ENV.CONTAINER_ID,
@@ -16,6 +29,10 @@ export async function init() {
       },
     })
     const resData = await res.json()
+    if (resData.code !== 'OK') {
+      throw new Error('Failed to get files')
+    }
+
     const files = resData.files
 
     const promises: Promise<any>[] = []
@@ -48,6 +65,18 @@ export async function init() {
     })
 
     await Promise.all(promises)
+
+    const runningRes = await containerClient.status.$post({
+      json: {
+        id: ENV.CONTAINER_ID,
+        userId: ENV.USER_ID,
+        status: 'RUNNING',
+      },
+    })
+    const runningResData = await runningRes.json()
+    if (runningResData.code !== 'OK') {
+      throw new Error('Failed to set container status to RUNNING')
+    }
   } catch (error) {
     logger.error(error, 'Error initializing container')
   }

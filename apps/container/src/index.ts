@@ -1,4 +1,5 @@
 import { APIServer } from './api'
+import { containerClient } from './api-client'
 import { ENV } from './env'
 import { init } from './init'
 import { logger } from './utils/logger'
@@ -12,6 +13,14 @@ const main = async () => {
       port: ENV.WS_PORT,
     })
   } catch (error) {
+    await containerClient.status.$post({
+      json: {
+        id: ENV.CONTAINER_ID,
+        userId: ENV.USER_ID,
+        status: 'STOP',
+      },
+    })
+
     logger.error(error)
     process.exit(1)
   }

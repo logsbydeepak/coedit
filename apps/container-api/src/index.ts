@@ -12,34 +12,66 @@ import { getFiles } from './utils/s3'
 
 const app = new Hono<{
   Bindings: ENV
-}>().post(
-  '/files',
-  zValidator(
-    'json',
-    z.object({
-      id: zReqString,
-      userId: zReqString,
-    })
-  ),
-  async (c) => {
-    const input = c.req.valid('json')
+}>()
+  .post(
+    '/files',
+    zValidator(
+      'json',
+      z.object({
+        id: zReqString,
+        userId: zReqString,
+      })
+    ),
+    async (c) => {
+      const input = c.req.valid('json')
 
-    const update = await KVProject(redis(c.env), input.id).update(
-      'INITIALIZING'
-    )
+      const KVClient = KVProject(redis(c.env), input.id)
 
-    const files = await getFiles(s3(c.env), {
-      Bucket: c.env.AWS_BUCKET,
-      key: `projects/${input.userId}/${input.id}`,
-    })
+      const isExists = await KVClient.exists()
+      if (!isExists) {
+        return c.json(r('NOT_FOUND'))
+      }
 
-    if (files.code !== 'OK') {
-      throw new Error('Failed to get files')
+      const files = await getFiles(s3(c.env), {
+        Bucket: c.env.AWS_BUCKET,
+        key: `projects/${input.userId}/${input.id}`,
+      })
+
+      if (files.code !== 'OK') {
+        throw new Error('Failed to get files')
+      }
+
+      return c.json(r('OK', { files: files.files }))
     }
+  )
+  .post(
+    '/status',
+    zValidator(
+      'json',
+      z.object({
+        id: zReqString,
+        userId: zReqString,
+        status: z.enum(['INITIALIZING', 'RUNNING', 'STOP']),
+      })
+    ),
+    async (c) => {
+      const input = c.req.valid('json')
+      const KVClient = KVProject(redis(c.env), input.id)
 
-    return c.json(r('OK', { files: files.files }))
-  }
-)
+      const isExists = await KVClient.exists()
+      if (!isExists) {
+        return c.json(r('NOT_FOUND'))
+      }
+
+      if (input.status !== 'STOP') {
+        await KVClient.update(input.status)
+        return c.json(r('OK'))
+      }
+
+      await KVClient.remove()
+      return c.json(r('OK'))
+    }
+  )
 
 export type AppType = typeof app
 export default app
