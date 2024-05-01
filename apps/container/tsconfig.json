@@ -14,9 +14,6 @@
   "references": [
     {
       "path": "../server"
-    },
-    {
-      "path": "../container-api"
     }
   ]
 }

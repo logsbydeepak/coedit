@@ -41,3 +41,5 @@ COPY --from=builder /home/coedit/workspace/apps/container/dist/ /root/coedit/
 
 USER $NEW_USER
 WORKDIR /home/coedit/workspace/
+
+USER root

@@ -4,12 +4,12 @@ import { isValid, ulid } from 'ulidx'
 import { z } from 'zod'
 
 import { db, dbSchema } from '@coedit/db'
-import { KVProject } from '@coedit/kv-project'
 import { r } from '@coedit/r'
 import { zReqString } from '@coedit/zschema'
 
 import { redis, s3 } from '#/lib/config'
 import { h, hAuth } from '#/utils/h'
+import { KVProject } from '#/utils/project'
 import { copyFolder } from '#/utils/s3'
 
 const createProject = hAuth().post(
