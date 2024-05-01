@@ -10,6 +10,10 @@
     "jsxImportSource": "hono/jsx",
     "composite": true,
     "declaration": true,
+    "skipLibCheck": true,
+    "emitDeclarationOnly": false,
+    "outDir": "tsc",
+    "rootDir": "src",
     "paths": {
       "#/*": ["./src/*"]
     }

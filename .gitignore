@@ -35,3 +35,5 @@ dist
 .wrangler
 .dev.vars
 drizzle
+
+tsc

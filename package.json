@@ -12,26 +12,16 @@
     "dev": "run-p server:dev frontend:dev container-api:dev",
     "fix": "run-s format cspell frontend:fix"
   },
-  "keywords": [],
-  "author": "",
   "license": "ISC",
   "dependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^4.2.1",
     "cspell": "^8.6.0",
     "npm-run-all2": "^6.1.2",
-    "prettier": "^3.2.5",
-    "swc-node": "^1.0.0"
+    "prettier": "^3.2.5"
   },
   "workspaces": [
-    "apps/server",
-    "apps/frontend",
-    "apps/container",
-    "apps/container-api",
-    "apps/templates",
-    "packages/zschema",
-    "packages/r",
-    "packages/db",
-    "packages/KVProject"
+    "apps/*",
+    "packages/*"
   ],
   "trustedDependencies": [
     "es5-ext"

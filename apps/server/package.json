@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "main": "src/index.ts",
+  "types": "tsc/index.d.ts",
   "scripts": {
     "dev": "wrangler dev src/index.ts --port 5000",
     "deploy": "wrangler deploy --minify src/index.ts"
