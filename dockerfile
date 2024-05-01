@@ -12,6 +12,7 @@ COPY --chown=coedit:coedit . .
 
 SHELL ["/bin/bash", "-c", "-l"]
 RUN bun install
+RUN bun run --cwd apps/server tsc
 RUN bun run --cwd apps/container build
 
 FROM node:20 as runner
@@ -43,3 +44,4 @@ USER $NEW_USER
 WORKDIR /home/coedit/workspace/
 
 USER root
+

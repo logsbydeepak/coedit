@@ -2,6 +2,7 @@ import { Context } from 'hono'
 import { setCookie } from 'hono/cookie'
 import * as jose from 'jose'
 import ms from 'ms'
+import { ErrorResponse as ErrorResponseType } from 'resend'
 
 import { r } from '@coedit/r'
 
@@ -38,6 +39,16 @@ export async function checkIsAuth(env: ENV, token?: string) {
 
 export const codeGenerator = () => Math.floor(100000 + Math.random() * 900000)
 
+interface CreateEmailResponseSuccess {
+  id: string
+}
+type ErrorResponse = ErrorResponseType & { statusCode: number }
+
+interface CreateEmailResponse {
+  data: CreateEmailResponseSuccess | null
+  error: ErrorResponse | null
+}
+
 export function sendAuthEmail(
   env: ENV,
   {
@@ -58,7 +69,7 @@ export function sendAuthEmail(
     to: email,
     subject: text,
     text,
-  })
+  }) as Promise<CreateEmailResponse>
 }
 
 export const generateAuthToken = async ({

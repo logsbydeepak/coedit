@@ -28,7 +28,8 @@
     "hset",
     "hmset",
     "hgetall",
-    "presigner"
+    "presigner",
+    "tsbuildinfo"
   ],
   "ignorePaths": ["bun.lockb"]
 }
