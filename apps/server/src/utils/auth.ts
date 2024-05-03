@@ -104,15 +104,16 @@ export const setAuthCookie = (
 }
 
 export const removeAuthCookie = (
-  c: Context<{
-    Bindings: ENV
-  }>
+  c: Context,
+  env: {
+    RUNTIME: string
+  }
 ) => {
   setCookie(c, 'x-auth', '', {
     httpOnly: true,
     path: '/',
     sameSite: 'Strict',
-    secure: c.env.RUNTIME === 'production',
+    secure: env.RUNTIME === 'production',
     maxAge: 0,
   })
 }

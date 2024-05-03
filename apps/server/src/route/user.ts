@@ -3,6 +3,8 @@ import { eq } from 'drizzle-orm'
 import { db, dbSchema } from '@coedit/db'
 import { r } from '@coedit/r'
 
+import { redis } from '#/lib/config'
+import { removeAuthCookie } from '#/utils/auth'
 import { h, hAuth } from '#/utils/h'
 
 const user = hAuth().get('/', async (c) => {
@@ -33,14 +35,17 @@ const isAuth = hAuth().get('/', async (c) => {
   )
 })
 
-// const logout = hAuth().patch('/', async (c) => {
-//   const userId = c.get('x-userId')
-//   const token = c.get('x-auth')
-//   const redisRes = await redis(c.env).set(`logout:${token}`, userId)
-//   if (redisRes !== 'OK') throw new Error('Failed to set logout token in redis')
+const logout = hAuth().patch('/', async (c) => {
+  const userId = c.get('x-userId')
+  const token = c.get('x-auth')
+  const redisRes = await redis(c.env).set(`logout:${token}`, userId)
+  if (redisRes !== 'OK') throw new Error('Failed to set logout token in redis')
 
-//   removeAuthCookie(c)
-//   return c.json(r('OK'))
-// })
+  removeAuthCookie(c, c.env)
+  return c.json(r('OK'))
+})
 
-export const userRoute = h().route('/', user).route('/isAuth', isAuth)
+export const userRoute = h()
+  .route('/', user)
+  .route('/isAuth', isAuth)
+  .route('/logout', logout)

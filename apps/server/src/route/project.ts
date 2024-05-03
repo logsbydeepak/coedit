@@ -7,10 +7,9 @@ import { db, dbSchema } from '@coedit/db'
 import { r } from '@coedit/r'
 import { zReqString } from '@coedit/zschema'
 
-import { redis, s3 } from '#/lib/config'
+import { redis } from '#/lib/config'
 import { h, hAuth } from '#/utils/h'
 import { KVProject } from '#/utils/project'
-import { copyFolder } from '#/utils/s3'
 
 const createProject = hAuth().post(
   '/',
@@ -33,17 +32,6 @@ const createProject = hAuth().post(
     }
 
     const newProjectId = ulid()
-
-    const res = await copyFolder({
-      s3: s3(c.env),
-      Bucket: c.env.AWS_BUCKET,
-      from: `templates/${input.templateId}`,
-      to: `projects/${userId}/${newProjectId}`,
-    })
-
-    if (res.code !== 'OK') {
-      throw new Error('Failed to copy template')
-    }
 
     await db(c.env).insert(dbSchema.projects).values({
       id: newProjectId,
