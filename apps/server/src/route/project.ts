@@ -1,3 +1,7 @@
+import {
+  CopySnapshotCommand,
+  DescribeSnapshotsCommand,
+} from '@aws-sdk/client-ec2'
 import { zValidator } from '@hono/zod-validator'
 import { and, eq } from 'drizzle-orm'
 import { isValid, ulid } from 'ulidx'
@@ -7,7 +11,7 @@ import { db, dbSchema } from '@coedit/db'
 import { r } from '@coedit/r'
 import { zReqString } from '@coedit/zschema'
 
-import { redis } from '#/lib/config'
+import { ec2, redis } from '#/lib/config'
 import { h, hAuth } from '#/utils/h'
 import { KVProject } from '#/utils/project'
 
@@ -31,7 +35,53 @@ const createProject = hAuth().post(
       return c.json(r('INVALID_TEMPLATE_ID'))
     }
 
+    const templateSnapshotCommand = new DescribeSnapshotsCommand({
+      Filters: [
+        {
+          Name: 'tag:type',
+          Values: ['template'],
+        },
+        {
+          Name: 'tag:id',
+          Values: [input.templateId],
+        },
+      ],
+    })
+
+    const templateSnapshotRes = await ec2(c.env).send(templateSnapshotCommand)
+    if (
+      !templateSnapshotRes.Snapshots ||
+      templateSnapshotRes.Snapshots.length === 0
+    ) {
+      return c.json(r('INVALID_TEMPLATE_ID'))
+    }
+
     const newProjectId = ulid()
+
+    const copySnapshotCommand = new CopySnapshotCommand({
+      SourceRegion: c.env.AWS_REGION,
+      SourceSnapshotId: templateSnapshotRes.Snapshots[0].SnapshotId,
+      TagSpecifications: [
+        {
+          ResourceType: 'snapshot',
+          Tags: [
+            {
+              Key: 'type',
+              Value: 'project',
+            },
+            {
+              Key: 'id',
+              Value: newProjectId,
+            },
+          ],
+        },
+      ],
+    })
+
+    const copySnapshotRes = await ec2(c.env).send(copySnapshotCommand)
+    if (!copySnapshotRes.SnapshotId) {
+      throw new Error('Failed to copy snapshot')
+    }
 
     await db(c.env).insert(dbSchema.projects).values({
       id: newProjectId,
