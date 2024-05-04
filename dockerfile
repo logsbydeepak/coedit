@@ -40,8 +40,15 @@ COPY starship.toml /home/coedit/.config/
 
 COPY --from=builder /home/coedit/workspace/apps/container/dist/ /root/coedit/
 
+RUN rm -rf /etc/sudoers.d/$NEW_USER
+RUN deluser $NEW_USER sudo
+RUN chown -R $NEW_USER:$NEW_USER /home/coedit/.config
+
 USER $NEW_USER
 WORKDIR /home/coedit/workspace/
 
+RUN sudo rm /etc/sudoers.d/$NEW_USER
+
 USER root
+ENTRYPOINT ["/bin/bash", "-c", "chown -R coedit:coedit /home/coedit/workspace && exec $0 $@"]
 
