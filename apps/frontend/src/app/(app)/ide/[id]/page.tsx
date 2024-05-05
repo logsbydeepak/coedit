@@ -10,19 +10,19 @@ import { apiClient } from '#/utils/hc-client'
 import { IDE } from './ide'
 
 export default function Page() {
-  const [isReady, setIsReady] = React.useState(false)
+  const [publicIP, setPublicIP] = React.useState('')
 
-  if (!isReady) {
-    return <Init setIsReady={setIsReady} />
+  if (!publicIP) {
+    return <Init setPublicIP={setPublicIP} />
   }
 
-  return <IDE />
+  return <IDE publicIP={publicIP} />
 }
 
 function Init({
-  setIsReady,
+  setPublicIP,
 }: {
-  setIsReady: React.Dispatch<React.SetStateAction<boolean>>
+  setPublicIP: React.Dispatch<React.SetStateAction<string>>
 }) {
   const params = useParams<{ id: string }>()
 
@@ -53,9 +53,7 @@ function Init({
 
       return await res.json()
     },
-    enabled:
-      findQuery.data?.code === 'OK' ||
-      findQuery.data?.code === 'PROJECT_ALREADY_STARTED',
+    enabled: findQuery.data?.code === 'OK',
     queryKey: ['status'],
     refetchInterval: 4000,
   })
@@ -81,19 +79,9 @@ function Init({
       return 'not found'
     }
 
-    if (findQuery.data?.code === 'PROJECT_ALREADY_STARTED') {
-      return 'already started'
-    }
-
     if (statusQuery.data?.code === 'OK') {
-      if (statusQuery.data.status === 'RUNNING') {
-        return 'running'
-      }
-      if (statusQuery.data.status === 'INITIALIZING') {
-        return 'initializing'
-      }
-      if (statusQuery.data.status === 'STARTING') {
-        return 'starting'
+      if (!('publicIP' in statusQuery.data)) {
+        return statusQuery.data.status.toLowerCase()
       }
     }
 
@@ -108,11 +96,11 @@ function Init({
 
   React.useEffect(() => {
     if (statusQuery.data?.code === 'OK') {
-      if (statusQuery.data.status === 'RUNNING') {
-        return setIsReady(true)
+      if ('publicIP' in statusQuery.data) {
+        return setPublicIP(statusQuery.data.publicIP)
       }
     }
-  }, [statusQuery.data, setIsReady])
+  }, [statusQuery.data, setPublicIP])
 
   return (
     <Container>

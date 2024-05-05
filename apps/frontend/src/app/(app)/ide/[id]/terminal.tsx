@@ -8,9 +8,9 @@ import useWebSocket, { ReadyState } from 'react-use-websocket'
 import { FitAddon } from 'xterm-addon-fit'
 import { WebglAddon } from 'xterm-addon-webgl'
 
-const WS_URL = 'ws://localhost:4001'
+export default function Term({ publicIP }: { publicIP: string }) {
+  const WS_URL = `ws://${publicIP}:3001`
 
-export default function Term() {
   const termRef = React.useRef<HTMLDivElement | null>(null)
   const { readyState, getWebSocket, sendJsonMessage } = useWebSocket(WS_URL)
 

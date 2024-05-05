@@ -21,6 +21,7 @@ import { KVProject } from '#/utils/project'
 
 const ECS_CLUSTER = 'coedit-builder'
 const ECS_LAUNCH_TYPE = 'FARGATE'
+const ECS_TASK_DEFINITION = 'coedit'
 
 const createProject = hAuth().post(
   '/',
@@ -135,6 +136,7 @@ const startProject = hAuth().post(
     }
 
     const projectArn = await KVProject(redis(c.env), input.id).get()
+
     if (projectArn) {
       const describeTasksCommand = new DescribeTasksCommand({
         cluster: ECS_CLUSTER,
@@ -234,7 +236,7 @@ const startProject = hAuth().post(
 
     const runTaskCommand = new RunTaskCommand({
       cluster: ECS_CLUSTER,
-      taskDefinition: `project-${input.id}`,
+      taskDefinition: ECS_TASK_DEFINITION,
       launchType: ECS_LAUNCH_TYPE,
       count: 1,
       networkConfiguration: {
@@ -329,6 +331,7 @@ const projectStatus = hAuth().get(
       tasks: [projectArn],
     })
     const describeTasksRes = await ecs(c.env).send(describeTasksCommand)
+
     const tasks = describeTasksRes.tasks
 
     if (!tasks || tasks.length !== 1) {
@@ -346,7 +349,15 @@ const projectStatus = hAuth().get(
         return c.json(r('INVALID_PROJECT_ID'))
       }
 
-      const eniId = task.attachments[0].details.find(
+      const ElasticNetworkInterface = task.attachments.find(
+        (attachment) => attachment.type === 'ElasticNetworkInterface'
+      )
+
+      if (!ElasticNetworkInterface || !ElasticNetworkInterface.details) {
+        return c.json(r('INVALID_PROJECT_ID'))
+      }
+
+      const eniId = ElasticNetworkInterface?.details.find(
         (detail) => detail.name === 'networkInterfaceId'
       )?.value
 
@@ -376,7 +387,11 @@ const projectStatus = hAuth().get(
         return c.json(r('INVALID_PROJECT_ID'))
       }
 
-      return c.json(r('OK', { status: task.lastStatus, publicIp }))
+      return c.json(r('OK', { publicIP: publicIp }))
+    }
+
+    if (!task.lastStatus) {
+      return c.json(r('INVALID_PROJECT_ID'))
     }
 
     return c.json(r('OK', { status: task.lastStatus }))
