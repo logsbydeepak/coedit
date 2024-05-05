@@ -18,6 +18,9 @@ export type ENV = {
   AWS_REGION: string
   AWS_ACCESS_KEY_ID: string
   AWS_SECRET_ACCESS_KEY: string
+  AWS_SECURITY_GROUP_ID: string
+  AWS_SUBNET_ID: string
+  AWS_ECS_INFRASTRUCTURE_ROLE_ARN: string
 }
 
 type Variables = {

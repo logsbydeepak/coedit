@@ -1,7 +1,10 @@
 import {
   CopySnapshotCommand,
+  CreateSnapshotCommand,
   DescribeSnapshotsCommand,
+  DescribeVolumesCommand,
 } from '@aws-sdk/client-ec2'
+import { DescribeTasksCommand, RunTaskCommand } from '@aws-sdk/client-ecs'
 import { zValidator } from '@hono/zod-validator'
 import { and, eq } from 'drizzle-orm'
 import { isValid, ulid } from 'ulidx'
@@ -11,9 +14,12 @@ import { db, dbSchema } from '@coedit/db'
 import { r } from '@coedit/r'
 import { zReqString } from '@coedit/zschema'
 
-import { ec2, redis } from '#/lib/config'
+import { ec2, ecs, redis } from '#/lib/config'
 import { h, hAuth } from '#/utils/h'
 import { KVProject } from '#/utils/project'
+
+const ECS_CLUSTER = 'coedit-builder'
+const ECS_LAUNCH_TYPE = 'FARGATE'
 
 const createProject = hAuth().post(
   '/',
@@ -113,11 +119,6 @@ const startProject = hAuth().post(
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
-    const isExists = await KVProject(redis(c.env), input.id).exists()
-    if (isExists) {
-      return c.json(r('PROJECT_ALREADY_STARTED'))
-    }
-
     const [dbProject] = await db(c.env)
       .select()
       .from(dbSchema.projects)
@@ -132,40 +133,158 @@ const startProject = hAuth().post(
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
-    await KVProject(redis(c.env), input.id).set('STARTING', 'http:127.0.0.1')
+    const projectArn = await KVProject(redis(c.env), input.id).get()
+    if (projectArn) {
+      const describeTasksCommand = new DescribeTasksCommand({
+        cluster: ECS_CLUSTER,
+        tasks: [projectArn],
+      })
+      const describeTasksRes = await ecs(c.env).send(describeTasksCommand)
+      const tasks = describeTasksRes.tasks
+
+      if (!tasks || tasks.length !== 1) {
+        await KVProject(redis(c.env), input.id).remove()
+        return c.json(r('INVALID_PROJECT_ID'))
+      }
+      const task = tasks[0]
+
+      if (task.desiredStatus === 'RUNNING') {
+        return c.json(r('OK'))
+      }
+    }
+
+    let snapshotId = ''
+
+    const describeSnapshotCommand = new DescribeSnapshotsCommand({
+      Filters: [
+        {
+          Name: 'tag:type',
+          Values: ['project'],
+        },
+        {
+          Name: 'tag:id',
+          Values: [input.id],
+        },
+      ],
+    })
+    const describeSnapshotRes = await ec2(c.env).send(describeSnapshotCommand)
+
+    if (
+      !describeSnapshotRes.Snapshots ||
+      describeSnapshotRes.Snapshots.length === 0
+    ) {
+      const describeVolumeCommand = new DescribeVolumesCommand({
+        Filters: [
+          {
+            Name: 'tag:type',
+            Values: ['project'],
+          },
+          {
+            Name: 'tag:id',
+            Values: [input.id],
+          },
+        ],
+      })
+      const describeVolumeCommandRes = await ec2(c.env).send(
+        describeVolumeCommand
+      )
+
+      if (
+        !describeVolumeCommandRes.Volumes ||
+        describeVolumeCommandRes.Volumes.length === 0
+      ) {
+        return c.json(r('INVALID_PROJECT_ID'))
+      }
+
+      const volumeId = describeVolumeCommandRes.Volumes[0].VolumeId
+      const createSnapshotCommand = new CreateSnapshotCommand({
+        VolumeId: volumeId,
+        TagSpecifications: [
+          {
+            ResourceType: 'snapshot',
+            Tags: [
+              {
+                Key: 'type',
+                Value: 'project',
+              },
+              {
+                Key: 'id',
+                Value: input.id,
+              },
+            ],
+          },
+        ],
+      })
+      const createSnapshotRes = await ec2(c.env).send(createSnapshotCommand)
+      if (!createSnapshotRes.SnapshotId) {
+        return c.json(r('INVALID_PROJECT_ID'))
+      }
+
+      snapshotId = createSnapshotRes.SnapshotId
+    } else {
+      if (describeSnapshotRes.Snapshots[0].SnapshotId) {
+        snapshotId = describeSnapshotRes.Snapshots[0].SnapshotId
+      }
+    }
+
+    if (!snapshotId) {
+      return c.json(r('INVALID_PROJECT_ID'))
+    }
+
+    const runTaskCommand = new RunTaskCommand({
+      cluster: ECS_CLUSTER,
+      taskDefinition: `project-${input.id}`,
+      launchType: ECS_LAUNCH_TYPE,
+      count: 1,
+      networkConfiguration: {
+        awsvpcConfiguration: {
+          securityGroups: [c.env.AWS_SECURITY_GROUP_ID],
+          subnets: [c.env.AWS_SUBNET_ID],
+          assignPublicIp: 'ENABLED',
+        },
+      },
+      volumeConfigurations: [
+        {
+          name: 'workspace',
+          managedEBSVolume: {
+            tagSpecifications: [
+              {
+                resourceType: 'volume',
+                tags: [
+                  { key: 'type', value: 'project' },
+                  {
+                    key: 'id',
+                    value: input.id,
+                  },
+                ],
+              },
+            ],
+            volumeType: 'gp2',
+            encrypted: false,
+            snapshotId: snapshotId,
+            filesystemType: 'ext4',
+            sizeInGiB: 6,
+            roleArn: c.env.AWS_ECS_INFRASTRUCTURE_ROLE_ARN,
+            terminationPolicy: {
+              deleteOnTermination: false,
+            },
+          },
+        },
+      ],
+    })
+
+    const runTaskRes = await ecs(c.env).send(runTaskCommand)
+    if (!runTaskRes.tasks || runTaskRes.tasks.length === 0) {
+      return c.json(r('INVALID_PROJECT_ID'))
+    }
+
+    const taskArn = runTaskRes.tasks[0].taskArn
+    if (!taskArn) {
+      return c.json(r('INVALID_PROJECT_ID'))
+    }
+    await KVProject(redis(c.env), input.id).set(taskArn)
 
     return c.json(r('OK'))
-  }
-)
-
-const projectStatus = hAuth().get(
-  '/status/:id',
-  zValidator(
-    'param',
-    z.object({
-      id: zReqString,
-    })
-  ),
-  async (c) => {
-    const input = c.req.valid('param')
-
-    if (!isValid(input.id)) {
-      return c.json(r('INVALID_PROJECT_ID'))
-    }
-
-    const KVProjectClient = KVProject(redis(c.env), input.id)
-
-    const data = await KVProjectClient.get()
-    if (!data) {
-      return c.json(r('INVALID_PROJECT_ID'))
-    }
-
-    return c.json(
-      r('OK', {
-        status: data.status,
-        url: data.url,
-      })
-    )
   }
 )
 
@@ -274,7 +393,6 @@ const editProject = hAuth().post(
 )
 
 export const projectRoute = h()
-  .route('/', projectStatus)
   .route('/', deleteProject)
   .route('/', editProject)
   .route('/', createProject)

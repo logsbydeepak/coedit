@@ -1,24 +1,14 @@
 import { Redis } from '@upstash/redis'
 
-type ProjectStatus = 'STARTING' | 'INITIALIZING' | 'RUNNING'
 export function KVProject(redis: Redis, id: string) {
   const key = `project:${id}`
 
-  async function set(status: ProjectStatus, url: string) {
-    const res = await redis.hmset(key, {
-      status,
-      url,
-    })
+  async function set(arn: string) {
+    const res = await redis.set(key, arn)
 
     if (res !== 'OK') {
       throw new Error("can't set redis key")
     }
-  }
-
-  async function update(status: ProjectStatus) {
-    await redis.hset(key, {
-      status,
-    })
   }
 
   async function remove() {
@@ -32,17 +22,13 @@ export function KVProject(redis: Redis, id: string) {
   }
 
   async function get() {
-    const res = await redis.hgetall<{
-      status: ProjectStatus
-      url: string
-    }>(key)
+    const res = await redis.get<string>(key)
     return res
   }
 
   return Object.freeze({
     get,
     remove,
-    update,
     set,
     exists,
   })

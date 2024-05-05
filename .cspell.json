@@ -30,7 +30,9 @@
     "hgetall",
     "presigner",
     "tsbuildinfo",
-    "deluser"
+    "deluser",
+    "FARGATE",
+    "awsvpc"
   ],
   "ignorePaths": ["bun.lockb"]
 }
