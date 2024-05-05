@@ -1,6 +1,7 @@
 import {
   CopySnapshotCommand,
   CreateSnapshotCommand,
+  DeleteVolumeCommand,
   DescribeNetworkInterfacesCommand,
   DescribeSnapshotsCommand,
   DescribeVolumesCommand,
@@ -222,6 +223,11 @@ const startProject = hAuth().post(
       if (!createSnapshotRes.SnapshotId) {
         return c.json(r('INVALID_PROJECT_ID'))
       }
+
+      const deleteVolumeCommand = new DeleteVolumeCommand({
+        VolumeId: volumeId,
+      })
+      await ec2(c.env).send(deleteVolumeCommand)
 
       snapshotId = createSnapshotRes.SnapshotId
     } else {
