@@ -1,6 +1,7 @@
 import {
   CopySnapshotCommand,
   CreateSnapshotCommand,
+  DescribeNetworkInterfacesCommand,
   DescribeSnapshotsCommand,
   DescribeVolumesCommand,
 } from '@aws-sdk/client-ec2'
@@ -288,6 +289,100 @@ const startProject = hAuth().post(
   }
 )
 
+const projectStatus = hAuth().get(
+  '/status/:id',
+  zValidator(
+    'param',
+    z.object({
+      id: zReqString,
+    })
+  ),
+  async (c) => {
+    const input = c.req.valid('param')
+    const userId = c.get('x-userId')
+
+    if (!isValid(input.id)) {
+      return c.json(r('INVALID_PROJECT_ID'))
+    }
+
+    const [dbProject] = await db(c.env)
+      .select()
+      .from(dbSchema.projects)
+      .where(
+        and(
+          eq(dbSchema.projects.id, input.id),
+          eq(dbSchema.projects.userId, userId)
+        )
+      )
+
+    if (!dbProject) {
+      return c.json(r('INVALID_PROJECT_ID'))
+    }
+
+    const projectArn = await KVProject(redis(c.env), input.id).get()
+    if (!projectArn) {
+      return c.json(r('INVALID_PROJECT_ID'))
+    }
+
+    const describeTasksCommand = new DescribeTasksCommand({
+      cluster: ECS_CLUSTER,
+      tasks: [projectArn],
+    })
+    const describeTasksRes = await ecs(c.env).send(describeTasksCommand)
+    const tasks = describeTasksRes.tasks
+
+    if (!tasks || tasks.length !== 1) {
+      await KVProject(redis(c.env), input.id).remove()
+      return c.json(r('INVALID_PROJECT_ID'))
+    }
+    const task = tasks[0]
+
+    if (task.lastStatus === 'RUNNING') {
+      if (!task.attachments || task.attachments.length === 0) {
+        return c.json(r('INVALID_PROJECT_ID'))
+      }
+
+      if (!task.attachments[0].details) {
+        return c.json(r('INVALID_PROJECT_ID'))
+      }
+
+      const eniId = task.attachments[0].details.find(
+        (detail) => detail.name === 'networkInterfaceId'
+      )?.value
+
+      if (!eniId) {
+        return c.json(r('INVALID_PROJECT_ID'))
+      }
+
+      const describeNetworkInterfacesCommand =
+        new DescribeNetworkInterfacesCommand({
+          NetworkInterfaceIds: [eniId],
+        })
+
+      const describeNetworkInterfacesRes = await ec2(c.env).send(
+        describeNetworkInterfacesCommand
+      )
+
+      if (
+        !describeNetworkInterfacesRes.NetworkInterfaces ||
+        describeNetworkInterfacesRes.NetworkInterfaces.length === 0
+      ) {
+        return c.json(r('INVALID_PROJECT_ID'))
+      }
+
+      const publicIp =
+        describeNetworkInterfacesRes.NetworkInterfaces[0].Association?.PublicIp
+      if (!publicIp) {
+        return c.json(r('INVALID_PROJECT_ID'))
+      }
+
+      return c.json(r('OK', { status: task.lastStatus, publicIp }))
+    }
+
+    return c.json(r('OK', { status: task.lastStatus }))
+  }
+)
+
 const getAllProject = hAuth().get('/', async (c) => {
   const userId = c.get('x-userId')
 
@@ -393,6 +488,7 @@ const editProject = hAuth().post(
 )
 
 export const projectRoute = h()
+  .route('/', projectStatus)
   .route('/', deleteProject)
   .route('/', editProject)
   .route('/', createProject)
