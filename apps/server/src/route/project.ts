@@ -1,6 +1,7 @@
 import {
   CopySnapshotCommand,
   CreateSnapshotCommand,
+  DeleteSnapshotCommand,
   DeleteVolumeCommand,
   DescribeNetworkInterfacesCommand,
   DescribeSnapshotsCommand,
@@ -224,10 +225,34 @@ const startProject = hAuth().post(
         return c.json(r('INVALID_PROJECT_ID'))
       }
 
-      const deleteVolumeCommand = new DeleteVolumeCommand({
-        VolumeId: volumeId,
-      })
-      await ec2(c.env).send(deleteVolumeCommand)
+      const checkSnapshotStatus = async (snapshotId: string) => {
+        const describeSnapshotCommand = new DescribeSnapshotsCommand({
+          SnapshotIds: [snapshotId],
+        })
+        const describeSnapshotRes = await ec2(c.env).send(
+          describeSnapshotCommand
+        )
+
+        if (
+          !describeSnapshotRes.Snapshots ||
+          describeSnapshotRes.Snapshots.length === 0
+        ) {
+          return
+        }
+
+        const snapshot = describeSnapshotRes.Snapshots[0]
+        if (snapshot.State === 'completed') {
+          const deleteVolumeCommand = new DeleteVolumeCommand({
+            VolumeId: volumeId,
+          })
+          await ec2(c.env).send(deleteVolumeCommand)
+          return
+        }
+
+        await checkSnapshotStatus(snapshotId)
+      }
+
+      await checkSnapshotStatus(createSnapshotRes.SnapshotId)
 
       snapshotId = createSnapshotRes.SnapshotId
     } else {
@@ -291,7 +316,70 @@ const startProject = hAuth().post(
     if (!taskArn) {
       return c.json(r('INVALID_PROJECT_ID'))
     }
+
     await KVProject(redis(c.env), input.id).set(taskArn)
+
+    const checkIfVolumeExists = async () => {
+      const describeVolumeCommand = new DescribeVolumesCommand({
+        Filters: [
+          {
+            Name: 'tag:type',
+            Values: ['project'],
+          },
+          {
+            Name: 'tag:id',
+            Values: [input.id],
+          },
+        ],
+      })
+      const describeVolumeRes = await ec2(c.env).send(describeVolumeCommand)
+
+      if (
+        !describeVolumeRes.Volumes ||
+        describeVolumeRes.Volumes.length === 0
+      ) {
+        await checkIfVolumeExists()
+        return
+      }
+      return
+    }
+
+    await checkIfVolumeExists()
+
+    const checkVolumeStatus = async (volumeId: string) => {
+      const describeVolumeCommand = new DescribeVolumesCommand({
+        Filters: [
+          {
+            Name: 'tag:type',
+            Values: ['project'],
+          },
+          {
+            Name: 'tag:id',
+            Values: [input.id],
+          },
+        ],
+      })
+      const describeVolumeRes = await ec2(c.env).send(describeVolumeCommand)
+
+      if (
+        !describeVolumeRes.Volumes ||
+        describeVolumeRes.Volumes.length === 0
+      ) {
+        return
+      }
+
+      const volume = describeVolumeRes.Volumes[0]
+      if (volume.State === 'available') {
+        const deleteSnapshotCommand = new DeleteSnapshotCommand({
+          SnapshotId: snapshotId,
+        })
+        await ec2(c.env).send(deleteSnapshotCommand)
+        return
+      }
+
+      await checkVolumeStatus(volumeId)
+    }
+    await checkVolumeStatus(input.id)
 
     return c.json(r('OK'))
   }
