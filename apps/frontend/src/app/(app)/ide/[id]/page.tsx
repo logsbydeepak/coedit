@@ -3,28 +3,31 @@
 import React from 'react'
 import { useParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
+import { useSetAtom } from 'jotai'
 import { LoaderIcon } from 'lucide-react'
 
 import { apiClient } from '#/utils/hc-client'
 
+import { publicIPAtom } from '../store'
 import { IDE } from './ide'
 
 export default function Page() {
-  const [publicIP, setPublicIP] = React.useState('')
+  const [isReady, setIsReady] = React.useState(false)
 
-  if (!publicIP) {
-    return <Init setPublicIP={setPublicIP} />
+  if (!isReady) {
+    return <Init setIsReady={setIsReady} />
   }
 
-  return <IDE publicIP={publicIP} />
+  return <IDE />
 }
 
 function Init({
-  setPublicIP,
+  setIsReady,
 }: {
-  setPublicIP: React.Dispatch<React.SetStateAction<string>>
+  setIsReady: React.Dispatch<React.SetStateAction<boolean>>
 }) {
   const params = useParams<{ id: string }>()
+  const setPublicIP = useSetAtom(publicIPAtom)
 
   const findQuery = useQuery({
     queryFn: async () => {
@@ -97,10 +100,12 @@ function Init({
   React.useEffect(() => {
     if (statusQuery.data?.code === 'OK') {
       if ('publicIP' in statusQuery.data) {
-        return setPublicIP(statusQuery.data.publicIP)
+        setPublicIP(statusQuery.data.publicIP)
+        setIsReady(true)
+        return
       }
     }
-  }, [statusQuery.data, setPublicIP])
+  }, [statusQuery.data, setIsReady, setPublicIP])
 
   return (
     <Container>

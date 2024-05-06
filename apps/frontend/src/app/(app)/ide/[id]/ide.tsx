@@ -11,7 +11,7 @@ import {
 const Editor = dynamic(() => import('./editor'), { ssr: false })
 const Terminal = dynamic(() => import('./terminal'), { ssr: false })
 
-export function IDE({ publicIP }: { publicIP: string }) {
+export function IDE() {
   return (
     <ResizablePanelGroup direction="horizontal" className="absolute pt-14">
       <ResizablePanel defaultSize={20}>
@@ -29,7 +29,7 @@ export function IDE({ publicIP }: { publicIP: string }) {
           <ResizableHandle />
 
           <ResizablePanel defaultSize={25}>
-            <Terminal publicIP={publicIP} />
+            <Terminal />
           </ResizablePanel>
         </ResizablePanelGroup>
       </ResizablePanel>

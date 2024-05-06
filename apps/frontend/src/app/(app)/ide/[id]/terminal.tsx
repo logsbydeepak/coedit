@@ -4,11 +4,16 @@ import '@xterm/xterm/css/xterm.css'
 
 import React from 'react'
 import { Terminal } from '@xterm/xterm'
+import { useAtomValue } from 'jotai'
 import useWebSocket, { ReadyState } from 'react-use-websocket'
 import { FitAddon } from 'xterm-addon-fit'
 import { WebglAddon } from 'xterm-addon-webgl'
 
-export default function Term({ publicIP }: { publicIP: string }) {
+import { publicIPAtom } from '../store'
+
+export default function Term() {
+  const publicIP = useAtomValue(publicIPAtom)
+
   const WS_URL = `ws://${publicIP}:3001`
 
   const termRef = React.useRef<HTMLDivElement | null>(null)
