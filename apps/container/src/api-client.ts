@@ -4,7 +4,7 @@ import { hc } from 'hono/client'
 
 import { AppType as UserAPIType } from '@coedit/server'
 
-import { ENV } from '#/env'
+import { env } from '#/env'
 
 export class ResponseError extends Error {
   response: Response
@@ -15,7 +15,7 @@ export class ResponseError extends Error {
   }
 }
 
-export const userClient = hc<UserAPIType>(ENV.USER_API, {
+export const userClient = hc<UserAPIType>(env.USER_API, {
   fetch: (input, requestInit, Env, executionCtx) =>
     fetch(input, {
       ...requestInit,

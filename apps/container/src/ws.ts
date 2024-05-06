@@ -1,78 +1,75 @@
+import { Server as HttpServer } from 'http'
 import { spawn } from 'node-pty'
 import { WebSocket, WebSocketServer } from 'ws'
 
+import { server } from './server'
 import { logger } from './utils/logger'
 
-export const WSServer = ({ port }: { port: number }) => {
-  const wss = new WebSocketServer(
-    {
-      port,
-    },
-    () => {
-      logger.info(`WebSocket server is running on ${port}`)
-    }
-  )
+const ws = new WebSocketServer({
+  path: '/ws',
+  server: server as HttpServer,
+})
 
-  wss.on('error', (err) => {
-    logger.error(err)
+ws.on('error', (err) => {
+  logger.error(err)
+})
+
+ws.on('connection', (ws: WebSocket) => {
+  const USER = 'coedit'
+  const WORKSPACE = `/home/${USER}/workspace`
+
+  // const term = spawn(
+  //   'su',
+  //   [USER, '--login', '--pty', '-c', `cd ${WORKSPACE}; bash`],
+  //   {}
+  // )
+  const term = spawn('bash', [], {})
+
+  term.onData((data) => {
+    ws.send(data)
   })
 
-  wss.on('connection', (ws: WebSocket) => {
-    const USER = 'coedit'
-    const WORKSPACE = `/home/${USER}/workspace`
+  term.onExit(() => {
+    ws.close()
+  })
 
-    const term = spawn(
-      'su',
-      [USER, '--login', '--pty', '-c', `cd ${WORKSPACE}; bash`],
-      {}
-    )
+  ws.on('message', (message: string) => {
+    try {
+      const data:
+        | { type: 'input'; data: string }
+        | {
+            type: 'resize'
+            data: {
+              cols: number
+              rows: number
+            }
+          } = JSON.parse(message)
+      if (!data) return
+      if (!data?.type) return
 
-    term.onData((data) => {
-      ws.send(data)
-    })
-
-    term.onExit(() => {
-      ws.close()
-    })
-
-    ws.on('message', (message: string) => {
-      try {
-        const data:
-          | { type: 'input'; data: string }
-          | {
-              type: 'resize'
-              data: {
-                cols: number
-                rows: number
-              }
-            } = JSON.parse(message)
-        if (!data) return
-        if (!data?.type) return
-
-        if (data.type === 'input' && data.data) {
-          if (!data.data) return
-          term.write(data.data)
-          return
-        }
-
-        if (data.type === 'resize') {
-          if (!data.data.cols) return
-          if (!data.data.rows) return
-          term.resize(data.data.cols, data.data.rows)
-          return
-        }
-        term.write(message)
-      } catch (error) {
-        logger.error(error)
+      if (data.type === 'input' && data.data) {
+        if (!data.data) return
+        term.write(data.data)
+        return
       }
-    })
 
-    ws.on('resize', (text) => {
-      console.log(text)
-    })
-
-    ws.on('close', () => {
-      term.kill()
-    })
+      if (data.type === 'resize') {
+        if (!data.data.cols) return
+        if (!data.data.rows) return
+        term.resize(data.data.cols, data.data.rows)
+        return
+      }
+      term.write(message)
+    } catch (error) {
+      logger.error(error)
+    }
   })
-}
+
+  ws.on('resize', (text) => {
+    console.log(text)
+  })
+
+  ws.on('close', () => {
+    term.kill()
+  })
+})
