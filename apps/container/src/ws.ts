@@ -18,12 +18,11 @@ ws.on('connection', (ws: WebSocket) => {
   const USER = 'coedit'
   const WORKSPACE = `/home/${USER}/workspace`
 
-  // const term = spawn(
-  //   'su',
-  //   [USER, '--login', '--pty', '-c', `cd ${WORKSPACE}; bash`],
-  //   {}
-  // )
-  const term = spawn('bash', [], {})
+  const term = spawn(
+    'su',
+    [USER, '--login', '--pty', '-c', `cd ${WORKSPACE}; bash`],
+    {}
+  )
 
   term.onData((data) => {
     ws.send(data)

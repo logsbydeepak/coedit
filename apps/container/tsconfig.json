@@ -7,6 +7,12 @@
     "strict": true,
     "skipLibCheck": true,
     "moduleResolution": "node",
+    "composite": true,
+    "declaration": true,
+    "skipLibCheck": true,
+    "emitDeclarationOnly": false,
+    "outDir": "tsc",
+    "rootDir": "src",
     "paths": {
       "#/*": ["./src/*"]
     }
