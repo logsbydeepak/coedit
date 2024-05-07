@@ -14,7 +14,7 @@ import { publicIPAtom } from '../store'
 export default function Term() {
   const publicIP = useAtomValue(publicIPAtom)
 
-  const WS_URL = `ws://${publicIP}:3001`
+  const WS_URL = `ws://${publicIP}/ws`
 
   const termRef = React.useRef<HTMLDivElement | null>(null)
   const { readyState, getWebSocket, sendJsonMessage } = useWebSocket(WS_URL)

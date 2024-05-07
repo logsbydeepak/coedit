@@ -10,6 +10,7 @@ import {
 
 const Editor = dynamic(() => import('./editor'), { ssr: false })
 const Terminal = dynamic(() => import('./terminal'), { ssr: false })
+const FileExplorer = dynamic(() => import('./file-explorer'), { ssr: false })
 
 export function IDE() {
   return (
@@ -41,10 +42,6 @@ export function IDE() {
       </ResizablePanel>
     </ResizablePanelGroup>
   )
-}
-
-function FileExplorer() {
-  return <h1>File Explorer</h1>
 }
 
 function Output() {
