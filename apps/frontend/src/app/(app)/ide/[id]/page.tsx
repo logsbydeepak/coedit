@@ -11,13 +11,17 @@ import { apiClient } from '#/utils/hc-client'
 import { publicIPAtom } from '../store'
 import { IDE } from './ide'
 
-export default function Page() {
+function _Page() {
   const [isReady, setIsReady] = React.useState(false)
 
   if (!isReady) {
     return <Init setIsReady={setIsReady} />
   }
 
+  return <IDE />
+}
+
+export default function Page() {
   return <IDE />
 }
 

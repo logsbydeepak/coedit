@@ -1,5 +1,5 @@
 import { readdir } from 'node:fs/promises'
-import { join } from 'path'
+import { join, relative } from 'path'
 import { serveStatic } from '@hono/node-server/serve-static'
 import { zValidator } from '@hono/zod-validator'
 import { Hono } from 'hono'
@@ -8,6 +8,7 @@ import { z } from 'zod'
 import { r } from '@coedit/r'
 
 const prefix = '/home/coedit/workspace'
+const userPrefix = '/home/coedit'
 
 export const api = new Hono()
   .post(
@@ -43,11 +44,11 @@ export const api = new Hono()
       return c.json(r('OK', { result }))
     }
   )
-  .get(
-    '/static/*',
+  .use(
+    '/workspace/*',
     serveStatic({
-      root: '.',
-      rewriteRequestPath: (path: string) => path.replace(/^\/static/, ''),
+      root: relative(process.cwd(), userPrefix),
+      rewriteRequestPath: (path: string) => path.replace(/^\/api/, ''),
       onNotFound: (path, c) => {
         console.log(`${path} is not found, request to ${c.req.path}`)
       },
