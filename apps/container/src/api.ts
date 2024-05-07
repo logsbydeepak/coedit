@@ -70,9 +70,18 @@ async function fileExplorer(path: string = '/') {
       result.push({
         name: file.name,
         isDirectory: file.isDirectory(),
-        path: join(path),
+        path: join(path, file.name),
       })
     }
+
+    result.sort((a, b) => {
+      if (a.isDirectory === b.isDirectory) {
+        return a.name.localeCompare(b.name)
+      }
+
+      return a.isDirectory ? -1 : 1
+    })
+
     return r('OK', { files: result })
   } catch (error) {
     return r('ERROR')

@@ -15,7 +15,7 @@ const FileExplorer = dynamic(() => import('./file-explorer'), { ssr: false })
 export function IDE() {
   return (
     <ResizablePanelGroup direction="horizontal" className="absolute pt-14">
-      <ResizablePanel defaultSize={20}>
+      <ResizablePanel defaultSize={16}>
         <FileExplorer />
       </ResizablePanel>
 
