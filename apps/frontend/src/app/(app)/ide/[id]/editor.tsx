@@ -1,13 +1,42 @@
 'use client'
 
-import React from 'react'
+import React, { Component } from 'react'
 import Editor from '@monaco-editor/react'
 import { useQuery } from '@tanstack/react-query'
 import { useAtomValue } from 'jotai'
+import {
+  createHtmlPortalNode,
+  HtmlPortalNode,
+  InPortal,
+  OutPortal,
+} from 'react-reverse-portal'
 
 import { editFileAtom, publicIPAtom } from '../store'
 
 export default function TextEditor() {
+  const portalNode = React.useMemo(
+    () =>
+      createHtmlPortalNode({
+        attributes: { class: 'h-full' },
+      }),
+    []
+  )
+
+  return (
+    <>
+      <InPortal node={portalNode}>
+        <Editor />
+      </InPortal>
+      <TextEditorWrapper portalNode={portalNode} />
+    </>
+  )
+}
+
+function TextEditorWrapper({
+  portalNode,
+}: {
+  portalNode: HtmlPortalNode<Component<any>>
+}) {
   const editFile = useAtomValue(editFileAtom)
   const publicIP = useAtomValue(publicIPAtom)
 
@@ -44,7 +73,8 @@ export default function TextEditor() {
   }
 
   return (
-    <Editor
+    <OutPortal
+      node={portalNode}
       defaultLanguage="text"
       theme="vs-dark"
       defaultValue={data}

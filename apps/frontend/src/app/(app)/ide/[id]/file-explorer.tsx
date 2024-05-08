@@ -13,18 +13,19 @@ import { apiClient } from './utils'
 
 export default function FileExplorer() {
   const setEditFile = useSetAtom(editFileAtom)
+  const [currentPath, setCurrentPath] = React.useState('/')
 
   const publicIP = useAtomValue(publicIPAtom)
   const { isLoading, data, isError } = useQuery({
     queryFn: async () => {
       const res = await apiClient(publicIP).fileExplorer.$post({
         json: {
-          include: ['/', '/app', '/test'],
+          include: [currentPath],
         },
       })
       return await res.json()
     },
-    queryKey: ['file-explorer'],
+    queryKey: [`file-explorer-${currentPath}`],
   })
 
   if (isError || !data?.result) {
@@ -35,7 +36,7 @@ export default function FileExplorer() {
     return <p>loading</p>
   }
 
-  const root = data.result['/']
+  const root = data.result[currentPath]
 
   if (root === 'ERROR') {
     return <p>error</p>
@@ -49,17 +50,24 @@ export default function FileExplorer() {
         selectionBehavior="replace"
         className="w-full space-y-1"
       >
-        {root.map((item, idx) => (
+        {root.map((item) => (
           <ListBoxItem
             key={item.path}
             textValue={item.name}
             id={item.path}
-            onAction={() => setEditFile(item.path)}
+            onAction={() => {
+              if (item.isDirectory) {
+                setCurrentPath(item.path)
+              } else {
+                setEditFile(item.path)
+              }
+            }}
             className={cn(
               'flex items-center px-2 py-0.5 text-sm',
               'w-full space-x-2 ring-inset',
               'aria-[selected=true]:bg-sage-4 aria-[selected=true]:ring-1',
-              'overflow-hidden outline-none ring-sage-9 hover:cursor-pointer'
+              'overflow-hidden outline-none ring-sage-9 hover:cursor-pointer',
+              'hover:bg-sage-4'
             )}
           >
             <span className="size-3.5 shrink-0">
