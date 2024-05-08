@@ -4,6 +4,7 @@ import React, { Component } from 'react'
 import Editor from '@monaco-editor/react'
 import { useQuery } from '@tanstack/react-query'
 import { useAtomValue } from 'jotai'
+import { LoaderIcon } from 'lucide-react'
 import {
   createHtmlPortalNode,
   HtmlPortalNode,
@@ -61,15 +62,27 @@ function TextEditorWrapper({
   })
 
   if (!editFile) {
-    return <p>no file selected</p>
+    return (
+      <Container>
+        <Status>no file selected</Status>
+      </Container>
+    )
   }
 
   if (isLoading) {
-    return <p>loading...</p>
+    return (
+      <Container>
+        <Status isLoading>loading</Status>
+      </Container>
+    )
   }
 
   if (isError || !data) {
-    return <p>error</p>
+    return (
+      <Container>
+        <Status>error</Status>
+      </Container>
+    )
   }
 
   return (
@@ -80,5 +93,25 @@ function TextEditorWrapper({
       defaultValue={data}
       path={editFile}
     />
+  )
+}
+
+function Container({ children }: React.HtmlHTMLAttributes<HTMLDivElement>) {
+  return (
+    <div className="flex size-full items-center justify-center pt-14 text-center">
+      {children}
+    </div>
+  )
+}
+
+function Status({
+  children,
+  isLoading = false,
+}: React.PropsWithChildren<{ isLoading?: boolean }>) {
+  return (
+    <div className="flex items-center space-x-1 rounded-full bg-gray-5 px-3 py-1 font-mono text-xs">
+      {isLoading && <LoaderIcon className="size-3 animate-spin text-gray-11" />}
+      <p>{children}</p>
+    </div>
   )
 }

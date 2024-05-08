@@ -3,8 +3,14 @@
 import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useAtomValue, useSetAtom } from 'jotai'
-import { FileIcon, FolderIcon, Undo2Icon } from 'lucide-react'
-import { ListBox, ListBoxItem, ListBoxItemProps } from 'react-aria-components'
+import {
+  FileIcon,
+  FolderIcon,
+  LoaderIcon,
+  RefreshCcwIcon,
+  Undo2Icon,
+} from 'lucide-react'
+import { ListBox, ListBoxItem } from 'react-aria-components'
 
 import { cn } from '#/utils/style'
 
@@ -17,7 +23,7 @@ export default function FileExplorer() {
   const disabled = React.useMemo(() => currentPath === '/', [currentPath])
 
   const publicIP = useAtomValue(publicIPAtom)
-  const { isLoading, data, isError } = useQuery({
+  const { isLoading, data, isError, refetch } = useQuery({
     queryFn: async () => {
       const res = await apiClient(publicIP).fileExplorer.$post({
         json: {
@@ -29,42 +35,58 @@ export default function FileExplorer() {
     queryKey: [`file-explorer-${currentPath}`],
   })
 
-  if (isError || !data?.result) {
-    return <p>error</p>
+  if (isLoading) {
+    return (
+      <Container>
+        <Status isLoading>loading</Status>
+      </Container>
+    )
   }
 
-  if (isLoading) {
-    return <p>loading</p>
+  if (isError || !data?.result) {
+    return (
+      <Container>
+        <Status>error</Status>
+      </Container>
+    )
   }
 
   const root = data.result[currentPath]
-
   if (root === 'ERROR') {
     return <p>error</p>
   }
 
   return (
     <div className="size-full space-y-2">
-      <button
-        disabled={disabled}
-        onClick={() => {
-          if (currentPath === '/') return
-          const path = currentPath.split('/').slice(0, -1).join('/')
-          setCurrentPath(path === '' ? '/' : path)
-        }}
-        className={cn(
-          'flex items-center space-x-2 px-2 py-1',
-          'w-full ring-inset disabled:opacity-50',
-          'hover:bg-sage-4 hover:ring-1 hover:ring-sage-9'
-        )}
-      >
-        <span className="size-3.5 shrink-0">
-          <Undo2Icon />
-        </span>
-        <p className="w-full overflow-hidden text-ellipsis text-nowrap text-left text-xs">
-          move back
-        </p>
-      </button>
+      <div className="flex">
+        <button
+          disabled={disabled}
+          onClick={() => {
+            if (currentPath === '/') return
+            const path = currentPath.split('/').slice(0, -1).join('/')
+            setCurrentPath(path === '' ? '/' : path)
+          }}
+          className={cn(
+            'flex items-center space-x-2 px-2 py-1',
+            'w-full ring-inset disabled:opacity-50',
+            'hover:bg-sage-4 hover:ring-1 hover:ring-sage-9'
+          )}
+        >
+          <span className="size-3.5 shrink-0">
+            <Undo2Icon />
+          </span>
+          <p className="w-full overflow-hidden text-ellipsis text-nowrap text-left text-xs">
+            back
+          </p>
+        </button>
+
+        <button
+          className="flex size-6 items-center justify-center text-gray-11 ring-inset hover:bg-sage-4 hover:text-gray-12 hover:ring-1 hover:ring-sage-9"
+          onClick={() => refetch()}
+        >
+          <RefreshCcwIcon className="size-3" />
+        </button>
+      </div>
       <div className="size-full overflow-auto">
         <ListBox
           aria-label="file explorer"
@@ -103,6 +125,26 @@ export default function FileExplorer() {
           ))}
         </ListBox>
       </div>
+    </div>
+  )
+}
+
+function Container({ children }: React.HtmlHTMLAttributes<HTMLDivElement>) {
+  return (
+    <div className="flex size-full items-center justify-center pt-14 text-center">
+      {children}
+    </div>
+  )
+}
+
+function Status({
+  children,
+  isLoading = false,
+}: React.PropsWithChildren<{ isLoading?: boolean }>) {
+  return (
+    <div className="flex items-center space-x-1 rounded-full bg-gray-5 px-3 py-1 font-mono text-xs">
+      {isLoading && <LoaderIcon className="size-3 animate-spin text-gray-11" />}
+      <p>{children}</p>
     </div>
   )
 }
