@@ -92,3 +92,7 @@
     --green-12: 144 70% 82%;
   }
 }
+
+.xterm .xterm-viewport {
+  background-color: hsl(var(--gray-2)) !important;
+}

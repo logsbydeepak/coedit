@@ -3,13 +3,34 @@
 import '@xterm/xterm/css/xterm.css'
 
 import React from 'react'
-import { Terminal } from '@xterm/xterm'
+import { ITheme, Terminal } from '@xterm/xterm'
 import { useAtomValue } from 'jotai'
 import useWebSocket, { ReadyState } from 'react-use-websocket'
 import { FitAddon } from 'xterm-addon-fit'
 import { WebglAddon } from 'xterm-addon-webgl'
 
 import { publicIPAtom } from '../store'
+
+const theme: ITheme = {
+  red: '#f07178',
+  green: '#C3E88D',
+  yellow: '#FFCB6B',
+  blue: '#82AAFF',
+  magenta: '#C792EA',
+  cyan: '#89DDFF',
+  white: '#ffffff',
+  black: '#000000',
+  brightBlack: '#545454',
+  brightRed: '#f07178',
+  brightGreen: '#C3E88D',
+  brightYellow: '#FFCB6B',
+  brightBlue: '#82AAFF',
+  brightMagenta: '#C792EA',
+  brightCyan: '#89DDFF',
+  brightWhite: '#ffffff',
+  cursor: '#FFCB6B',
+  cursorAccent: '#000000',
+}
 
 export default function Term() {
   const publicIP = useAtomValue(publicIPAtom)
@@ -39,6 +60,7 @@ export default function Term() {
       fontWeight: 'normal',
       lineHeight: 1.5,
       letterSpacing: -2,
+      theme,
     })
     const webglAddon = new WebglAddon()
     const fitAddon = new FitAddon()

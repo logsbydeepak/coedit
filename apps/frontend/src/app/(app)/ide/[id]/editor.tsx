@@ -1,7 +1,7 @@
 'use client'
 
 import React, { Component } from 'react'
-import Editor from '@monaco-editor/react'
+import Editor, { Monaco, useMonaco } from '@monaco-editor/react'
 import { useQuery } from '@tanstack/react-query'
 import { useAtomValue } from 'jotai'
 import { LoaderIcon, RefreshCcwIcon } from 'lucide-react'
@@ -25,10 +25,19 @@ export default function TextEditor() {
     []
   )
 
+  function handleEditorDidMount(editor: any, monaco: Monaco) {
+    monaco.editor.defineTheme('my', {
+      base: 'vs-dark',
+      inherit: true,
+      rules: [],
+      colors: {},
+    })
+  }
+
   return (
     <>
       <InPortal node={portalNode}>
-        <Editor />
+        <Editor onMount={handleEditorDidMount} />
       </InPortal>
       <TextEditorWrapper portalNode={portalNode} />
     </>
@@ -124,7 +133,7 @@ function TextEditorWrapper({
 
   return (
     <>
-      <div className="flex items-center justify-between p-2">
+      <div className="flex items-center justify-between px-2 py-1">
         <p className="text-xs text-gray-11">{editFile}</p>
         <button
           className="flex size-6 items-center justify-center text-gray-11 ring-inset hover:bg-sage-4 hover:text-gray-12 hover:ring-1 hover:ring-sage-9"
@@ -136,7 +145,7 @@ function TextEditorWrapper({
       <OutPortal
         node={portalNode}
         defaultLanguage={language}
-        theme="vs-dark"
+        theme="my"
         path={editFile}
         onChange={handleOnChange}
         value={data}
