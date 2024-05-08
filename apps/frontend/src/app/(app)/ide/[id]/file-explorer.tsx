@@ -3,18 +3,13 @@
 import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useAtomValue, useSetAtom } from 'jotai'
-import {
-  FileIcon,
-  FolderIcon,
-  LoaderIcon,
-  RefreshCcwIcon,
-  Undo2Icon,
-} from 'lucide-react'
+import { LoaderIcon, RefreshCcwIcon, Undo2Icon } from 'lucide-react'
 import { ListBox, ListBoxItem } from 'react-aria-components'
 
 import { cn } from '#/utils/style'
 
 import { editFileAtom, publicIPAtom } from '../store'
+import { getExtensionIcon } from './extension'
 import { apiClient } from './utils'
 
 export default function FileExplorer() {
@@ -53,7 +48,11 @@ export default function FileExplorer() {
 
   const root = data.result[currentPath]
   if (root === 'ERROR') {
-    return <p>error</p>
+    return (
+      <Container>
+        <Status>error</Status>
+      </Container>
+    )
   }
 
   return (
@@ -114,8 +113,16 @@ export default function FileExplorer() {
                 'hover:bg-sage-4'
               )}
             >
-              <span className="size-3.5 shrink-0">
-                {item.isDirectory ? <FolderIcon /> : <FileIcon />}
+              <span className="size-3 shrink-0">
+                {/* eslint-disable @next/next/no-img-element */}
+                <img
+                  src={getExtensionIcon({
+                    name: item.name,
+                    isDirectory: item.isDirectory,
+                  })}
+                  alt={item.name}
+                  className="size-3.5"
+                />
               </span>
 
               <p className="w-full overflow-hidden text-ellipsis text-nowrap">
