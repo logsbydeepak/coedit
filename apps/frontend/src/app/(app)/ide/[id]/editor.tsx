@@ -85,15 +85,65 @@ function TextEditorWrapper({
     )
   }
 
+  if (!canFileBeEdited(editFile)) {
+    return (
+      <Container>
+        <Status>not supported</Status>
+      </Container>
+    )
+  }
+
+  const language = getLanguage(editFile)
+
   return (
     <OutPortal
       node={portalNode}
-      defaultLanguage="text"
+      defaultLanguage={language}
       theme="vs-dark"
       defaultValue={data}
       path={editFile}
     />
   )
+}
+
+const getLanguage = (name: string) => {
+  const parts = name.split('.')
+  const ext = parts[parts.length - 1]
+
+  if (['ts', 'tsx'].includes(ext)) return 'typescript'
+  if (['js', 'jsx', 'mjs'].includes(ext)) return 'javascript'
+  if (['html', 'svg'].includes(ext)) return 'html'
+  if (['css'].includes(ext)) return 'css'
+  if (['json'].includes(ext)) return 'json'
+  if (['md'].includes(ext)) return 'markdown'
+  if (['rs'].includes(ext)) return 'rust'
+  return 'text'
+}
+
+const canFileBeEdited = (name: string) => {
+  const parts = name.split('.')
+  const ext = parts[parts.length - 1]
+
+  if (
+    [
+      'ts',
+      'tsx',
+      'js',
+      'jsx',
+      'mjs',
+      'html',
+      'css',
+      'json',
+      'md',
+      'rs',
+      'gitignore',
+      'svg',
+    ].includes(ext)
+  ) {
+    return true
+  }
+
+  return false
 }
 
 function Container({ children }: React.HtmlHTMLAttributes<HTMLDivElement>) {
