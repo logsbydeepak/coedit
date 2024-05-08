@@ -5,7 +5,7 @@ import { z } from 'zod'
 
 import { r } from '@coedit/r'
 
-import { getPathContent } from '#/utils/fs'
+import { getPathContent, writePathContent } from '#/utils/fs'
 import { h } from '#/utils/h'
 
 const userPrefix = '/home/coedit'
@@ -44,6 +44,25 @@ const get = h.post(
   }
 )
 
+const updateFile = h.post(
+  '/update',
+  zValidator(
+    'json',
+    z.object({
+      path: z.string(),
+      body: z.string(),
+    })
+  ),
+  async (c) => {
+    const input = c.req.valid('json')
+    const res = await writePathContent(input.path, input.body)
+    if (res.code !== 'OK') {
+      return c.json(r('ERROR'))
+    }
+    return c.json(r('OK'))
+  }
+)
+
 const content = h.use(
   '/workspace/*',
   serveStatic({
@@ -55,4 +74,7 @@ const content = h.use(
   })
 )
 
-export const fileExplorerRoute = h.route('/', get).route('/', content)
+export const fileExplorerRoute = h
+  .route('/', updateFile)
+  .route('/', get)
+  .route('/', content)

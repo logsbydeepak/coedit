@@ -39,3 +39,13 @@ export async function getPathContent(dist: string = '/') {
     return r('ERROR')
   }
 }
+
+export async function writePathContent(dist: string, body: string) {
+  try {
+    if (dist.includes('..')) return r('ERROR')
+    await fs.writeFile(path.join(prefix, dist), body)
+    return r('OK')
+  } catch (error) {
+    return r('ERROR')
+  }
+}

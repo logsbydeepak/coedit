@@ -4,15 +4,17 @@ import React, { Component } from 'react'
 import Editor from '@monaco-editor/react'
 import { useQuery } from '@tanstack/react-query'
 import { useAtomValue } from 'jotai'
-import { LoaderIcon } from 'lucide-react'
+import { LoaderIcon, RefreshCcwIcon } from 'lucide-react'
 import {
   createHtmlPortalNode,
   HtmlPortalNode,
   InPortal,
   OutPortal,
 } from 'react-reverse-portal'
+import { toast } from 'sonner'
 
 import { editFileAtom, publicIPAtom } from '../store'
+import { apiClient } from './utils'
 
 export default function TextEditor() {
   const portalNode = React.useMemo(
@@ -41,18 +43,13 @@ function TextEditorWrapper({
   const editFile = useAtomValue(editFileAtom)
   const publicIP = useAtomValue(publicIPAtom)
 
-  const { isLoading, isError, data } = useQuery({
+  const { isLoading, isError, data, refetch } = useQuery({
     queryFn: async () => {
       if (!editFile) return
       const file = editFile.startsWith('/') ? editFile.slice(1) : editFile
       const res = await fetch(`http://${publicIP}/api/workspace/${file}`, {
         credentials: 'include',
       })
-
-      if (!res.ok) {
-        throw new Error('failed to fetch file')
-      }
-
       return await res.text()
     },
     queryKey: [editFile],
@@ -77,7 +74,7 @@ function TextEditorWrapper({
     )
   }
 
-  if (isError || !data) {
+  if (isError) {
     return (
       <Container>
         <Status>error</Status>
@@ -95,14 +92,56 @@ function TextEditorWrapper({
 
   const language = getLanguage(editFile)
 
+  let timeout: Timer
+  const handleOnChange = (value: string | undefined) => {
+    if (!value) return
+    function debounce(func: Function, wait: number) {
+      return function (this: any, ...args: any[]) {
+        const context = this
+        clearTimeout(timeout)
+        timeout = setTimeout(() => func.apply(context, args), wait)
+      }
+    }
+
+    const debounced = debounce(async (value: string) => {
+      try {
+        const res = await apiClient(publicIP).fileExplorer.update.$post({
+          json: {
+            path: editFile,
+            body: value,
+          },
+        })
+        const resData = await res.json()
+        if (resData.code !== 'OK') throw new Error('Failed to save file')
+      } catch (error) {
+        toast.error('Failed to save file', {
+          description: editFile,
+        })
+      }
+    }, 2000)
+    debounced(value)
+  }
+
   return (
-    <OutPortal
-      node={portalNode}
-      defaultLanguage={language}
-      theme="vs-dark"
-      defaultValue={data}
-      path={editFile}
-    />
+    <>
+      <div className="flex items-center justify-between p-2">
+        <p className="text-xs text-gray-11">{editFile}</p>
+        <button
+          className="flex size-6 items-center justify-center text-gray-11 ring-inset hover:bg-sage-4 hover:text-gray-12 hover:ring-1 hover:ring-sage-9"
+          onClick={() => refetch()}
+        >
+          <RefreshCcwIcon className="size-3" />
+        </button>
+      </div>
+      <OutPortal
+        node={portalNode}
+        defaultLanguage={language}
+        theme="vs-dark"
+        path={editFile}
+        onChange={handleOnChange}
+        value={data}
+      />
+    </>
   )
 }
 
@@ -138,6 +177,7 @@ const canFileBeEdited = (name: string) => {
       'rs',
       'gitignore',
       'svg',
+      'txt',
     ].includes(ext)
   ) {
     return true
