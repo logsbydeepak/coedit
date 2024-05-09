@@ -11,6 +11,7 @@ import {
 const Editor = dynamic(() => import('./editor'), { ssr: false })
 const Terminal = dynamic(() => import('./terminal'), { ssr: false })
 const FileExplorer = dynamic(() => import('./file-explorer'), { ssr: false })
+const Output = dynamic(() => import('./output'), { ssr: false })
 
 export function IDE() {
   return (
@@ -42,8 +43,4 @@ export function IDE() {
       </ResizablePanel>
     </ResizablePanelGroup>
   )
-}
-
-function Output() {
-  return <h1>Output</h1>
 }

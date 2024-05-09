@@ -28,8 +28,6 @@ const theme: ITheme = {
   brightMagenta: '#C792EA',
   brightCyan: '#89DDFF',
   brightWhite: '#ffffff',
-  cursor: '#FFCB6B',
-  cursorAccent: '#000000',
 }
 
 export default function Term() {
@@ -57,7 +55,7 @@ export default function Term() {
     const term = new Terminal({
       fontSize: 14,
       fontFamily: 'var(--font-geist-mono)',
-      fontWeight: 'normal',
+      fontWeight: '400',
       lineHeight: 1.5,
       letterSpacing: -2,
       theme,
