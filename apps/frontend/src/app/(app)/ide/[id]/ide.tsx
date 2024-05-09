@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import dynamic from 'next/dynamic'
 
 import {
@@ -16,11 +17,11 @@ const Output = dynamic(() => import('./output'), { ssr: false })
 export function IDE() {
   return (
     <ResizablePanelGroup direction="horizontal" className="absolute pt-14">
-      <ResizablePanel defaultSize={16}>
+      <ResizablePanel defaultSize={16} collapsible={true} minSize={10}>
         <FileExplorer />
       </ResizablePanel>
 
-      <ResizableHandle />
+      <ResizableHandle onDoubleClick={() => { }} />
 
       <ResizablePanel defaultSize={50}>
         <ResizablePanelGroup direction="vertical">
@@ -30,7 +31,7 @@ export function IDE() {
 
           <ResizableHandle />
 
-          <ResizablePanel defaultSize={25}>
+          <ResizablePanel defaultSize={25} collapsible={true} minSize={10}>
             <Terminal />
           </ResizablePanel>
         </ResizablePanelGroup>
@@ -38,7 +39,7 @@ export function IDE() {
 
       <ResizableHandle />
 
-      <ResizablePanel defaultSize={30}>
+      <ResizablePanel defaultSize={30} collapsible={true} minSize={10}>
         <Output />
       </ResizablePanel>
     </ResizablePanelGroup>
