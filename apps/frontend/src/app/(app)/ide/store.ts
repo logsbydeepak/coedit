@@ -3,4 +3,7 @@
 import { atom } from 'jotai'
 
 
-export const editFileAtom = atom<string | null>(null)
+export const editFileAtom = atom<{
+  path: string
+  name: string
+} | null>(null)

@@ -102,7 +102,10 @@ export default function FileExplorer() {
                 if (item.isDirectory) {
                   setCurrentPath(item.path)
                 } else {
-                  setEditFile(item.path)
+                  setEditFile({
+                    path: item.path,
+                    name: item.name,
+                  })
                 }
               }}
               className={cn(

@@ -1,10 +1,12 @@
 'use client'
 
 import React, { Component } from 'react'
-import Editor, { Monaco, useMonaco } from '@monaco-editor/react'
+import Editor, { Monaco } from '@monaco-editor/react'
+import * as Tabs from '@radix-ui/react-tabs'
 import { useQuery } from '@tanstack/react-query'
-import { useAtomValue } from 'jotai'
-import { LoaderIcon, RefreshCcwIcon } from 'lucide-react'
+import { useAtom, useAtomValue } from 'jotai'
+import { LoaderIcon, RefreshCcwIcon, XIcon } from 'lucide-react'
+import { editor } from 'monaco-editor'
 import {
   createHtmlPortalNode,
   HtmlPortalNode,
@@ -16,7 +18,20 @@ import { toast } from 'sonner'
 import { editFileAtom, publicIPAtom } from '../store'
 import { apiClient } from './utils'
 
+type Tab = {
+  name: string
+  path: string
+}
+
 export default function TextEditor() {
+  const [filePath, setFilePath] = useAtom(editFileAtom)
+
+  const [activeTab, setActiveTab] = React.useState<string | null>('')
+  const [tabs, setTabs] = React.useState<Tab[]>([])
+
+  const editorRef = React.useRef<editor.IStandaloneCodeEditor | null>(null)
+  const monacoRef = React.useRef<Monaco | null>(null)
+
   const portalNode = React.useMemo(
     () =>
       createHtmlPortalNode({
@@ -25,7 +40,56 @@ export default function TextEditor() {
     []
   )
 
-  function handleEditorDidMount(editor: any, monaco: Monaco) {
+  React.useEffect(() => {
+    if (!filePath) return setFilePath(null)
+    const findTab = tabs.find((tab) => tab.path === filePath.path)
+    if (findTab) {
+      setActiveTab(findTab.path)
+      setFilePath(null)
+    } else {
+      if (tabs.length >= 5) {
+        toast.error('max tabs reached')
+        setFilePath(null)
+        return
+      }
+      setTabs((prev) => [
+        ...prev,
+        {
+          name: filePath.name,
+          path: filePath.path,
+        },
+      ])
+      setActiveTab(filePath.path)
+      setFilePath(null)
+    }
+  }, [filePath, tabs, setFilePath])
+
+  const closeTab = (path: string) => {
+    const index = tabs.findIndex((tab) => tab.path === path)
+    if (index === -1) return
+
+    if (activeTab === path) {
+      const nextIndex = index === 0 ? 1 : index - 1
+      const nextTab = tabs[nextIndex]
+      setActiveTab(nextTab ? nextTab.path : null)
+    }
+
+    monacoRef.current?.editor.getModels().forEach((model) => {
+      if (model.uri.path === path) {
+        model.dispose()
+      }
+    })
+
+    setTabs((prev) => prev.filter((tab) => tab.path !== path))
+  }
+
+  function handleEditorDidMount(
+    editor: editor.IStandaloneCodeEditor,
+    monaco: Monaco
+  ) {
+    editorRef.current = editor
+    monacoRef.current = monaco
+
     monaco.editor.defineTheme('my', {
       base: 'vs-dark',
       inherit: true,
@@ -36,44 +100,96 @@ export default function TextEditor() {
 
   return (
     <>
+      <Tabs.Root
+        className="flex flex-col text-xs"
+        value={activeTab || ''}
+        onValueChange={(value) => setActiveTab(value)}
+      >
+        <Tabs.List className="no-scrollbar flex h-8 items-center overflow-x-scroll border-b border-gray-3">
+          {tabs.map((tab) => (
+            <div
+              key={tab.path}
+              className="group flex h-full items-center border-sage-9 hover:bg-gray-3 has-[>[aria-selected=true]]:border-b-2 has-[>[aria-selected=true]]:bg-gray-4"
+            >
+              <Tabs.Trigger
+                value={tab.path}
+                className="pl-4 text-gray-11 hover:text-gray-12 aria-[selected=true]:text-gray-12"
+              >
+                <p className="flex items-center space-x-1 text-nowrap">
+                  <span>{tab.name}</span>
+                </p>
+              </Tabs.Trigger>
+              <button
+                className="flex size-7 items-center justify-center text-gray-11 hover:text-gray-12"
+                onClick={() => closeTab(tab.path)}
+              >
+                <XIcon className="hidden size-3 group-hover:block" />
+              </button>
+            </div>
+          ))}
+        </Tabs.List>
+      </Tabs.Root>
       <InPortal node={portalNode}>
         <Editor
           onMount={handleEditorDidMount}
           options={{
             fontSize: 13,
             fontFamily: 'var(--font-geist-mono)',
+            minimap: {
+              enabled: false,
+            },
+            folding: false,
           }}
         />
       </InPortal>
-      <TextEditorWrapper portalNode={portalNode} />
+
+      {!activeTab && (
+        <Container>
+          <Status>no file selected</Status>
+        </Container>
+      )}
+
+      {activeTab && (
+        <TextEditorWrapper
+          filePath={activeTab}
+          portalNode={portalNode}
+          editorRef={editorRef}
+          monacoRef={monacoRef}
+        />
+      )}
     </>
   )
 }
 
 function TextEditorWrapper({
+  filePath,
   portalNode,
+  editorRef,
+  monacoRef,
 }: {
+  filePath: string
   portalNode: HtmlPortalNode<Component<any>>
+  editorRef: React.MutableRefObject<editor.IStandaloneCodeEditor | null>
+  monacoRef: React.MutableRefObject<Monaco | null>
 }) {
-  const editFile = useAtomValue(editFileAtom)
   const publicIP = useAtomValue(publicIPAtom)
 
   const { isLoading, isError, data, refetch } = useQuery({
     queryFn: async () => {
-      if (!editFile) return
-      const file = editFile.startsWith('/') ? editFile.slice(1) : editFile
+      const file = filePath.startsWith('/') ? filePath.slice(1) : filePath
       const res = await fetch(`http://${publicIP}/api/workspace/${file}`, {
         credentials: 'include',
       })
       return await res.text()
     },
-    queryKey: [editFile],
+    queryKey: [filePath],
+    enabled: !!filePath,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   })
 
-  if (!editFile) {
+  if (!filePath) {
     return (
       <Container>
         <Status>no file selected</Status>
@@ -97,7 +213,7 @@ function TextEditorWrapper({
     )
   }
 
-  if (!canFileBeEdited(editFile)) {
+  if (!canFileBeEdited(filePath)) {
     return (
       <Container>
         <Status>not supported</Status>
@@ -105,7 +221,7 @@ function TextEditorWrapper({
     )
   }
 
-  const language = getLanguage(editFile)
+  const language = getLanguage(filePath)
 
   let timeout: Timer
   const handleOnChange = (value: string | undefined) => {
@@ -122,7 +238,7 @@ function TextEditorWrapper({
       try {
         const res = await apiClient(publicIP).fileExplorer.update.$post({
           json: {
-            path: editFile,
+            path: filePath,
             body: value,
           },
         })
@@ -130,7 +246,7 @@ function TextEditorWrapper({
         if (resData.code !== 'OK') throw new Error('Failed to save file')
       } catch (error) {
         toast.error('Failed to save file', {
-          description: editFile,
+          description: filePath,
         })
       }
     }, 2000)
@@ -140,7 +256,7 @@ function TextEditorWrapper({
   return (
     <>
       <div className="flex items-center justify-between px-2 py-1">
-        <p className="text-xs text-gray-11">{editFile}</p>
+        <p className="text-xs text-gray-11">{filePath}</p>
         <button
           className="flex size-6 items-center justify-center text-gray-11 ring-inset hover:bg-sage-4 hover:text-gray-12 hover:ring-1 hover:ring-sage-9"
           onClick={() => refetch()}
@@ -152,7 +268,7 @@ function TextEditorWrapper({
         node={portalNode}
         defaultLanguage={language}
         theme="my"
-        path={editFile}
+        path={filePath}
         onChange={handleOnChange}
         value={data}
       />

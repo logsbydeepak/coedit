@@ -9,7 +9,6 @@ import { useAtomValue } from 'jotai'
 import { LoaderIcon, PlusIcon, XIcon } from 'lucide-react'
 import useWebSocket, { ReadyState } from 'react-use-websocket'
 import { toast } from 'sonner'
-import { ulid } from 'ulidx'
 import { FitAddon } from 'xterm-addon-fit'
 import { WebglAddon } from 'xterm-addon-webgl'
 
@@ -72,6 +71,7 @@ export default function Term() {
 }
 
 function TermGroup({ socket }: { socket: Socket }) {
+  const [activeTab, setActiveTab] = React.useState<string | null>(null)
   const [termData, setTermData] = React.useState<{
     id: string
     data: string
@@ -123,19 +123,34 @@ function TermGroup({ socket }: { socket: Socket }) {
               name: 'term',
             },
           ])
+          setActiveTab(data.data)
           break
         case 'remove':
-          setTabs((tabs) => tabs.filter((tab) => tab.id !== data.data))
+          const id = data.data
+          const index = tabs.findIndex((tab) => tab.id === id)
+          if (index === -1) return
+
+          if (activeTab === id) {
+            const nextIndex = index === 0 ? 1 : index - 1
+            const nextTab = tabs[nextIndex]
+            setActiveTab(nextTab ? nextTab.id : null)
+          }
+          setTabs((tabs) => tabs.filter((tab) => tab.id !== id))
+
           break
         case 'term':
           setTermData(data.data)
           break
       }
     }
-  }, [getWebSocket])
+  }, [getWebSocket, activeTab, tabs])
 
   return (
-    <Tabs.Root className="flex size-full flex-col text-xs">
+    <Tabs.Root
+      className="flex size-full flex-col text-xs"
+      value={activeTab || ''}
+      onValueChange={(value) => setActiveTab(value)}
+    >
       <div className="flex h-8 items-center justify-between border-b border-gray-4">
         <Tabs.List className="no-scrollbar flex items-center overflow-x-scroll">
           {tabs.map((tab, idx) => (
@@ -174,6 +189,12 @@ function TermGroup({ socket }: { socket: Socket }) {
         {tabs.length === 0 && (
           <Container>
             <Status>no terminal</Status>
+          </Container>
+        )}
+
+        {!activeTab && (
+          <Container>
+            <Status>select a terminal</Status>
           </Container>
         )}
 
