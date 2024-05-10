@@ -21,7 +21,7 @@ export function IDE() {
         <FileExplorer />
       </ResizablePanel>
 
-      <ResizableHandle onDoubleClick={() => { }} />
+      <ResizableHandle onDoubleClick={() => {}} />
 
       <ResizablePanel defaultSize={50}>
         <ResizablePanelGroup direction="vertical">
@@ -31,7 +31,7 @@ export function IDE() {
 
           <ResizableHandle />
 
-          <ResizablePanel defaultSize={25} collapsible={true} minSize={10}>
+          <ResizablePanel defaultSize={26} collapsible={true} minSize={10}>
             <Terminal />
           </ResizablePanel>
         </ResizablePanelGroup>

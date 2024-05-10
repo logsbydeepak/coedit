@@ -111,7 +111,7 @@ function TextEditorWrapper({
   const handleOnChange = (value: string | undefined) => {
     if (!value) return
     function debounce(func: Function, wait: number) {
-      return function(this: any, ...args: any[]) {
+      return function (this: any, ...args: any[]) {
         const context = this
         clearTimeout(timeout)
         timeout = setTimeout(() => func.apply(context, args), wait)

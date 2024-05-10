@@ -3,9 +3,13 @@
 import '@xterm/xterm/css/xterm.css'
 
 import React from 'react'
+import * as Tabs from '@radix-ui/react-tabs'
 import { ITheme, Terminal } from '@xterm/xterm'
 import { useAtomValue } from 'jotai'
+import { LoaderIcon, PlusIcon, XIcon } from 'lucide-react'
 import useWebSocket, { ReadyState } from 'react-use-websocket'
+import { toast } from 'sonner'
+import { ulid } from 'ulidx'
 import { FitAddon } from 'xterm-addon-fit'
 import { WebglAddon } from 'xterm-addon-webgl'
 
@@ -30,13 +34,13 @@ const theme: ITheme = {
   brightWhite: '#ffffff',
 }
 
+const useSocket = (url: string) => useWebSocket(url)
+type Socket = ReturnType<typeof useSocket>
+
 export default function Term() {
   const publicIP = useAtomValue(publicIPAtom)
-
   const WS_URL = `ws://${publicIP}/ws`
-
-  const termRef = React.useRef<HTMLDivElement | null>(null)
-  const { readyState, getWebSocket, sendJsonMessage } = useWebSocket(WS_URL)
+  const socket = useSocket(WS_URL)
 
   const connectionStatus = {
     [ReadyState.CONNECTING]: 'connecting' as const,
@@ -44,20 +48,130 @@ export default function Term() {
     [ReadyState.CLOSING]: 'closing' as const,
     [ReadyState.CLOSED]: 'closed' as const,
     [ReadyState.UNINSTANTIATED]: 'uninstantiated' as const,
-  }[readyState]
+  }[socket.readyState]
+
+  if (connectionStatus === 'open') {
+    return <TermGroup socket={socket} />
+  }
+
+  return (
+    <Container>
+      {connectionStatus === 'connecting' && (
+        <Status isLoading>connecting</Status>
+      )}
+      {connectionStatus === 'closing' && <Status isLoading>closing</Status>}
+      {connectionStatus === 'closed' && <Status>closed</Status>}
+      {connectionStatus === 'uninstantiated' && <Status>uninstantiated</Status>}
+    </Container>
+  )
+}
+
+function TermGroup({ socket }: { socket: Socket }) {
+  const [tabs, setTabs] = React.useState<
+    {
+      id: string
+      name: string
+    }[]
+  >([
+    {
+      id: ulid(),
+      name: 'term',
+    },
+  ])
+
+  const addTab = () => {
+    if (tabs.length >= 5) {
+      toast.error('max tabs reached')
+      return
+    }
+
+    const id = ulid()
+    setTabs((prev) => [
+      ...prev,
+      {
+        id,
+        name: `term`,
+      },
+    ])
+  }
+
+  const removeTab = (id: string) => {
+    setTabs((prev) => prev.filter((tab) => tab.id !== id))
+  }
+
+  return (
+    <Tabs.Root className="flex size-full flex-col text-xs">
+      <div className="flex h-8 items-center justify-between border-b border-gray-4">
+        <Tabs.List className="no-scrollbar flex items-center overflow-x-scroll">
+          {tabs.map((tab, idx) => (
+            <div
+              key={tab.id}
+              className="group flex h-full items-center border-sage-9 hover:bg-gray-3 has-[>[aria-selected=true]]:border-b-2 has-[>[aria-selected=true]]:bg-gray-4"
+            >
+              <Tabs.Trigger
+                value={tab.id}
+                className="h-8 pl-4 text-gray-11 hover:text-gray-12 aria-[selected=true]:text-gray-12"
+              >
+                <p className="flex items-center space-x-1">
+                  <span className="font-mono">{idx + 1}:</span>
+                  <span>{tab.name}</span>
+                </p>
+              </Tabs.Trigger>
+              <button className="flex size-7 items-center justify-center text-gray-11 hover:text-gray-12">
+                <XIcon
+                  className="hidden size-3 group-hover:block"
+                  onClick={() => removeTab(tab.id)}
+                />
+              </button>
+            </div>
+          ))}
+        </Tabs.List>
+
+        <button
+          onClick={addTab}
+          className="flex size-7 items-center justify-center border-l border-gray-4"
+        >
+          <PlusIcon className="size-3" />
+        </button>
+      </div>
+
+      <div className="size-full">
+        {tabs.length === 0 && (
+          <Container>
+            <Status>no terminal</Status>
+          </Container>
+        )}
+
+        {tabs.map((tab) => (
+          <Tabs.Content
+            key={tab.id}
+            value={tab.id}
+            forceMount
+            className="size-full data-[state=inactive]:hidden"
+          >
+            <TermContent id={tab.id} socket={socket} />
+          </Tabs.Content>
+        ))}
+      </div>
+    </Tabs.Root>
+  )
+}
+
+function TermContent({ id, socket }: { id: string; socket: Socket }) {
+  const termRef = React.useRef<HTMLDivElement | null>(null)
+  const { getWebSocket, sendJsonMessage, sendMessage } = socket
 
   React.useEffect(() => {
     if (!termRef.current) return
-    if (connectionStatus !== 'open') return
     const ws = getWebSocket()
     if (!ws) return
 
     const term = new Terminal({
-      fontSize: 14,
+      fontSize: 13,
       fontFamily: 'var(--font-geist-mono)',
       fontWeight: '400',
       lineHeight: 1.5,
-      letterSpacing: -2,
+      letterSpacing: -3.5,
       theme,
     })
     const webglAddon = new WebglAddon()
@@ -67,22 +181,11 @@ export default function Term() {
     term.loadAddon(fitAddon)
     term.open(termRef.current)
 
-    term.onData((data) => {
-      sendJsonMessage({ type: 'input', data })
-    })
+    term.onData((data) => {})
 
-    ws.onmessage = (event) => {
-      term.write(event.data)
-    }
+    ws.onmessage = (event) => {}
 
     const resizeObserver = new ResizeObserver(() => {
-      sendJsonMessage({
-        type: 'resize',
-        data: {
-          cols: term.cols,
-          rows: term.rows,
-        },
-      })
       fitAddon.fit()
     })
 
@@ -93,29 +196,27 @@ export default function Term() {
       fitAddon.dispose()
       term.dispose()
     }
-  }, [connectionStatus, getWebSocket, sendJsonMessage])
+  }, [getWebSocket, sendJsonMessage])
 
+  return <div ref={termRef} className="size-full" />
+}
+
+function Container({ children }: React.HtmlHTMLAttributes<HTMLDivElement>) {
   return (
-    <>
-      {connectionStatus !== 'open' && (
-        <div className="flex size-full items-center justify-center">
-          {connectionStatus === 'connecting' && (
-            <div className="font-mono">connecting...</div>
-          )}
-          {connectionStatus === 'closing' && (
-            <div className="font-mono">closing...</div>
-          )}
-          {connectionStatus === 'closed' && (
-            <div className="font-mono">closed</div>
-          )}
-          {connectionStatus === 'uninstantiated' && (
-            <div className="font-mono">uninstantiated</div>
-          )}
-        </div>
-      )}
-      {connectionStatus === 'open' && (
-        <div ref={termRef} className="size-full" />
-      )}
-    </>
+    <div className="flex size-full items-center justify-center text-center">
+      {children}
+    </div>
+  )
+}
+
+function Status({
+  children,
+  isLoading = false,
+}: React.PropsWithChildren<{ isLoading?: boolean }>) {
+  return (
+    <div className="flex items-center space-x-1 rounded-full bg-gray-5 px-3 py-1 font-mono text-xs">
+      {isLoading && <LoaderIcon className="size-3 animate-spin text-gray-11" />}
+      <p>{children}</p>
+    </div>
   )
 }

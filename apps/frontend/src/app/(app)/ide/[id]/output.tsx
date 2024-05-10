@@ -1,6 +1,6 @@
 import React from 'react'
 import { useAtomValue } from 'jotai'
-import { CircleStopIcon, LoaderIcon, PlayIcon, SquareIcon } from 'lucide-react'
+import { LoaderIcon, PlayIcon, SquareIcon } from 'lucide-react'
 
 import { publicIPAtom } from '../store'
 
@@ -10,10 +10,11 @@ export default function Output() {
   const publicIP = useAtomValue(publicIPAtom)
 
   React.useEffect(() => {
+    if (!ref.current) return
+    const iframe = ref.current
+    if (iframe.children.length === 0) return
     return () => {
-      if (!ref.current) return
-      if (ref.current.children.length === 0) return
-      ref.current.removeChild(ref.current.children[0])
+      iframe.removeChild(iframe.children[0])
     }
   }, [])
 
@@ -22,17 +23,17 @@ export default function Output() {
 
     if (isRunning) {
       const iframe = document.createElement('iframe')
-      iframe.setAttribute('src', `http://${publicIP.split(':')[0]}:3000`)
+      iframe.setAttribute('src', `http://${publicIP.split(':')[0]}:4001`)
       iframe.className = 'size-full'
       ref.current.appendChild(iframe)
     } else {
       if (ref.current.children.length === 0) return
       ref.current.removeChild(ref.current.children[0])
     }
-  }, [isRunning])
+  }, [isRunning, publicIP])
 
   return (
-    <div className="size-full flex flex-col">
+    <div className="flex size-full flex-col">
       {!isRunning && (
         <Container>
           <Status>no preview</Status>
@@ -40,9 +41,9 @@ export default function Output() {
       )}
       {isRunning && <div ref={ref} className="size-full"></div>}
 
-      <div className="flex justify-between text-sm space-x-2 items-center">
+      <div className="flex items-center justify-between space-x-2 text-sm">
         <button
-          className="flex size-6 items-center justify-center text-gray-11 ring-inset hover:bg-sage-4 hover:text-gray-12 hover:ring-1 hover:ring-sage-9 w-full space-x-2"
+          className="flex size-6 w-full items-center justify-center space-x-2 text-gray-11 ring-inset hover:bg-sage-4 hover:text-gray-12 hover:ring-1 hover:ring-sage-9"
           onClick={() => setIsRunning((prev) => !prev)}
         >
           <span className="size-3">
@@ -50,7 +51,7 @@ export default function Output() {
           </span>
           <p>{isRunning ? 'closer' : 'preview'}</p>
         </button>
-        <p className="text-xs text-gray-11 px-2">3000</p>
+        <p className="px-2 text-xs text-gray-11">3000</p>
       </div>
     </div>
   )
