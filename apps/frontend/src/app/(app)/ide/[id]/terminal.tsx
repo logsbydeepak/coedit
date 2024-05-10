@@ -13,6 +13,11 @@ import { ulid } from 'ulidx'
 import { FitAddon } from 'xterm-addon-fit'
 import { WebglAddon } from 'xterm-addon-webgl'
 
+import type {
+  WSSendData as WSGetData,
+  WSGetData as WSSendData,
+} from '@coedit/container'
+
 import { publicIPAtom } from '../store'
 
 const theme: ITheme = {
@@ -67,17 +72,19 @@ export default function Term() {
 }
 
 function TermGroup({ socket }: { socket: Socket }) {
+  const [termData, setTermData] = React.useState<{
+    id: string
+    data: string
+  } | null>(null)
+
+  const { getWebSocket, sendMessage } = socket
+
   const [tabs, setTabs] = React.useState<
     {
       id: string
       name: string
     }[]
-  >([
-    {
-      id: ulid(),
-      name: 'term',
-    },
-  ])
+  >([])
 
   const addTab = () => {
     if (tabs.length >= 5) {
@@ -85,19 +92,47 @@ function TermGroup({ socket }: { socket: Socket }) {
       return
     }
 
-    const id = ulid()
-    setTabs((prev) => [
-      ...prev,
-      {
-        id,
-        name: `term`,
-      },
-    ])
+    sendMessage(
+      sendData({
+        event: 'add',
+        data: undefined,
+      })
+    )
   }
 
   const removeTab = (id: string) => {
-    setTabs((prev) => prev.filter((tab) => tab.id !== id))
+    sendMessage(
+      sendData({
+        event: 'remove',
+        data: id,
+      })
+    )
   }
+
+  React.useEffect(() => {
+    const ws = getWebSocket()
+    if (!ws) return
+    ws.onmessage = (e) => {
+      const data = getData(e.data)
+      switch (data.event) {
+        case 'add':
+          setTabs((tabs) => [
+            ...tabs,
+            {
+              id: data.data,
+              name: 'term',
+            },
+          ])
+          break
+        case 'remove':
+          setTabs((tabs) => tabs.filter((tab) => tab.id !== data.data))
+          break
+        case 'term':
+          setTermData(data.data)
+          break
+      }
+    }
+  }, [getWebSocket])
 
   return (
     <Tabs.Root className="flex size-full flex-col text-xs">
@@ -110,7 +145,7 @@ function TermGroup({ socket }: { socket: Socket }) {
             >
               <Tabs.Trigger
                 value={tab.id}
-                className="h-8 pl-4 text-gray-11 hover:text-gray-12 aria-[selected=true]:text-gray-12"
+                className="pl-4 text-gray-11 hover:text-gray-12 aria-[selected=true]:text-gray-12"
               >
                 <p className="flex items-center space-x-1">
                   <span className="font-mono">{idx + 1}:</span>
@@ -149,7 +184,7 @@ function TermGroup({ socket }: { socket: Socket }) {
             forceMount
             className="size-full data-[state=inactive]:hidden"
           >
-            <TermContent id={tab.id} socket={socket} />
+            <TermContent id={tab.id} socket={socket} data={termData} />
           </Tabs.Content>
         ))}
       </div>
@@ -157,14 +192,30 @@ function TermGroup({ socket }: { socket: Socket }) {
   )
 }
 
-function TermContent({ id, socket }: { id: string; socket: Socket }) {
+function TermContent({
+  id,
+  socket,
+  data,
+}: {
+  id: string
+  socket: Socket
+  data: {
+    id: string
+    data: string
+  } | null
+}) {
+  const terminalRef = React.useRef<Terminal | null>(null)
   const termRef = React.useRef<HTMLDivElement | null>(null)
-  const { getWebSocket, sendJsonMessage, sendMessage } = socket
+  const { sendMessage } = socket
+
+  React.useEffect(() => {
+    if (!terminalRef.current || !data) return
+    if (data.id !== id) return
+    terminalRef.current.write(data.data)
+  }, [data, id])
 
   React.useEffect(() => {
     if (!termRef.current) return
-    const ws = getWebSocket()
-    if (!ws) return
 
     const term = new Terminal({
       fontSize: 13,
@@ -174,6 +225,8 @@ function TermContent({ id, socket }: { id: string; socket: Socket }) {
       letterSpacing: -3.5,
       theme,
     })
+    terminalRef.current = term
+
     const webglAddon = new WebglAddon()
     const fitAddon = new FitAddon()
 
@@ -181,12 +234,30 @@ function TermContent({ id, socket }: { id: string; socket: Socket }) {
     term.loadAddon(fitAddon)
     term.open(termRef.current)
 
-    term.onData((data) => {})
-
-    ws.onmessage = (event) => {}
+    term.onData((data) => {
+      sendMessage(
+        sendData({
+          event: 'term',
+          data: {
+            id,
+            data,
+          },
+        })
+      )
+    })
 
     const resizeObserver = new ResizeObserver(() => {
       fitAddon.fit()
+      sendMessage(
+        sendData({
+          event: 'resize',
+          data: {
+            id,
+            cols: term.cols,
+            rows: term.rows,
+          },
+        })
+      )
     })
 
     resizeObserver.observe(termRef.current)
@@ -196,9 +267,17 @@ function TermContent({ id, socket }: { id: string; socket: Socket }) {
       fitAddon.dispose()
       term.dispose()
     }
-  }, [getWebSocket, sendJsonMessage])
+  }, [sendMessage, id])
 
   return <div ref={termRef} className="size-full" />
+}
+
+function getData(data: string) {
+  return JSON.parse(data) as WSGetData
+}
+
+function sendData(data: WSSendData): Uint8Array {
+  return new TextEncoder().encode(JSON.stringify(data))
 }
 
 function Container({ children }: React.HtmlHTMLAttributes<HTMLDivElement>) {

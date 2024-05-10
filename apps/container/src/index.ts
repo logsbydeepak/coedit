@@ -6,6 +6,7 @@ import { logger } from './utils/logger'
 import { ws } from './ws'
 
 export type { AppType } from './api'
+export type { WSGetData, WSSendData } from './ws'
 
 export async function main() {
   try {
