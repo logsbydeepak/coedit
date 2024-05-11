@@ -39,7 +39,12 @@ const theme: ITheme = {
   background: '#191919',
 }
 
-const useSocket = (url: string) => useWebSocket(url)
+const useSocket = (url: string) =>
+  useWebSocket(url, {
+    retryOnError: true,
+    reconnectInterval: 3000,
+    shouldReconnect: () => true,
+  })
 type Socket = ReturnType<typeof useSocket>
 
 export default function Term() {
@@ -262,6 +267,11 @@ function TermContent({
 
     const term = new Terminal({
       theme,
+      fontFamily:
+        "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+      fontWeight: '400',
+      fontSize: 13,
+      letterSpacing: 1,
     })
     terminalRef.current = term
 
@@ -271,6 +281,7 @@ function TermContent({
     term.loadAddon(webglAddon)
     term.loadAddon(fitAddon)
     term.open(termRef.current)
+    term.focus()
 
     term.onData((data) => {
       sendMessage(

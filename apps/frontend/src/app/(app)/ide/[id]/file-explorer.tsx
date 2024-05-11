@@ -86,7 +86,7 @@ export default function FileExplorer() {
           <RefreshCcwIcon className="size-3" />
         </button>
       </div>
-      <div className="size-full overflow-auto">
+      <div className="scrollbar size-full overflow-auto">
         <ListBox
           aria-label="file explorer"
           selectionMode="multiple"
