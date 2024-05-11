@@ -18,9 +18,11 @@
   "dependencies": {
     "@hono/node-server": "^1.10.0",
     "@types/cookie": "^0.6.0",
+    "@types/ms": "^0.7.34",
     "axios": "^1.6.8",
     "cookie": "^0.6.0",
     "hono": "^4.2.4",
+    "ms": "^2.1.3",
     "node-pty": "^1.0.0",
     "pino": "^8.20.0",
     "pino-pretty": "^11.0.0",

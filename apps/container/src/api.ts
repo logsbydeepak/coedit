@@ -7,7 +7,7 @@ import { env } from './env'
 import { fileExplorerRoute } from './route/fileExplorer'
 import { apiClient } from './utils/api-client'
 import { h } from './utils/h'
-import { emitStop } from './utils/lifecycle'
+import { emitStop, setActive } from './utils/lifecycle'
 
 const route = h().route('/fileExplorer', fileExplorerRoute)
 
@@ -24,6 +24,7 @@ export const app = h()
   )
   .use(secureHeaders())
   .use(async (c, next) => {
+    setActive()
     const cookie = getCookie(c, 'x-auth')
 
     if (!cookie) {

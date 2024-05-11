@@ -4,7 +4,7 @@ import { serve } from '@hono/node-server'
 
 import { app } from './api'
 import { env } from './env'
-import { emitStop, handleStopEvent } from './utils/lifecycle'
+import { emitStop, handleInactive, handleStopEvent } from './utils/lifecycle'
 import { logger } from './utils/logger'
 import { ws } from './ws'
 
@@ -44,5 +44,6 @@ async function main() {
 }
 
 handleStopEvent()
+handleInactive()
 
 main()

@@ -23,12 +23,12 @@ const get = h().post(
 
     const result: {
       [key: string]:
-      | {
-        path: string
-        name: string
-        isDirectory: boolean
-      }[]
-      | 'ERROR'
+        | {
+            path: string
+            name: string
+            isDirectory: boolean
+          }[]
+        | 'ERROR'
     } = {}
 
     for (const path of input.include) {

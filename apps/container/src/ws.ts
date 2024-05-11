@@ -5,7 +5,7 @@ import { ulid } from 'ulidx'
 import { WebSocket, WebSocketServer } from 'ws'
 
 import { apiClient } from './utils/api-client'
-import { emitStop } from './utils/lifecycle'
+import { emitStop, setActive } from './utils/lifecycle'
 import { logger } from './utils/logger'
 
 export const ws = (server: HttpServer) => {
@@ -127,41 +127,43 @@ function killTerm(term: IPty) {
 function sendData(
   data:
     | {
-      event: 'term'
-      data: {
-        id: string
+        event: 'term'
+        data: {
+          id: string
+          data: string
+        }
+      }
+    | {
+        event: 'add' | 'remove'
         data: string
       }
-    }
-    | {
-      event: 'add' | 'remove'
-      data: string
-    }
 ) {
+  setActive()
   return JSON.stringify(data)
 }
 
 function getData(data: Uint8Array) {
+  setActive()
   return JSON.parse(new TextDecoder().decode(data)) as
     | {
-      event: 'term'
-      data: {
-        id: string
+        event: 'term'
+        data: {
+          id: string
+          data: string
+        }
+      }
+    | {
+        event: 'resize'
+        data: { cols: number; rows: number; id: string }
+      }
+    | {
+        event: 'add'
+        data: undefined
+      }
+    | {
+        event: 'remove'
         data: string
       }
-    }
-    | {
-      event: 'resize'
-      data: { cols: number; rows: number; id: string }
-    }
-    | {
-      event: 'add'
-      data: undefined
-    }
-    | {
-      event: 'remove'
-      data: string
-    }
 }
 
 export type WSGetData = ReturnType<typeof getData>
