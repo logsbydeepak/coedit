@@ -1,3 +1,5 @@
 import { Hono } from 'hono'
 
-export const h = new Hono()
+export const hono = () => new Hono()
+
+export const h = () => hono()

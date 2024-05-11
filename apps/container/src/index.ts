@@ -1,14 +1,19 @@
+import { Server as HttpServer } from 'http'
+import { EventEmitter } from 'node:events'
 import { serve } from '@hono/node-server'
 
 import { app } from './api'
 import { env } from './env'
+import { emitStop, handleStopEvent } from './utils/lifecycle'
 import { logger } from './utils/logger'
 import { ws } from './ws'
+
+export const event = new EventEmitter()
 
 export type { AppType } from './api'
 export type { WSGetData, WSSendData } from './ws'
 
-export async function main() {
+async function main() {
   try {
     const server = serve(
       {
@@ -26,16 +31,18 @@ export async function main() {
       }
     )
 
-    ws(server)
+    ws(server as HttpServer)
 
     server.on('error', (err) => {
-      logger.error(err)
-      process.exit(1)
+      logger.error(err, 'Server error')
+      emitStop()
     })
   } catch (error) {
-    logger.error(error)
-    process.exit(1)
+    logger.error(error, 'Something went wrong')
+    emitStop()
   }
 }
+
+handleStopEvent()
 
 main()

@@ -10,7 +10,7 @@ import { h } from '#/utils/h'
 
 const userPrefix = '/home/coedit'
 
-const get = h.post(
+const get = h().post(
   '/',
   zValidator(
     'json',
@@ -23,12 +23,12 @@ const get = h.post(
 
     const result: {
       [key: string]:
-        | {
-            path: string
-            name: string
-            isDirectory: boolean
-          }[]
-        | 'ERROR'
+      | {
+        path: string
+        name: string
+        isDirectory: boolean
+      }[]
+      | 'ERROR'
     } = {}
 
     for (const path of input.include) {
@@ -44,7 +44,7 @@ const get = h.post(
   }
 )
 
-const updateFile = h.post(
+const updateFile = h().post(
   '/update',
   zValidator(
     'json',
@@ -63,7 +63,7 @@ const updateFile = h.post(
   }
 )
 
-const content = h.use(
+const content = h().use(
   '/workspace/*',
   serveStatic({
     root: path.relative(process.cwd(), userPrefix),
@@ -74,7 +74,7 @@ const content = h.use(
   })
 )
 
-export const fileExplorerRoute = h
+export const fileExplorerRoute = h()
   .route('/', updateFile)
   .route('/', get)
   .route('/', content)

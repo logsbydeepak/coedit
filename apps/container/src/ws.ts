@@ -1,19 +1,48 @@
 import { Server as HttpServer } from 'http'
-import { ServerType } from '@hono/node-server/dist/types'
+import cookies from 'cookie'
 import { IPty, spawn } from 'node-pty'
 import { ulid } from 'ulidx'
 import { WebSocket, WebSocketServer } from 'ws'
 
+import { apiClient } from './utils/api-client'
+import { emitStop } from './utils/lifecycle'
 import { logger } from './utils/logger'
 
-export const ws = (server: ServerType) => {
+export const ws = (server: HttpServer) => {
   const wss = new WebSocketServer({
     path: '/ws',
-    server: server as HttpServer,
+    clientTracking: false,
+    noServer: true,
   })
 
   wss.on('error', (err) => {
     logger.error(err)
+  })
+
+  server.on('upgrade', async (req, socket, head) => {
+    const cookie = cookies.parse(req.headers.cookie || '')
+    const token = cookie['x-auth']
+
+    if (!token) {
+      socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n')
+      socket.destroy()
+      emitStop()
+      return
+    }
+
+    const res = await apiClient(token).user.isAuth.$get()
+    const resData = await res.json()
+
+    if (resData.code !== 'OK') {
+      socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n')
+      socket.destroy()
+      emitStop()
+      return
+    }
+
+    wss.handleUpgrade(req, socket, head, (ws) => {
+      wss.emit('connection', ws, req)
+    })
   })
 
   wss.on('connection', (ws: WebSocket) => {
@@ -98,16 +127,16 @@ function killTerm(term: IPty) {
 function sendData(
   data:
     | {
-        event: 'term'
-        data: {
-          id: string
-          data: string
-        }
-      }
-    | {
-        event: 'add' | 'remove'
+      event: 'term'
+      data: {
+        id: string
         data: string
       }
+    }
+    | {
+      event: 'add' | 'remove'
+      data: string
+    }
 ) {
   return JSON.stringify(data)
 }
@@ -115,24 +144,24 @@ function sendData(
 function getData(data: Uint8Array) {
   return JSON.parse(new TextDecoder().decode(data)) as
     | {
-        event: 'term'
-        data: {
-          id: string
-          data: string
-        }
-      }
-    | {
-        event: 'resize'
-        data: { cols: number; rows: number; id: string }
-      }
-    | {
-        event: 'add'
-        data: undefined
-      }
-    | {
-        event: 'remove'
+      event: 'term'
+      data: {
+        id: string
         data: string
       }
+    }
+    | {
+      event: 'resize'
+      data: { cols: number; rows: number; id: string }
+    }
+    | {
+      event: 'add'
+      data: undefined
+    }
+    | {
+      event: 'remove'
+      data: string
+    }
 }
 
 export type WSGetData = ReturnType<typeof getData>
