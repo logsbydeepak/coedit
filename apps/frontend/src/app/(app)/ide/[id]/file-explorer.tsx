@@ -56,7 +56,7 @@ export default function FileExplorer() {
   }
 
   return (
-    <div className="size-full space-y-2">
+    <div className="flex size-full flex-col space-y-2">
       <div className="flex">
         <button
           disabled={disabled}

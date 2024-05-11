@@ -16,32 +16,34 @@ const Output = dynamic(() => import('./output'), { ssr: false })
 
 export function IDE() {
   return (
-    <ResizablePanelGroup direction="horizontal" className="absolute pt-14">
-      <ResizablePanel defaultSize={16} collapsible={true} minSize={10}>
-        <FileExplorer />
-      </ResizablePanel>
+    <div className="absolute inset-0 pt-14">
+      <ResizablePanelGroup direction="horizontal" className="min-h-full">
+        <ResizablePanel defaultSize={16} collapsible={true} minSize={10}>
+          <FileExplorer />
+        </ResizablePanel>
 
-      <ResizableHandle onDoubleClick={() => {}} />
+        <ResizableHandle />
 
-      <ResizablePanel defaultSize={50}>
-        <ResizablePanelGroup direction="vertical">
-          <ResizablePanel defaultSize={75}>
-            <Editor />
-          </ResizablePanel>
+        <ResizablePanel defaultSize={50}>
+          <ResizablePanelGroup direction="vertical">
+            <ResizablePanel defaultSize={74}>
+              <Editor />
+            </ResizablePanel>
 
-          <ResizableHandle />
+            <ResizableHandle />
 
-          <ResizablePanel defaultSize={26} collapsible={true} minSize={10}>
-            <Terminal />
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      </ResizablePanel>
+            <ResizablePanel defaultSize={26} collapsible={true} minSize={10}>
+              <Terminal />
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </ResizablePanel>
 
-      <ResizableHandle />
+        <ResizableHandle />
 
-      <ResizablePanel defaultSize={30} collapsible={true} minSize={10}>
-        <Output />
-      </ResizablePanel>
-    </ResizablePanelGroup>
+        <ResizablePanel defaultSize={30} collapsible={true} minSize={10}>
+          <Output />
+        </ResizablePanel>
+      </ResizablePanelGroup>
+    </div>
   )
 }

@@ -4,13 +4,13 @@ import '@xterm/xterm/css/xterm.css'
 
 import React from 'react'
 import * as Tabs from '@radix-ui/react-tabs'
+import { FitAddon } from '@xterm/addon-fit'
+import { WebglAddon } from '@xterm/addon-webgl'
 import { ITheme, Terminal } from '@xterm/xterm'
 import { useAtomValue } from 'jotai'
 import { LoaderIcon, PlusIcon, XIcon } from 'lucide-react'
 import useWebSocket, { ReadyState } from 'react-use-websocket'
 import { toast } from 'sonner'
-import { FitAddon } from 'xterm-addon-fit'
-import { WebglAddon } from 'xterm-addon-webgl'
 
 import type {
   WSSendData as WSGetData,
@@ -36,6 +36,7 @@ const theme: ITheme = {
   brightMagenta: '#C792EA',
   brightCyan: '#89DDFF',
   brightWhite: '#ffffff',
+  background: '#191919',
 }
 
 const useSocket = (url: string) => useWebSocket(url)
@@ -147,33 +148,14 @@ function TermGroup({ socket }: { socket: Socket }) {
 
   return (
     <Tabs.Root
-      className="flex size-full flex-col text-xs"
+      className="flex h-full flex-col text-xs"
       value={activeTab || ''}
       onValueChange={(value) => setActiveTab(value)}
     >
       <div className="flex h-8 items-center justify-between border-b border-gray-4">
         <Tabs.List className="no-scrollbar flex items-center overflow-x-scroll">
           {tabs.map((tab, idx) => (
-            <div
-              key={tab.id}
-              className="group flex h-full items-center border-sage-9 hover:bg-gray-3 has-[>[aria-selected=true]]:border-b-2 has-[>[aria-selected=true]]:bg-gray-4"
-            >
-              <Tabs.Trigger
-                value={tab.id}
-                className="pl-4 text-gray-11 hover:text-gray-12 aria-[selected=true]:text-gray-12"
-              >
-                <p className="flex items-center space-x-1">
-                  <span className="font-mono">{idx + 1}:</span>
-                  <span>{tab.name}</span>
-                </p>
-              </Tabs.Trigger>
-              <button className="flex size-7 items-center justify-center text-gray-11 hover:text-gray-12">
-                <XIcon
-                  className="hidden size-3 group-hover:block"
-                  onClick={() => removeTab(tab.id)}
-                />
-              </button>
-            </div>
+            <TermTab key={tab.id} tab={tab} idx={idx} removeTab={removeTab} />
           ))}
         </Tabs.List>
 
@@ -185,31 +167,71 @@ function TermGroup({ socket }: { socket: Socket }) {
         </button>
       </div>
 
-      <div className="size-full">
-        {tabs.length === 0 && (
-          <Container>
-            <Status>no terminal</Status>
-          </Container>
-        )}
+      {tabs.length === 0 && (
+        <Container>
+          <Status>no terminal</Status>
+        </Container>
+      )}
 
-        {!activeTab && (
-          <Container>
-            <Status>select a terminal</Status>
-          </Container>
-        )}
+      {!activeTab && tabs.length !== 0 && (
+        <Container>
+          <Status>select a terminal</Status>
+        </Container>
+      )}
 
-        {tabs.map((tab) => (
-          <Tabs.Content
-            key={tab.id}
-            value={tab.id}
-            forceMount
-            className="size-full data-[state=inactive]:hidden"
-          >
-            <TermContent id={tab.id} socket={socket} data={termData} />
-          </Tabs.Content>
-        ))}
-      </div>
+      {tabs.length !== 0 && (
+        <div className="relative size-full">
+          {tabs.map((tab) => (
+            <Tabs.Content
+              key={tab.id}
+              value={tab.id}
+              forceMount
+              className="absolute inset-0 z-20 size-full overflow-hidden data-[state=inactive]:z-10"
+            >
+              <TermContent id={tab.id} socket={socket} data={termData} />
+            </Tabs.Content>
+          ))}
+        </div>
+      )}
     </Tabs.Root>
+  )
+}
+
+type Tab = {
+  id: string
+  name: string
+}
+
+function TermTab({
+  tab,
+  idx,
+  removeTab,
+}: {
+  tab: Tab
+  idx: number
+  removeTab: (id: string) => void
+}) {
+  return (
+    <div
+      key={tab.id}
+      className="group flex h-full items-center border-sage-9 hover:bg-gray-3 has-[>[aria-selected=true]]:border-b-2 has-[>[aria-selected=true]]:bg-gray-4"
+    >
+      <Tabs.Trigger
+        value={tab.id}
+        className="pl-4 text-gray-11 hover:text-gray-12 aria-[selected=true]:text-gray-12"
+      >
+        <p className="flex items-center space-x-1">
+          <span className="font-mono">{idx + 1}:</span>
+          <span>{tab.name}</span>
+        </p>
+      </Tabs.Trigger>
+      <button className="flex size-7 items-center justify-center text-gray-11 hover:text-gray-12">
+        <XIcon
+          className="hidden size-3 group-hover:block"
+          onClick={() => removeTab(tab.id)}
+        />
+      </button>
+    </div>
   )
 }
 
@@ -239,11 +261,6 @@ function TermContent({
     if (!termRef.current) return
 
     const term = new Terminal({
-      fontSize: 13,
-      fontFamily: 'var(--font-geist-mono)',
-      fontWeight: '400',
-      lineHeight: 1.5,
-      letterSpacing: -3.5,
       theme,
     })
     terminalRef.current = term
@@ -268,7 +285,6 @@ function TermContent({
     })
 
     const resizeObserver = new ResizeObserver(() => {
-      fitAddon.fit()
       sendMessage(
         sendData({
           event: 'resize',
@@ -279,9 +295,11 @@ function TermContent({
           },
         })
       )
+      fitAddon.fit()
     })
 
     resizeObserver.observe(termRef.current)
+
     return () => {
       resizeObserver.disconnect()
       webglAddon.dispose()
@@ -290,7 +308,7 @@ function TermContent({
     }
   }, [sendMessage, id])
 
-  return <div ref={termRef} className="size-full" />
+  return <div ref={termRef} className="size-full overflow-hidden" />
 }
 
 function getData(data: string) {
