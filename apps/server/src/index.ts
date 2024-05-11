@@ -7,21 +7,18 @@ import { templateRoute } from './route/template'
 import { userRoute } from './route/user'
 import { h } from './utils/h'
 
-const route = h
-  .route('/user', userRoute)
-  .route('/auth', authRoute)
-  .route('/project', projectRoute)
-  .route('/template', templateRoute)
-
-const app = h
+const app = h()
+  .use(secureHeaders())
   .use(
     cors({
       origin: (_, c) => c.env.CORS_ORIGIN,
       credentials: true,
     })
   )
-  .use(secureHeaders())
-  .route('/', route)
+  .route('/user', userRoute)
+  .route('/auth', authRoute)
+  .route('/project', projectRoute)
+  .route('/template', templateRoute)
 
 export type AppType = typeof app
 export default app

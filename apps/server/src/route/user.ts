@@ -7,7 +7,7 @@ import { redis } from '#/lib/config'
 import { removeAuthCookie } from '#/utils/auth'
 import { h, hAuth } from '#/utils/h'
 
-const user = hAuth.get('/', async (c) => {
+const user = hAuth().get('/', async (c) => {
   const userId = c.get('x-userId')
 
   const [user] = await db(c.env)
@@ -27,7 +27,7 @@ const user = hAuth.get('/', async (c) => {
   )
 })
 
-const isAuth = hAuth.get('/', async (c) => {
+const isAuth = hAuth().get('/', async (c) => {
   return c.json(
     r('OK', {
       id: c.get('x-userId'),
@@ -35,7 +35,7 @@ const isAuth = hAuth.get('/', async (c) => {
   )
 })
 
-const logout = hAuth.patch('/', async (c) => {
+const logout = hAuth().patch('/', async (c) => {
   const userId = c.get('x-userId')
   const token = c.get('x-auth')
   const redisRes = await redis(c.env).set(`logout:${token}`, userId)
@@ -45,7 +45,7 @@ const logout = hAuth.patch('/', async (c) => {
   return c.json(r('OK'))
 })
 
-export const userRoute = h
+export const userRoute = h()
   .route('/', user)
   .route('/isAuth', isAuth)
   .route('/logout', logout)

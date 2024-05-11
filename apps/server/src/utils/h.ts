@@ -27,26 +27,27 @@ type Variables = {
   'x-auth': string
 }
 
-const _h = <T extends Variables>() =>
+export const hono = <T extends Variables>() =>
   new Hono<{
     Bindings: ENV
     Variables: T
   }>()
 
-export const h = _h()
+export const h = () => hono()
 
-export const hAuth = _h<Variables>().use(async (c, next) => {
-  const authToken = getCookie(c, 'x-auth')
-  const isAuth = await checkIsAuth(c.env, authToken)
+export const hAuth = () =>
+  hono<Variables>().use(async (c, next) => {
+    const authToken = getCookie(c, 'x-auth')
+    const isAuth = await checkIsAuth(c.env, authToken)
 
-  if (isAuth.code !== 'OK') {
-    const errorResponse = new Response('Unauthorized', {
-      status: 401,
-    })
-    throw new HTTPException(401, { res: errorResponse })
-  }
+    if (isAuth.code !== 'OK') {
+      const errorResponse = new Response('Unauthorized', {
+        status: 401,
+      })
+      throw new HTTPException(401, { res: errorResponse })
+    }
 
-  c.set('x-userId', isAuth.userId)
-  c.set('x-auth', isAuth.token)
-  await next()
-})
+    c.set('x-userId', isAuth.userId)
+    c.set('x-auth', isAuth.token)
+    await next()
+  })
