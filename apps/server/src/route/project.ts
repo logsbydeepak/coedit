@@ -25,7 +25,7 @@ const ECS_CLUSTER = 'coedit-builder'
 const ECS_LAUNCH_TYPE = 'FARGATE'
 const ECS_TASK_DEFINITION = 'coedit'
 
-const createProject = hAuth().post(
+const createProject = hAuth.post(
   '/',
   zValidator('json', z.object({ templateId: zReqString, name: zReqString })),
   async (c) => {
@@ -107,7 +107,7 @@ const createProject = hAuth().post(
   }
 )
 
-const startProject = hAuth().post(
+const startProject = hAuth.post(
   '/start/:id',
   zValidator(
     'param',
@@ -385,7 +385,7 @@ const startProject = hAuth().post(
   }
 )
 
-const projectStatus = hAuth().get(
+const projectStatus = hAuth.get(
   '/status/:id',
   zValidator(
     'param',
@@ -492,7 +492,7 @@ const projectStatus = hAuth().get(
   }
 )
 
-const getAllProject = hAuth().get('/', async (c) => {
+const getAllProject = hAuth.get('/', async (c) => {
   const userId = c.get('x-userId')
 
   const dbProjects = await db(c.env)
@@ -514,7 +514,7 @@ const getAllProject = hAuth().get('/', async (c) => {
   return c.json(r('OK', { projects: projects }))
 })
 
-const deleteProject = hAuth().delete(
+const deleteProject = hAuth.delete(
   '/:id',
   zValidator(
     'param',
@@ -550,7 +550,7 @@ const deleteProject = hAuth().delete(
   }
 )
 
-const editProject = hAuth().post(
+const editProject = hAuth.post(
   '/:id',
   zValidator(
     'param',
@@ -596,7 +596,7 @@ const editProject = hAuth().post(
   }
 )
 
-export const projectRoute = h()
+export const projectRoute = h
   .route('/', projectStatus)
   .route('/', deleteProject)
   .route('/', editProject)

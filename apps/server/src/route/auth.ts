@@ -53,7 +53,7 @@ function KVAuth(redis: Redis, type: 'login' | 'register', email: string) {
   })
 }
 
-const login = h().post(
+const login = h.post(
   '/',
   zValidator('json', z.object({ email: zEmail })),
   async (c) => {
@@ -90,7 +90,7 @@ const login = h().post(
   }
 )
 
-const loginVerify = h().post(
+const loginVerify = h.post(
   '/',
   zValidator(
     'json',
@@ -134,7 +134,7 @@ const loginVerify = h().post(
   }
 )
 
-const register = h().post(
+const register = h.post(
   '/',
   zValidator(
     'json',
@@ -177,7 +177,7 @@ const register = h().post(
   }
 )
 
-const registerVerify = h().post(
+const registerVerify = h.post(
   '/',
   zValidator(
     'json',
@@ -224,7 +224,7 @@ const registerVerify = h().post(
   }
 )
 
-export const authRoute = h()
+export const authRoute = h
   .route('/login', login)
   .route('/register', register)
   .route('/login/verify', loginVerify)

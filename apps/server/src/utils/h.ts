@@ -1,8 +1,6 @@
 import { Hono } from 'hono'
 import { getCookie } from 'hono/cookie'
-import { cors } from 'hono/cors'
 import { HTTPException } from 'hono/http-exception'
-import { secureHeaders } from 'hono/secure-headers'
 
 import { checkIsAuth } from './auth'
 
@@ -14,6 +12,7 @@ export type ENV = {
   UPSTASH_REDIS_REST_TOKEN: string
   JWT_SECRET: string
   RUNTIME: 'deployment' | 'production'
+  CORS_ORIGIN: string
 
   AWS_REGION: string
   AWS_ACCESS_KEY_ID: string
@@ -33,29 +32,21 @@ const _h = <T extends Variables>() =>
     Bindings: ENV
     Variables: T
   }>()
-    .use(
-      cors({
-        origin: ['http://localhost:3000'],
-        credentials: true,
-      })
-    )
-    .use(secureHeaders())
 
-export const h = () => _h()
+export const h = _h()
 
-export const hAuth = () =>
-  _h<Variables>().use(async (c, next) => {
-    const authToken = getCookie(c, 'x-auth')
-    const isAuth = await checkIsAuth(c.env, authToken)
+export const hAuth = _h<Variables>().use(async (c, next) => {
+  const authToken = getCookie(c, 'x-auth')
+  const isAuth = await checkIsAuth(c.env, authToken)
 
-    if (isAuth.code !== 'OK') {
-      const errorResponse = new Response('Unauthorized', {
-        status: 401,
-      })
-      throw new HTTPException(401, { res: errorResponse })
-    }
+  if (isAuth.code !== 'OK') {
+    const errorResponse = new Response('Unauthorized', {
+      status: 401,
+    })
+    throw new HTTPException(401, { res: errorResponse })
+  }
 
-    c.set('x-userId', isAuth.userId)
-    c.set('x-auth', isAuth.token)
-    await next()
-  })
+  c.set('x-userId', isAuth.userId)
+  c.set('x-auth', isAuth.token)
+  await next()
+})
