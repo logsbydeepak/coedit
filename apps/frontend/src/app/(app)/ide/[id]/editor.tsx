@@ -90,6 +90,17 @@ export default function TextEditor() {
     editorRef.current = editor
     monacoRef.current = monaco
 
+    monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+      noSemanticValidation: true,
+      noSyntaxValidation: true,
+    })
+    monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+      jsx: monaco.languages.typescript.JsxEmit.React,
+      allowNonTsExtensions: true,
+      allowJs: true,
+      target: monaco.languages.typescript.ScriptTarget.Latest,
+    })
+
     monaco.editor.defineTheme('my', {
       base: 'vs-dark',
       inherit: true,
