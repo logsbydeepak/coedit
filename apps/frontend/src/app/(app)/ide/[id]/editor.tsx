@@ -14,6 +14,9 @@ import {
   InPortal,
   OutPortal,
 } from 'react-reverse-portal'
+import { getHighlighter } from 'shikiji'
+import { shikijiToMonaco } from 'shikiji-monaco'
+import theme from 'shikiji/themes/vitesse-dark.mjs'
 import { toast } from 'sonner'
 
 import { editFileAtom, publicIPAtom } from '../store'
@@ -103,12 +106,12 @@ export default function TextEditor() {
       target: monaco.languages.typescript.ScriptTarget.Latest,
     })
 
-    monaco.editor.defineTheme('my', {
-      base: 'vs-dark',
-      inherit: true,
-      rules: [],
-      colors: {},
+    const highlighter = await getHighlighter({
+      themes: [theme],
+      langs: ['javascript', 'typescript'],
     })
+
+    shikijiToMonaco(highlighter, monaco)
   }
 
   return (
@@ -294,7 +297,7 @@ function TextEditorWrapper({
       <OutPortal
         node={portalNode}
         defaultLanguage={language}
-        theme="my"
+        theme={theme.name}
         path={filePath}
         onChange={handleOnChange}
         value={data}

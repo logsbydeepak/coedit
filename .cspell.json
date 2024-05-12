@@ -32,7 +32,9 @@
     "tsbuildinfo",
     "deluser",
     "FARGATE",
-    "awsvpc"
+    "awsvpc",
+    "shikiji",
+    "vitesse"
   ],
   "ignorePaths": [
     "bun.lockb",
