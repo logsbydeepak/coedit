@@ -43,19 +43,23 @@ export function handleInactive() {
   })
 }
 
-let debounceTimeout: Timer
-export function setActive() {
-  function debounce(func: Function, wait: number) {
-    return function (this: any, ...args: any[]) {
-      const context = this
-      clearTimeout(debounceTimeout)
-      debounceTimeout = setTimeout(() => func.apply(context, args), wait)
+let throttledTimeout: Timer | undefined
+function throttled(func: Function, wait: number) {
+  return function (this: any, ...args: any[]) {
+    const context = this
+    if (!throttledTimeout) {
+      func.apply(context, args)
+      throttledTimeout = setTimeout(() => {
+        throttledTimeout = undefined
+      }, wait)
     }
   }
+}
 
-  const debounced = debounce(() => {
-    console.log('active')
-    event.emit('active')
-  }, ms('2m'))
-  debounced()
+const throttleSetActive = throttled(() => {
+  event.emit('active')
+}, ms('3m'))
+
+export function setActive() {
+  throttleSetActive()
 }
