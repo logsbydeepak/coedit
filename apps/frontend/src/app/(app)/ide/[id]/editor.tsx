@@ -1,6 +1,7 @@
 'use client'
 
 import React, { Component } from 'react'
+import Image from 'next/image'
 import Editor, { Monaco } from '@monaco-editor/react'
 import * as Tabs from '@radix-ui/react-tabs'
 import { useQuery } from '@tanstack/react-query'
@@ -16,6 +17,7 @@ import {
 import { toast } from 'sonner'
 
 import { editFileAtom, publicIPAtom } from '../store'
+import { getExtensionIcon } from './extension'
 import { apiClient } from './utils'
 
 type Tab = {
@@ -112,7 +114,7 @@ export default function TextEditor() {
   return (
     <>
       <Tabs.Root
-        className="flex flex-col text-xs"
+        className="flex flex-col"
         value={activeTab || ''}
         onValueChange={(value) => setActiveTab(value)}
       >
@@ -120,18 +122,27 @@ export default function TextEditor() {
           {tabs.map((tab) => (
             <div
               key={tab.path}
-              className="group flex h-full items-center border-sage-9 hover:bg-gray-3 has-[>[aria-selected=true]]:border-b-2 has-[>[aria-selected=true]]:bg-gray-4"
+              className="group flex h-full w-32 items-center justify-between border-sage-9 hover:bg-gray-3 has-[>[aria-selected=true]]:border-b-2 has-[>[aria-selected=true]]:bg-gray-4"
             >
               <Tabs.Trigger
                 value={tab.path}
-                className="pl-4 text-gray-11 hover:text-gray-12 aria-[selected=true]:text-gray-12"
+                className="flex h-full items-center space-x-1 overflow-hidden text-ellipsis pl-2 text-gray-11 hover:text-gray-12 aria-[selected=true]:text-gray-12"
               >
-                <p className="flex items-center space-x-1 text-nowrap">
-                  <span>{tab.name}</span>
+                <Image
+                  src={getExtensionIcon({
+                    name: tab.name,
+                    isDirectory: false,
+                  })}
+                  alt={tab.path}
+                  width="14"
+                  height="14"
+                />
+                <p className="w-full overflow-hidden text-ellipsis text-nowrap text-xs">
+                  {tab.name}
                 </p>
               </Tabs.Trigger>
               <button
-                className="flex size-7 items-center justify-center text-gray-11 hover:text-gray-12"
+                className="flex size-7 shrink-0 items-center justify-center text-gray-11 hover:text-gray-12"
                 onClick={() => closeTab(tab.path)}
               >
                 <XIcon className="hidden size-3 group-hover:block" />
@@ -197,8 +208,9 @@ function TextEditorWrapper({
 
       return await res.text()
     },
+    staleTime: 30000000,
     queryKey: [filePath],
-    enabled: !!filePath,
+    refetchIntervalInBackground: false,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,

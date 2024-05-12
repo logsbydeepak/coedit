@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import Image from 'next/image'
 import { useQuery } from '@tanstack/react-query'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { LoaderIcon, RefreshCcwIcon, Undo2Icon } from 'lucide-react'
@@ -107,19 +108,17 @@ export default function FileExplorer() {
                 'hover:bg-sage-4'
               )}
             >
-              <span className="size-3 shrink-0">
-                {/* eslint-disable @next/next/no-img-element */}
-                <img
-                  src={getExtensionIcon({
-                    name: item.name,
-                    isDirectory: item.isDirectory,
-                  })}
-                  alt={item.name}
-                  className="size-3.5"
-                />
-              </span>
+              <Image
+                src={getExtensionIcon({
+                  name: item.name,
+                  isDirectory: item.isDirectory,
+                })}
+                alt={item.name}
+                width="14"
+                height="14"
+              />
 
-              <p className="w-full overflow-hidden text-ellipsis text-nowrap">
+              <p className="w-full overflow-hidden text-ellipsis text-nowrap text-sm">
                 {item.name}
               </p>
             </ListBoxItem>

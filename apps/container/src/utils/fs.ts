@@ -7,7 +7,6 @@ const prefix = '/home/coedit/workspace'
 export async function getPathContent(dist: string = '/') {
   try {
     const newPath = path.join(prefix, dist)
-    console.log(newPath)
     if (!newPath.startsWith(prefix)) return r('ERROR')
 
     const result: {
@@ -44,8 +43,9 @@ export async function getPathContent(dist: string = '/') {
 
 export async function writePathContent(dist: string, body: string) {
   try {
-    if (dist.includes('..')) return r('ERROR')
-    await fs.writeFile(path.join(prefix, dist), body)
+    const newPath = path.join(prefix, dist)
+    if (!newPath.startsWith(prefix)) return r('ERROR')
+    await fs.writeFile(newPath, body)
     return r('OK')
   } catch (error) {
     return r('ERROR')
