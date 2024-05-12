@@ -83,7 +83,7 @@ export default function TextEditor() {
     setTabs((prev) => prev.filter((tab) => tab.path !== path))
   }
 
-  function handleEditorDidMount(
+  async function handleEditorDidMount(
     editor: editor.IStandaloneCodeEditor,
     monaco: Monaco
   ) {
@@ -187,10 +187,14 @@ function TextEditorWrapper({
 
   const { isLoading, isError, data, refetch } = useQuery({
     queryFn: async () => {
-      const file = filePath.startsWith('/') ? filePath.slice(1) : filePath
-      const res = await fetch(`http://${publicIP}/api/workspace/${file}`, {
+      const res = await fetch(`http://${publicIP}/api/content${filePath}`, {
         credentials: 'include',
       })
+
+      if (!res.ok) {
+        throw new Error('Failed to fetch file')
+      }
+
       return await res.text()
     },
     queryKey: [filePath],
@@ -247,7 +251,7 @@ function TextEditorWrapper({
 
     const debounced = debounce(async (value: string) => {
       try {
-        const res = await apiClient(publicIP).fileExplorer.update.$post({
+        const res = await apiClient(publicIP).content.$post({
           json: {
             path: filePath,
             body: value,

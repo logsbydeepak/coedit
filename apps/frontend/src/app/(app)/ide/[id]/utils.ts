@@ -13,6 +13,10 @@ export const apiClient = (url: string) =>
         ...requestInit,
         credentials: 'include',
       }).then((res) => {
+        if (res.status === 401) {
+          window.dispatchEvent(new CustomEvent('UNAUTHORIZED'))
+        }
+
         if (!res.ok) {
           throw new ResponseError(res.statusText, res)
         }

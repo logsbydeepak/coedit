@@ -20,9 +20,9 @@ export default function FileExplorer() {
   const publicIP = useAtomValue(publicIPAtom)
   const { isLoading, data, isError, refetch } = useQuery({
     queryFn: async () => {
-      const res = await apiClient(publicIP).fileExplorer.$post({
+      const res = await apiClient(publicIP).explorer.$post({
         json: {
-          include: [currentPath],
+          path: currentPath,
         },
       })
       return await res.json()
@@ -38,16 +38,7 @@ export default function FileExplorer() {
     )
   }
 
-  if (isError || !data?.result) {
-    return (
-      <Container>
-        <Status>error</Status>
-      </Container>
-    )
-  }
-
-  const root = data.result[currentPath]
-  if (root === 'ERROR') {
+  if (isError || !data || data.code === 'ERROR') {
     return (
       <Container>
         <Status>error</Status>
@@ -93,7 +84,7 @@ export default function FileExplorer() {
           selectionBehavior="replace"
           className="w-full space-y-1"
         >
-          {root.map((item) => (
+          {data.files.map((item) => (
             <ListBoxItem
               key={item.path}
               textValue={item.name}

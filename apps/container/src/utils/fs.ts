@@ -6,7 +6,9 @@ import { r } from '@coedit/r'
 const prefix = '/home/coedit/workspace'
 export async function getPathContent(dist: string = '/') {
   try {
-    if (dist.includes('..')) return r('ERROR')
+    const newPath = path.join(prefix, dist)
+    console.log(newPath)
+    if (!newPath.startsWith(prefix)) return r('ERROR')
 
     const result: {
       path: string
@@ -14,7 +16,7 @@ export async function getPathContent(dist: string = '/') {
       name: string
     }[] = []
 
-    const files = await fs.readdir(path.join(prefix, dist), {
+    const files = await fs.readdir(newPath, {
       withFileTypes: true,
     })
 
@@ -22,7 +24,7 @@ export async function getPathContent(dist: string = '/') {
       result.push({
         name: file.name,
         isDirectory: file.isDirectory(),
-        path: path.join(dist, file.name),
+        path: path.join('/', dist, file.name),
       })
     }
 

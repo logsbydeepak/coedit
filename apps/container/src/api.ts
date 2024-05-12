@@ -4,12 +4,15 @@ import { HTTPException } from 'hono/http-exception'
 import { secureHeaders } from 'hono/secure-headers'
 
 import { env } from './env'
-import { fileExplorerRoute } from './route/fileExplorer'
+import { contentRoute } from './route/content'
+import { explorerRoute } from './route/explorer'
 import { apiClient } from './utils/api-client'
 import { h } from './utils/h'
 import { emitStop, setActive } from './utils/lifecycle'
 
-const route = h().route('/fileExplorer', fileExplorerRoute)
+const route = h()
+  .route('/explorer', explorerRoute)
+  .route('/content', contentRoute)
 
 const errorResponse = new Response('Unauthorized', {
   status: 401,
