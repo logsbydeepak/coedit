@@ -28,7 +28,7 @@ type Tab = {
   path: string
 }
 
-const languageMap: Record<string, BundledLanguage> = {
+const languageMap: Record<string, BundledLanguage | 'text'> = {
   ts: 'typescript',
   tsx: 'tsx',
   js: 'javascript',
@@ -40,6 +40,7 @@ const languageMap: Record<string, BundledLanguage> = {
   md: 'markdown',
   rs: 'rust',
   svg: 'html',
+  gitignore: 'text',
 }
 
 export default function TextEditor() {
@@ -83,7 +84,8 @@ export default function TextEditor() {
     }
   }, [filePath, tabs, setFilePath])
 
-  const closeTab = (path: string) => {
+  const handleCloseTab = (tab: Tab) => {
+    const { path } = tab
     const index = tabs.findIndex((tab) => tab.path === path)
     if (index === -1) return
 
@@ -122,6 +124,7 @@ export default function TextEditor() {
 
     const langs: BundledLanguage[] = []
     Object.entries(languageMap).forEach(([_, lang]) => {
+      if (lang === 'text') return
       monaco.languages.register({ id: lang })
       langs.push(lang)
     })
@@ -143,34 +146,7 @@ export default function TextEditor() {
       >
         <Tabs.List className="no-scrollbar flex h-8 items-center overflow-x-scroll border-b border-gray-3">
           {tabs.map((tab) => (
-            <div
-              key={tab.path}
-              className="group flex h-full w-32 items-center justify-between border-sage-9 hover:bg-gray-3 has-[>[aria-selected=true]]:border-b-2 has-[>[aria-selected=true]]:bg-gray-4"
-            >
-              <Tabs.Trigger
-                value={tab.path}
-                className="flex h-full items-center space-x-1 overflow-hidden text-ellipsis pl-2 text-gray-11 hover:text-gray-12 aria-[selected=true]:text-gray-12"
-              >
-                <Image
-                  src={getExtensionIcon({
-                    name: tab.name,
-                    isDirectory: false,
-                  })}
-                  alt={tab.path}
-                  width="14"
-                  height="14"
-                />
-                <p className="w-full overflow-hidden text-ellipsis text-nowrap text-xs">
-                  {tab.name}
-                </p>
-              </Tabs.Trigger>
-              <button
-                className="flex size-7 shrink-0 items-center justify-center text-gray-11 hover:text-gray-12"
-                onClick={() => closeTab(tab.path)}
-              >
-                <XIcon className="hidden size-3 group-hover:block" />
-              </button>
-            </div>
+            <FileTab key={tab.path} tab={tab} onClose={handleCloseTab} />
           ))}
         </Tabs.List>
       </Tabs.Root>
@@ -195,29 +171,58 @@ export default function TextEditor() {
       )}
 
       {activeTab && (
-        <TextEditorWrapper
-          filePath={activeTab}
-          portalNode={portalNode}
-          editorRef={editorRef}
-          monacoRef={monacoRef}
-        />
+        <TextEditorWrapper filePath={activeTab} portalNode={portalNode} />
       )}
     </>
+  )
+}
+
+function FileTab({ tab, onClose }: { tab: Tab; onClose: (path: Tab) => void }) {
+  return (
+    <div
+      key={tab.path}
+      className="group flex h-full w-32 items-center justify-between border-sage-9 hover:bg-gray-3 has-[>[aria-selected=true]]:border-b-2 has-[>[aria-selected=true]]:bg-gray-4"
+    >
+      <Tabs.Trigger
+        value={tab.path}
+        className="flex size-full items-center space-x-1 overflow-hidden text-ellipsis pl-2 text-gray-11 hover:text-gray-12 aria-[selected=true]:text-gray-12"
+      >
+        <Image
+          src={getExtensionIcon({
+            name: tab.name,
+            isDirectory: false,
+          })}
+          alt={tab.path}
+          width="14"
+          height="14"
+        />
+        <p className="w-full overflow-hidden text-ellipsis text-nowrap text-xs">
+          {tab.name}
+        </p>
+      </Tabs.Trigger>
+      <button
+        className="flex size-7 shrink-0 items-center justify-center text-gray-11 hover:text-gray-12"
+        onClick={() => onClose(tab)}
+      >
+        <XIcon className="hidden size-3 group-hover:block" />
+      </button>
+    </div>
   )
 }
 
 function TextEditorWrapper({
   filePath,
   portalNode,
-  editorRef,
-  monacoRef,
 }: {
   filePath: string
   portalNode: HtmlPortalNode<Component<any>>
-  editorRef: React.MutableRefObject<editor.IStandaloneCodeEditor | null>
-  monacoRef: React.MutableRefObject<Monaco | null>
 }) {
   const publicIP = useAtomValue(publicIPAtom)
+
+  const isValidFile = React.useMemo(
+    () => validFileExtensions(filePath),
+    [filePath]
+  )
 
   const { isLoading, isError, data, refetch } = useQuery({
     queryFn: async () => {
@@ -231,6 +236,7 @@ function TextEditorWrapper({
 
       return await res.text()
     },
+    enabled: isValidFile,
     staleTime: 30000000,
     queryKey: [filePath],
     refetchIntervalInBackground: false,
@@ -238,6 +244,14 @@ function TextEditorWrapper({
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   })
+
+  if (!isValidFile) {
+    return (
+      <StatusContainer>
+        <Status>not supported</Status>
+      </StatusContainer>
+    )
+  }
 
   if (!filePath) {
     return (
@@ -259,14 +273,6 @@ function TextEditorWrapper({
     return (
       <StatusContainer>
         <Status>error</Status>
-      </StatusContainer>
-    )
-  }
-
-  if (!validFileExtensions(filePath)) {
-    return (
-      <StatusContainer>
-        <Status>not supported</Status>
       </StatusContainer>
     )
   }
@@ -335,5 +341,8 @@ const getLanguage = (name: string) => {
 const validFileExtensions = (name: string) => {
   const parts = name.split('.')
   const ext = parts[parts.length - 1]
-  return languageMap[ext] || false
+
+  const language = languageMap[ext]
+  if (language) return true
+  return false
 }

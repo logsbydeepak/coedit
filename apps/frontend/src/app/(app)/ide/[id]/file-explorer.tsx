@@ -102,42 +102,38 @@ export default function FileExplorer() {
           <RefreshCcwIcon className="size-3" />
         </button>
       </div>
-      <div className="scrollbar size-full overflow-auto">
-        {data.files.length === 0 && (
+      <ListBox
+        items={data.files}
+        aria-label="file explorer"
+        selectionMode="multiple"
+        selectionBehavior="replace"
+        className="scrollbar size-full space-y-1 overflow-auto"
+        renderEmptyState={() => (
           <StatusContainer>
             <Status>empty</Status>
           </StatusContainer>
         )}
-
-        {data.files.length !== 0 && (
-          <ListBox
-            aria-label="file explorer"
-            selectionMode="multiple"
-            selectionBehavior="replace"
-            className="w-full space-y-1"
-          >
-            {data.files.map((item) => (
-              <FileItem key={item.path} file={item} onSelect={handleOnSelect} />
-            ))}
-          </ListBox>
+      >
+        {(item: File) => (
+          <FileItem
+            id={item.path}
+            file={item}
+            onAction={() => handleOnSelect(item)}
+          />
         )}
-      </div>
+      </ListBox>
     </div>
   )
 }
 
-function FileItem({
-  file,
-  onSelect,
-}: {
-  onSelect: (item: File) => void
-  file: File
-}) {
+const FileItem = React.forwardRef<
+  React.ElementRef<typeof ListBoxItem>,
+  React.ComponentPropsWithoutRef<typeof ListBoxItem> & { file: File }
+>(({ file, ...props }, ref) => {
   return (
     <ListBoxItem
-      textValue={file.name}
-      id={file.path}
-      onAction={() => onSelect(file)}
+      {...props}
+      ref={ref}
       className={cn(
         'flex items-center px-2 py-0.5 text-sm',
         'w-full space-x-2 ring-inset',
@@ -161,4 +157,5 @@ function FileItem({
       </p>
     </ListBoxItem>
   )
-}
+})
+FileItem.displayName = 'FileItem'

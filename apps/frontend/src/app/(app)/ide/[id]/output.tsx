@@ -1,6 +1,6 @@
 import React from 'react'
 import { useAtomValue } from 'jotai'
-import { LoaderIcon, PlayIcon, SquareIcon } from 'lucide-react'
+import { PlayIcon, SquareIcon } from 'lucide-react'
 
 import { Status, StatusContainer } from './components'
 import { publicIPAtom } from './store'
