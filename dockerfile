@@ -12,8 +12,8 @@ COPY --chown=coedit:coedit . .
 
 SHELL ["/bin/bash", "-c", "-l"]
 RUN bun install
-RUN bun run --cwd apps/server tsc
-RUN bun run --cwd apps/container build
+RUN bun run tsc
+RUN bun run container:build
 
 FROM node:20 as runner
 RUN apt update

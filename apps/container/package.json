@@ -8,9 +8,12 @@
   "scripts": {
     "dev": "dotenvx run -- tsx --watch src/index.ts",
     "start": "node dist/index.js",
-    "clean": "rm -rf dist",
-    "compile": "ncc build src/index.ts --out dist --minify --asset-builds",
-    "build": "run-p clean compile"
+    "build:clean": "rm -rf dist",
+    "build:compile": "ncc build src/index.ts --out dist --minify --asset-builds",
+    "build": "run-p build:clean build:compile",
+    "tsc:clean": "rm -rf tsc tsconfig.tsbuildinfo",
+    "tsc:build": "tsc --build",
+    "tsc": "run-s tsc:clean tsc:build"
   },
   "keywords": [],
   "author": "",

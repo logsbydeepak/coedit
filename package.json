@@ -8,8 +8,12 @@
     "frontend:dev": "bun run --cwd apps/frontend dev",
     "container:dev": "bun run --cwd apps/container dev",
     "server:dev": "bun run --cwd apps/server dev",
-    "dev": "run-p server:dev frontend:dev",
-    "fix": "run-s format cspell frontend:fix"
+    "fix": "run-s format cspell frontend:fix",
+    "container:tsc": "bun run --cwd apps/container tsc",
+    "server:tsc": "bun run --cwd apps/server tsc",
+    "tsc": "run-s server:tsc container:tsc",
+    "frontend:build": "run-s tsc && bun run --cwd apps/frontend build",
+    "container:build": "run-s tsc && bun run --cwd apps/container build"
   },
   "license": "ISC",
   "dependencies": {
