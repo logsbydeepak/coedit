@@ -14,7 +14,7 @@ import {
   InPortal,
   OutPortal,
 } from 'react-reverse-portal'
-import { getHighlighter } from 'shikiji'
+import { BundledLanguage, getHighlighter } from 'shikiji'
 import { shikijiToMonaco } from 'shikiji-monaco'
 import theme from 'shikiji/themes/vitesse-dark.mjs'
 import { toast } from 'sonner'
@@ -26,6 +26,20 @@ import { apiClient } from './utils'
 type Tab = {
   name: string
   path: string
+}
+
+const languageMap: Record<string, BundledLanguage> = {
+  ts: 'typescript',
+  tsx: 'tsx',
+  js: 'javascript',
+  jsx: 'jsx',
+  mjs: 'javascript',
+  html: 'html',
+  css: 'css',
+  json: 'json',
+  md: 'markdown',
+  rs: 'rust',
+  svg: 'html',
 }
 
 export default function TextEditor() {
@@ -106,9 +120,15 @@ export default function TextEditor() {
       target: monaco.languages.typescript.ScriptTarget.Latest,
     })
 
+    const langs: BundledLanguage[] = []
+    Object.entries(languageMap).forEach(([_, lang]) => {
+      monaco.languages.register({ id: lang })
+      langs.push(lang)
+    })
+
     const highlighter = await getHighlighter({
       themes: [theme],
-      langs: ['javascript', 'typescript'],
+      langs,
     })
 
     shikijiToMonaco(highlighter, monaco)
@@ -243,7 +263,7 @@ function TextEditorWrapper({
     )
   }
 
-  if (!canFileBeEdited(filePath)) {
+  if (!validFileExtensions(filePath)) {
     return (
       <Container>
         <Status>not supported</Status>
@@ -251,13 +271,11 @@ function TextEditorWrapper({
     )
   }
 
-  const language = getLanguage(filePath)
-
   let timeout: Timer
   const handleOnChange = (value: string | undefined) => {
     if (!value) return
     function debounce(func: Function, wait: number) {
-      return function (this: any, ...args: any[]) {
+      return function(this: any, ...args: any[]) {
         const context = this
         clearTimeout(timeout)
         timeout = setTimeout(() => func.apply(context, args), wait)
@@ -283,6 +301,8 @@ function TextEditorWrapper({
     debounced(value)
   }
 
+  const language = getLanguage(filePath)
+
   return (
     <>
       <div className="flex items-center justify-between px-2 py-1">
@@ -296,8 +316,8 @@ function TextEditorWrapper({
       </div>
       <OutPortal
         node={portalNode}
-        defaultLanguage={language}
         theme={theme.name}
+        defaultLanguage={language}
         path={filePath}
         onChange={handleOnChange}
         value={data}
@@ -309,42 +329,13 @@ function TextEditorWrapper({
 const getLanguage = (name: string) => {
   const parts = name.split('.')
   const ext = parts[parts.length - 1]
-
-  if (['ts', 'tsx'].includes(ext)) return 'typescript'
-  if (['js', 'jsx', 'mjs'].includes(ext)) return 'javascript'
-  if (['html', 'svg'].includes(ext)) return 'html'
-  if (['css'].includes(ext)) return 'css'
-  if (['json'].includes(ext)) return 'json'
-  if (['md'].includes(ext)) return 'markdown'
-  if (['rs'].includes(ext)) return 'rust'
-  return 'text'
+  return languageMap[ext] || 'text'
 }
 
-const canFileBeEdited = (name: string) => {
+const validFileExtensions = (name: string) => {
   const parts = name.split('.')
   const ext = parts[parts.length - 1]
-
-  if (
-    [
-      'ts',
-      'tsx',
-      'js',
-      'jsx',
-      'mjs',
-      'html',
-      'css',
-      'json',
-      'md',
-      'rs',
-      'gitignore',
-      'svg',
-      'txt',
-    ].includes(ext)
-  ) {
-    return true
-  }
-
-  return false
+  return languageMap[ext] || false
 }
 
 function Container({ children }: React.HtmlHTMLAttributes<HTMLDivElement>) {

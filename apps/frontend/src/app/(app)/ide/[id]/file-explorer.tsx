@@ -47,6 +47,14 @@ export default function FileExplorer() {
     )
   }
 
+  if (data.files.length === 0) {
+    return (
+      <Container>
+        <Status>empty</Status>
+      </Container>
+    )
+  }
+
   return (
     <div className="flex size-full flex-col space-y-2">
       <div className="flex">
