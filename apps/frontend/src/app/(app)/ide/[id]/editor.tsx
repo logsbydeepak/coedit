@@ -6,7 +6,7 @@ import Editor, { Monaco } from '@monaco-editor/react'
 import * as Tabs from '@radix-ui/react-tabs'
 import { useQuery } from '@tanstack/react-query'
 import { useAtom, useAtomValue } from 'jotai'
-import { LoaderIcon, RefreshCcwIcon, XIcon } from 'lucide-react'
+import { RefreshCcwIcon, XIcon } from 'lucide-react'
 import { editor } from 'monaco-editor'
 import {
   createHtmlPortalNode,
@@ -19,9 +19,9 @@ import { shikijiToMonaco } from 'shikiji-monaco'
 import theme from 'shikiji/themes/vitesse-dark.mjs'
 import { toast } from 'sonner'
 
-import { editFileAtom, publicIPAtom } from '../store'
-import { getExtensionIcon } from './extension'
-import { apiClient } from './utils'
+import { Status, StatusContainer } from './components'
+import { editFileAtom, publicIPAtom } from './store'
+import { apiClient, getExtensionIcon } from './utils'
 
 type Tab = {
   name: string
@@ -189,9 +189,9 @@ export default function TextEditor() {
       </InPortal>
 
       {!activeTab && (
-        <Container>
+        <StatusContainer>
           <Status>no file selected</Status>
-        </Container>
+        </StatusContainer>
       )}
 
       {activeTab && (
@@ -241,33 +241,33 @@ function TextEditorWrapper({
 
   if (!filePath) {
     return (
-      <Container>
+      <StatusContainer>
         <Status>no file selected</Status>
-      </Container>
+      </StatusContainer>
     )
   }
 
   if (isLoading) {
     return (
-      <Container>
+      <StatusContainer>
         <Status isLoading>loading</Status>
-      </Container>
+      </StatusContainer>
     )
   }
 
   if (isError) {
     return (
-      <Container>
+      <StatusContainer>
         <Status>error</Status>
-      </Container>
+      </StatusContainer>
     )
   }
 
   if (!validFileExtensions(filePath)) {
     return (
-      <Container>
+      <StatusContainer>
         <Status>not supported</Status>
-      </Container>
+      </StatusContainer>
     )
   }
 
@@ -275,7 +275,7 @@ function TextEditorWrapper({
   const handleOnChange = (value: string | undefined) => {
     if (!value) return
     function debounce(func: Function, wait: number) {
-      return function(this: any, ...args: any[]) {
+      return function (this: any, ...args: any[]) {
         const context = this
         clearTimeout(timeout)
         timeout = setTimeout(() => func.apply(context, args), wait)
@@ -336,24 +336,4 @@ const validFileExtensions = (name: string) => {
   const parts = name.split('.')
   const ext = parts[parts.length - 1]
   return languageMap[ext] || false
-}
-
-function Container({ children }: React.HtmlHTMLAttributes<HTMLDivElement>) {
-  return (
-    <div className="flex size-full items-center justify-center pt-14 text-center">
-      {children}
-    </div>
-  )
-}
-
-function Status({
-  children,
-  isLoading = false,
-}: React.PropsWithChildren<{ isLoading?: boolean }>) {
-  return (
-    <div className="flex items-center space-x-1 rounded-full bg-gray-5 px-3 py-1 font-mono text-xs">
-      {isLoading && <LoaderIcon className="size-3 animate-spin text-gray-11" />}
-      <p>{children}</p>
-    </div>
-  )
 }

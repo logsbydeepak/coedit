@@ -4,14 +4,20 @@ import React from 'react'
 import Image from 'next/image'
 import { useQuery } from '@tanstack/react-query'
 import { useAtomValue, useSetAtom } from 'jotai'
-import { LoaderIcon, RefreshCcwIcon, Undo2Icon } from 'lucide-react'
+import { RefreshCcwIcon, Undo2Icon } from 'lucide-react'
 import { ListBox, ListBoxItem } from 'react-aria-components'
 
 import { cn } from '#/utils/style'
 
-import { editFileAtom, publicIPAtom } from '../store'
-import { getExtensionIcon } from './extension'
-import { apiClient } from './utils'
+import { Status, StatusContainer } from './components'
+import { editFileAtom, publicIPAtom } from './store'
+import { apiClient, getExtensionIcon } from './utils'
+
+type File = {
+  name: string
+  path: string
+  isDirectory: boolean
+}
 
 export default function FileExplorer() {
   const setEditFile = useSetAtom(editFileAtom)
@@ -29,30 +35,44 @@ export default function FileExplorer() {
       return await res.json()
     },
     queryKey: [`file-explorer-${currentPath}`],
+    refetchInterval: 4000,
   })
 
   if (isLoading) {
     return (
-      <Container>
+      <StatusContainer>
         <Status isLoading>loading</Status>
-      </Container>
+      </StatusContainer>
     )
   }
 
   if (isError || !data || data.code === 'ERROR') {
     return (
-      <Container>
+      <StatusContainer>
         <Status>error</Status>
-      </Container>
+      </StatusContainer>
     )
   }
 
-  if (data.files.length === 0) {
-    return (
-      <Container>
-        <Status>empty</Status>
-      </Container>
-    )
+  function handleOnSelect(item: File) {
+    if (item.isDirectory) {
+      setCurrentPath(item.path)
+    } else {
+      setEditFile({
+        path: item.path,
+        name: item.name,
+      })
+    }
+  }
+
+  function handleOnRefresh() {
+    refetch()
+  }
+
+  function handleOnBack() {
+    if (currentPath === '/') return
+    const path = currentPath.split('/').slice(0, -1).join('/')
+    setCurrentPath(path === '' ? '/' : path)
   }
 
   return (
@@ -60,11 +80,7 @@ export default function FileExplorer() {
       <div className="flex">
         <button
           disabled={disabled}
-          onClick={() => {
-            if (currentPath === '/') return
-            const path = currentPath.split('/').slice(0, -1).join('/')
-            setCurrentPath(path === '' ? '/' : path)
-          }}
+          onClick={handleOnBack}
           className={cn(
             'flex items-center space-x-2 px-2 py-1',
             'w-full ring-inset disabled:opacity-50',
@@ -81,78 +97,68 @@ export default function FileExplorer() {
 
         <button
           className="flex size-6 items-center justify-center text-gray-11 ring-inset hover:bg-sage-4 hover:text-gray-12 hover:ring-1 hover:ring-sage-9"
-          onClick={() => refetch()}
+          onClick={handleOnRefresh}
         >
           <RefreshCcwIcon className="size-3" />
         </button>
       </div>
       <div className="scrollbar size-full overflow-auto">
-        <ListBox
-          aria-label="file explorer"
-          selectionMode="multiple"
-          selectionBehavior="replace"
-          className="w-full space-y-1"
-        >
-          {data.files.map((item) => (
-            <ListBoxItem
-              key={item.path}
-              textValue={item.name}
-              id={item.path}
-              onAction={() => {
-                if (item.isDirectory) {
-                  setCurrentPath(item.path)
-                } else {
-                  setEditFile({
-                    path: item.path,
-                    name: item.name,
-                  })
-                }
-              }}
-              className={cn(
-                'flex items-center px-2 py-0.5 text-sm',
-                'w-full space-x-2 ring-inset',
-                'aria-[selected=true]:bg-sage-4 aria-[selected=true]:ring-1',
-                'overflow-hidden outline-none ring-sage-9 hover:cursor-pointer',
-                'hover:bg-sage-4'
-              )}
-            >
-              <Image
-                src={getExtensionIcon({
-                  name: item.name,
-                  isDirectory: item.isDirectory,
-                })}
-                alt={item.name}
-                width="14"
-                height="14"
-              />
+        {data.files.length === 0 && (
+          <StatusContainer>
+            <Status>empty</Status>
+          </StatusContainer>
+        )}
 
-              <p className="w-full overflow-hidden text-ellipsis text-nowrap text-sm">
-                {item.name}
-              </p>
-            </ListBoxItem>
-          ))}
-        </ListBox>
+        {data.files.length !== 0 && (
+          <ListBox
+            aria-label="file explorer"
+            selectionMode="multiple"
+            selectionBehavior="replace"
+            className="w-full space-y-1"
+          >
+            {data.files.map((item) => (
+              <FileItem key={item.path} file={item} onSelect={handleOnSelect} />
+            ))}
+          </ListBox>
+        )}
       </div>
     </div>
   )
 }
 
-function Container({ children }: React.HtmlHTMLAttributes<HTMLDivElement>) {
+function FileItem({
+  file,
+  onSelect,
+}: {
+  onSelect: (item: File) => void
+  file: File
+}) {
   return (
-    <div className="flex size-full items-center justify-center pt-14 text-center">
-      {children}
-    </div>
-  )
-}
+    <ListBoxItem
+      textValue={file.name}
+      id={file.path}
+      onAction={() => onSelect(file)}
+      className={cn(
+        'flex items-center px-2 py-0.5 text-sm',
+        'w-full space-x-2 ring-inset',
+        'aria-[selected=true]:bg-sage-4 aria-[selected=true]:ring-1',
+        'overflow-hidden outline-none ring-sage-9 hover:cursor-pointer',
+        'hover:bg-sage-4'
+      )}
+    >
+      <Image
+        src={getExtensionIcon({
+          name: file.name,
+          isDirectory: file.isDirectory,
+        })}
+        alt={file.name}
+        width="14"
+        height="14"
+      />
 
-function Status({
-  children,
-  isLoading = false,
-}: React.PropsWithChildren<{ isLoading?: boolean }>) {
-  return (
-    <div className="flex items-center space-x-1 rounded-full bg-gray-5 px-3 py-1 font-mono text-xs">
-      {isLoading && <LoaderIcon className="size-3 animate-spin text-gray-11" />}
-      <p>{children}</p>
-    </div>
+      <p className="w-full overflow-hidden text-ellipsis text-nowrap text-sm">
+        {file.name}
+      </p>
+    </ListBoxItem>
   )
 }

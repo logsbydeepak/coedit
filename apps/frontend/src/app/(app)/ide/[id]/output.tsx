@@ -2,7 +2,8 @@ import React from 'react'
 import { useAtomValue } from 'jotai'
 import { LoaderIcon, PlayIcon, SquareIcon } from 'lucide-react'
 
-import { publicIPAtom } from '../store'
+import { Status, StatusContainer } from './components'
+import { publicIPAtom } from './store'
 
 export default function Output() {
   const ref = React.useRef<HTMLDivElement>(null)
@@ -35,9 +36,9 @@ export default function Output() {
   return (
     <div className="flex size-full flex-col">
       {!isRunning && (
-        <Container>
+        <StatusContainer>
           <Status>no preview</Status>
-        </Container>
+        </StatusContainer>
       )}
       {isRunning && <div ref={ref} className="size-full"></div>}
 
@@ -53,26 +54,6 @@ export default function Output() {
         </button>
         <p className="px-2 text-xs text-gray-11">3000</p>
       </div>
-    </div>
-  )
-}
-
-function Container({ children }: React.HtmlHTMLAttributes<HTMLDivElement>) {
-  return (
-    <div className="flex size-full items-center justify-center pt-14 text-center">
-      {children}
-    </div>
-  )
-}
-
-function Status({
-  children,
-  isLoading = false,
-}: React.PropsWithChildren<{ isLoading?: boolean }>) {
-  return (
-    <div className="flex items-center space-x-1 rounded-full bg-gray-5 px-3 py-1 font-mono text-xs">
-      {isLoading && <LoaderIcon className="size-3 animate-spin text-gray-11" />}
-      <p>{children}</p>
     </div>
   )
 }

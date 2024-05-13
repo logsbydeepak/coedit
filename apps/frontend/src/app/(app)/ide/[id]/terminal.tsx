@@ -8,7 +8,7 @@ import { FitAddon } from '@xterm/addon-fit'
 import { WebglAddon } from '@xterm/addon-webgl'
 import { ITheme, Terminal } from '@xterm/xterm'
 import { useAtomValue } from 'jotai'
-import { LoaderIcon, PlusIcon, XIcon } from 'lucide-react'
+import { PlusIcon, XIcon } from 'lucide-react'
 import useWebSocket, { ReadyState } from 'react-use-websocket'
 import { toast } from 'sonner'
 
@@ -17,7 +17,8 @@ import type {
   WSGetData as WSSendData,
 } from '@coedit/container'
 
-import { publicIPAtom } from '../store'
+import { Status, StatusContainer } from './components'
+import { publicIPAtom } from './store'
 
 const theme: ITheme = {
   red: '#f07178',
@@ -65,14 +66,11 @@ export default function Term() {
   }
 
   return (
-    <Container>
-      {connectionStatus === 'connecting' && (
-        <Status isLoading>connecting</Status>
-      )}
-      {connectionStatus === 'closing' && <Status isLoading>closing</Status>}
-      {connectionStatus === 'closed' && <Status>closed</Status>}
-      {connectionStatus === 'uninstantiated' && <Status>uninstantiated</Status>}
-    </Container>
+    <StatusContainer>
+      <Status isLoading={connectionStatus === 'connecting'}>
+        {connectionStatus}
+      </Status>
+    </StatusContainer>
   )
 }
 
@@ -173,15 +171,15 @@ function TermGroup({ socket }: { socket: Socket }) {
       </div>
 
       {tabs.length === 0 && (
-        <Container>
+        <StatusContainer>
           <Status>no terminal</Status>
-        </Container>
+        </StatusContainer>
       )}
 
       {!activeTab && tabs.length !== 0 && (
-        <Container>
+        <StatusContainer>
           <Status>select a terminal</Status>
-        </Container>
+        </StatusContainer>
       )}
 
       {tabs.length !== 0 && (
@@ -328,24 +326,4 @@ function getData(data: string) {
 
 function sendData(data: WSSendData): Uint8Array {
   return new TextEncoder().encode(JSON.stringify(data))
-}
-
-function Container({ children }: React.HtmlHTMLAttributes<HTMLDivElement>) {
-  return (
-    <div className="flex size-full items-center justify-center text-center">
-      {children}
-    </div>
-  )
-}
-
-function Status({
-  children,
-  isLoading = false,
-}: React.PropsWithChildren<{ isLoading?: boolean }>) {
-  return (
-    <div className="flex items-center space-x-1 rounded-full bg-gray-5 px-3 py-1 font-mono text-xs">
-      {isLoading && <LoaderIcon className="size-3 animate-spin text-gray-11" />}
-      <p>{children}</p>
-    </div>
-  )
 }

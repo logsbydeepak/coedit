@@ -4,22 +4,22 @@ import React from 'react'
 import { useParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { useSetAtom } from 'jotai'
-import { LoaderIcon } from 'lucide-react'
 
 import { apiClient } from '#/utils/hc-client'
 
-import { publicIPAtom } from '../store'
+import { Status, StatusContainer } from './components'
 import { IDE } from './ide'
+import { publicIPAtom } from './store'
 
-function _Page() {
-  const [isReady, setIsReady] = React.useState(false)
-
-  if (!isReady) {
-    return <Init setIsReady={setIsReady} />
-  }
-
-  return <IDE />
-}
+// export default function Page() {
+//   const [isReady, setIsReady] = React.useState(false)
+//
+//   if (!isReady) {
+//     return <Init setIsReady={setIsReady} />
+//   }
+//
+//   return <IDE />
+// }
 
 export default function Page() {
   return <IDE />
@@ -112,36 +112,16 @@ function Init({
   }, [statusQuery.data, setIsReady, setPublicIP])
 
   return (
-    <Container>
+    <StatusContainer className="absolute pt-14">
       <Status
         isLoading={
-          !isError ||
-          findQuery.data?.code !== 'INVALID_PROJECT_ID' ||
-          statusQuery.data?.code !== 'INVALID_PROJECT_ID'
+          !isError &&
+          (findQuery.data?.code !== 'INVALID_PROJECT_ID' ||
+            statusQuery.data?.code !== 'INVALID_PROJECT_ID')
         }
       >
         {message}
       </Status>
-    </Container>
-  )
-}
-
-function Container({ children }: React.HtmlHTMLAttributes<HTMLDivElement>) {
-  return (
-    <div className="absolute flex min-h-full w-full items-center justify-center pt-14 text-center">
-      {children}
-    </div>
-  )
-}
-
-function Status({
-  children,
-  isLoading,
-}: React.PropsWithChildren<{ isLoading: boolean }>) {
-  return (
-    <div className="flex items-center space-x-2 rounded-full bg-gray-5 px-5 py-2 font-mono text-sm">
-      {isLoading && <LoaderIcon className="size-4 animate-spin text-gray-11" />}
-      <p>{children}</p>
-    </div>
+    </StatusContainer>
   )
 }
