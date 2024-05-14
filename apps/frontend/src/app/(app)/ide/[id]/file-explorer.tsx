@@ -134,6 +134,7 @@ const FileItem = React.forwardRef<
     <ListBoxItem
       {...props}
       ref={ref}
+      textValue={file.path}
       className={cn(
         'flex items-center px-2 py-0.5 text-sm',
         'w-full space-x-2 ring-inset',

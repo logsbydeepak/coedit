@@ -18,15 +18,15 @@ export function IDE() {
   return (
     <div className="absolute inset-0 pt-14">
       <ResizablePanelGroup direction="horizontal" className="min-h-full">
-        <ResizablePanel defaultSize={16} collapsible={true} minSize={10}>
+        <ResizablePanel defaultSize={14} collapsible={true} minSize={10}>
           <FileExplorer />
         </ResizablePanel>
 
         <ResizableHandle />
 
-        <ResizablePanel defaultSize={50}>
+        <ResizablePanel defaultSize={56} collapsible={true} minSize={20}>
           <ResizablePanelGroup direction="vertical">
-            <ResizablePanel defaultSize={74}>
+            <ResizablePanel defaultSize={74} collapsible={true} minSize={20}>
               <Editor />
             </ResizablePanel>
 

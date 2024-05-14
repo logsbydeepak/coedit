@@ -9,6 +9,7 @@ import { WebglAddon } from '@xterm/addon-webgl'
 import { ITheme, Terminal } from '@xterm/xterm'
 import { useAtomValue } from 'jotai'
 import { PlusIcon, XIcon } from 'lucide-react'
+import ms from 'ms'
 import useWebSocket, { ReadyState } from 'react-use-websocket'
 import { toast } from 'sonner'
 
@@ -43,7 +44,7 @@ const theme: ITheme = {
 const useSocket = (url: string) =>
   useWebSocket(url, {
     retryOnError: true,
-    reconnectInterval: 3000,
+    reconnectInterval: ms('3s'),
     shouldReconnect: () => true,
   })
 type Socket = ReturnType<typeof useSocket>
@@ -164,7 +165,7 @@ function TermGroup({ socket }: { socket: Socket }) {
 
         <button
           onClick={addTab}
-          className="flex size-7 items-center justify-center border-l border-gray-4"
+          className="flex size-7 items-center justify-center border-l border-gray-4 text-gray-11 hover:text-gray-12"
         >
           <PlusIcon className="size-3" />
         </button>
