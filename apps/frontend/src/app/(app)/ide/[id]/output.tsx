@@ -24,7 +24,7 @@ export default function Output() {
 
     if (isRunning) {
       const iframe = document.createElement('iframe')
-      iframe.setAttribute('src', `http://${publicIP.split(':')[0]}:4001`)
+      iframe.setAttribute('src', `http://${publicIP.split(':')[0]}:3000`)
       iframe.className = 'size-full'
       ref.current.appendChild(iframe)
     } else {

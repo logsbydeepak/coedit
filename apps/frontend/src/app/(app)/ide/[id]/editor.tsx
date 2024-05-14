@@ -264,6 +264,7 @@ function TextEditorWrapper({
         throw new Error('Failed to fetch file')
       }
       const result = await res.text()
+      console.log({ result })
       return r('OK', { content: result })
     },
     enabled: isValidFile,
@@ -317,7 +318,7 @@ function TextEditorWrapper({
 
   let timeout: Timer
   function debounce(func: Function, wait: number) {
-    return function(this: any, ...args: any[]) {
+    return function (this: any, ...args: any[]) {
       const context = this
       clearTimeout(timeout)
       timeout = setTimeout(() => func.apply(context, args), wait)
@@ -386,6 +387,7 @@ function TextEditorWrapper({
           defaultLanguage={language}
           path={filePath}
           onChange={handleOnChange}
+          defaultValue={data.content}
           value={data.content}
         />
       )}
