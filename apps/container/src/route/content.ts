@@ -38,6 +38,11 @@ const update = h().post(
   async (c) => {
     const input = c.req.valid('json')
     const res = await writePathContent(input.path, input.body)
+
+    if (res.code === 'INVALID_PATH') {
+      return c.json(r('INVALID_PATH'))
+    }
+
     if (res.code !== 'OK') {
       return c.json(r('ERROR'))
     }

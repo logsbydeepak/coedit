@@ -4,10 +4,11 @@ import React, { Component } from 'react'
 import Image from 'next/image'
 import Editor, { Monaco } from '@monaco-editor/react'
 import * as Tabs from '@radix-ui/react-tabs'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAtom, useAtomValue } from 'jotai'
 import { RefreshCcwIcon, XIcon } from 'lucide-react'
 import { editor } from 'monaco-editor'
+import ms from 'ms'
 import {
   createHtmlPortalNode,
   HtmlPortalNode,
@@ -18,6 +19,8 @@ import { BundledLanguage, getHighlighter } from 'shikiji'
 import { shikijiToMonaco } from 'shikiji-monaco'
 import theme from 'shikiji/themes/vitesse-dark.mjs'
 import { toast } from 'sonner'
+
+import { r } from '@coedit/r'
 
 import { Status, StatusContainer } from './components'
 import { editFileAtom, publicIPAtom } from './store'
@@ -44,6 +47,7 @@ const languageMap: Record<string, BundledLanguage | 'text'> = {
 }
 
 export default function TextEditor() {
+  const queryClient = useQueryClient()
   const [filePath, setFilePath] = useAtom(editFileAtom)
 
   const [activeTab, setActiveTab] = React.useState<string | null>('')
@@ -102,6 +106,9 @@ export default function TextEditor() {
     })
 
     setTabs((prev) => prev.filter((tab) => tab.path !== path))
+    queryClient.removeQueries({
+      queryKey: [path],
+    })
   }
 
   async function handleEditorDidMount(
@@ -140,7 +147,7 @@ export default function TextEditor() {
   return (
     <>
       <Tabs.Root
-        className="flex flex-col"
+        className="size-full"
         value={activeTab || ''}
         onValueChange={(value) => setActiveTab(value)}
       >
@@ -149,7 +156,33 @@ export default function TextEditor() {
             <FileTab key={tab.path} tab={tab} onClose={handleCloseTab} />
           ))}
         </Tabs.List>
+
+        {!activeTab && (
+          <StatusContainer>
+            <Status>no file selected</Status>
+          </StatusContainer>
+        )}
+
+        {tabs.length !== 0 && (
+          <div className="size-full">
+            {tabs.map((tab) => (
+              <Tabs.Content
+                key={tab.path}
+                value={tab.path}
+                forceMount
+                className="size-full data-[state=inactive]:hidden"
+              >
+                <TextEditorWrapper
+                  filePath={tab.path}
+                  portalNode={portalNode}
+                  activeTab={activeTab}
+                />
+              </Tabs.Content>
+            ))}
+          </div>
+        )}
       </Tabs.Root>
+
       <InPortal node={portalNode}>
         <Editor
           onMount={handleEditorDidMount}
@@ -163,16 +196,6 @@ export default function TextEditor() {
           }}
         />
       </InPortal>
-
-      {!activeTab && (
-        <StatusContainer>
-          <Status>no file selected</Status>
-        </StatusContainer>
-      )}
-
-      {activeTab && (
-        <TextEditorWrapper filePath={activeTab} portalNode={portalNode} />
-      )}
     </>
   )
 }
@@ -213,11 +236,14 @@ function FileTab({ tab, onClose }: { tab: Tab; onClose: (path: Tab) => void }) {
 function TextEditorWrapper({
   filePath,
   portalNode,
+  activeTab,
 }: {
   filePath: string
   portalNode: HtmlPortalNode<Component<any>>
+  activeTab: string | null
 }) {
   const publicIP = useAtomValue(publicIPAtom)
+  const [isPending, startTransition] = React.useTransition()
 
   const isValidFile = React.useMemo(
     () => validFileExtensions(filePath),
@@ -230,15 +256,19 @@ function TextEditorWrapper({
         credentials: 'include',
       })
 
+      if (res.status === 404) {
+        return r('NOT_FOUND')
+      }
+
       if (!res.ok) {
         throw new Error('Failed to fetch file')
       }
-
-      return await res.text()
+      const result = await res.text()
+      return r('OK', { content: result })
     },
     enabled: isValidFile,
-    staleTime: 30000000,
     queryKey: [filePath],
+    refetchInterval: false,
     refetchIntervalInBackground: false,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
@@ -269,7 +299,7 @@ function TextEditorWrapper({
     )
   }
 
-  if (isError) {
+  if (isError || !data) {
     return (
       <StatusContainer>
         <Status>error</Status>
@@ -277,33 +307,52 @@ function TextEditorWrapper({
     )
   }
 
+  if (data.code === 'NOT_FOUND') {
+    return (
+      <StatusContainer>
+        <Status>file not found</Status>
+      </StatusContainer>
+    )
+  }
+
   let timeout: Timer
+  function debounce(func: Function, wait: number) {
+    return function (this: any, ...args: any[]) {
+      const context = this
+      clearTimeout(timeout)
+      timeout = setTimeout(() => func.apply(context, args), wait)
+    }
+  }
+
   const handleOnChange = (value: string | undefined) => {
     if (!value) return
-    function debounce(func: Function, wait: number) {
-      return function (this: any, ...args: any[]) {
-        const context = this
-        clearTimeout(timeout)
-        timeout = setTimeout(() => func.apply(context, args), wait)
-      }
-    }
 
     const debounced = debounce(async (value: string) => {
-      try {
-        const res = await apiClient(publicIP).content.$post({
-          json: {
-            path: filePath,
-            body: value,
-          },
-        })
-        const resData = await res.json()
-        if (resData.code !== 'OK') throw new Error('Failed to save file')
-      } catch (error) {
-        toast.error('Failed to save file', {
-          description: filePath,
-        })
-      }
-    }, 2000)
+      startTransition(async () => {
+        try {
+          const res = await apiClient(publicIP).content.$post({
+            json: {
+              path: filePath,
+              body: value,
+            },
+          })
+          const resData = await res.json()
+
+          if (resData.code === 'INVALID_PATH') {
+            toast.error('file do not exists', {
+              description: filePath,
+            })
+            return
+          }
+
+          if (resData.code !== 'OK') throw new Error('Failed to save file')
+        } catch (error) {
+          toast.error('Failed to save file', {
+            description: filePath,
+          })
+        }
+      })
+    }, ms('2s'))
     debounced(value)
   }
 
@@ -311,23 +360,35 @@ function TextEditorWrapper({
 
   return (
     <>
-      <div className="flex items-center justify-between px-2 py-1">
-        <p className="text-xs text-gray-11">{filePath}</p>
-        <button
-          className="flex size-6 items-center justify-center text-gray-11 ring-inset hover:bg-sage-4 hover:text-gray-12 hover:ring-1 hover:ring-sage-9"
-          onClick={() => refetch()}
-        >
-          <RefreshCcwIcon className="size-3" />
-        </button>
+      <div className="flex w-full items-center justify-between space-x-6 px-2 py-1">
+        <p className="overflow-hidden text-ellipsis text-nowrap text-xs text-gray-11">
+          {filePath}
+        </p>
+        <div className="flex shrink-0 items-center space-x-1">
+          <div
+            className="group flex size-6 items-center justify-center"
+            data-state={isPending}
+          >
+            <div className="size-3 rounded-full bg-gray-7 group-data-[state=false]:hidden group-data-[state=true]:animate-pulse" />
+          </div>
+          <button
+            className="flex size-6 items-center justify-center text-gray-11 ring-inset hover:bg-sage-4 hover:text-gray-12 hover:ring-1 hover:ring-sage-9"
+            onClick={() => refetch()}
+          >
+            <RefreshCcwIcon className="size-3" />
+          </button>
+        </div>
       </div>
-      <OutPortal
-        node={portalNode}
-        theme={theme.name}
-        defaultLanguage={language}
-        path={filePath}
-        onChange={handleOnChange}
-        value={data}
-      />
+      {activeTab === filePath && (
+        <OutPortal
+          node={portalNode}
+          theme={theme.name}
+          defaultLanguage={language}
+          path={filePath}
+          onChange={handleOnChange}
+          value={data.content}
+        />
+      )}
     </>
   )
 }
