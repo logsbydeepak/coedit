@@ -3,14 +3,14 @@
 import React from 'react'
 import Image from 'next/image'
 import { useQuery } from '@tanstack/react-query'
-import { useAtomValue, useSetAtom } from 'jotai'
+import { useSetAtom } from 'jotai'
 import { RefreshCcwIcon, SlashIcon, Undo2Icon } from 'lucide-react'
 import { ListBox, ListBoxItem } from 'react-aria-components'
 
 import { cn } from '#/utils/style'
 
 import { Status, StatusContainer } from './components'
-import { editFileAtom, publicIPAtom } from './store'
+import { editFileAtom } from './store'
 import { apiClient, getExtensionIcon } from './utils'
 
 type File = {
@@ -19,10 +19,10 @@ type File = {
   isDirectory: boolean
 }
 
-const useExplorerQuery = (publicIP: string, path: string) =>
+const useExplorerQuery = (path: string) =>
   useQuery({
     queryFn: async () => {
-      const res = await apiClient(publicIP).explorer.$post({
+      const res = await apiClient.explorer.$post({
         json: {
           path: path,
         },
@@ -36,9 +36,8 @@ const useExplorerQuery = (publicIP: string, path: string) =>
 export default function FileExplorer() {
   const [currentPath, setCurrentPath] = React.useState('/')
   const disabled = React.useMemo(() => currentPath === '/', [currentPath])
-  const publicIP = useAtomValue(publicIPAtom)
 
-  const { refetch, isRefetching } = useExplorerQuery(publicIP, currentPath)
+  const { refetch, isRefetching } = useExplorerQuery(currentPath)
 
   function handleOnRefresh() {
     refetch()
@@ -109,8 +108,7 @@ function Explorer({
 }) {
   const setEditFile = useSetAtom(editFileAtom)
 
-  const publicIP = useAtomValue(publicIPAtom)
-  const { isLoading, data, isError } = useExplorerQuery(publicIP, currentPath)
+  const { isLoading, data, isError } = useExplorerQuery(currentPath)
 
   function handleOnSelect(item: File) {
     if (item.isDirectory) {

@@ -1,30 +1,33 @@
 'use client'
 
 import { hc } from 'hono/client'
+import { createStore } from 'jotai'
 
 import type { AppType } from '@coedit/container'
 
 import { ResponseError } from '#/utils/error'
 import extensionConfig from '#/utils/symbol-icon-theme.json'
 
-export const apiClient = (url: string) =>
-  hc<AppType>(`http://${url}`, {
-    fetch: (input, requestInit, Env, executionCtx) =>
-      fetch(input, {
-        ...requestInit,
-        credentials: 'include',
-      }).then((res) => {
-        if (res.status === 401) {
-          window.dispatchEvent(new CustomEvent('UNAUTHORIZED'))
-        }
+import { publicIPAtom } from './store'
 
-        if (!res.ok) {
-          throw new ResponseError(res.statusText, res)
-        }
+const store = createStore()
+export const apiClient = hc<AppType>(`http://${store.get(publicIPAtom)}`, {
+  fetch: (input, requestInit, Env, executionCtx) =>
+    fetch(input, {
+      ...requestInit,
+      credentials: 'include',
+    }).then((res) => {
+      if (res.status === 401) {
+        window.dispatchEvent(new CustomEvent('UNAUTHORIZED'))
+      }
 
-        return res
-      }),
-  }).api
+      if (!res.ok) {
+        throw new ResponseError(res.statusText, res)
+      }
+
+      return res
+    }),
+}).api
 
 export function getExtensionIcon({
   name,

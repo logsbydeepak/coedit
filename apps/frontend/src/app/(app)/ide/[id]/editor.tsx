@@ -290,7 +290,7 @@ function TextEditorWrapper({
     const debounced = debounce(async (value: string) => {
       startTransition(async () => {
         try {
-          const res = await apiClient(publicIP).content.$post({
+          const res = await apiClient.content.$post({
             json: {
               path: filePath,
               body: value,
