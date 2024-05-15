@@ -4,7 +4,7 @@ import React from 'react'
 import Image from 'next/image'
 import { useQuery } from '@tanstack/react-query'
 import { useAtomValue, useSetAtom } from 'jotai'
-import { RefreshCcwIcon, Undo2Icon } from 'lucide-react'
+import { RefreshCcwIcon, SlashIcon, Undo2Icon } from 'lucide-react'
 import { ListBox, ListBoxItem } from 'react-aria-components'
 
 import { cn } from '#/utils/style'
@@ -19,51 +19,26 @@ type File = {
   isDirectory: boolean
 }
 
-export default function FileExplorer() {
-  const setEditFile = useSetAtom(editFileAtom)
-  const [currentPath, setCurrentPath] = React.useState('/')
-  const disabled = React.useMemo(() => currentPath === '/', [currentPath])
-
-  const publicIP = useAtomValue(publicIPAtom)
-  const { isLoading, data, isError, refetch } = useQuery({
+const useExplorerQuery = (publicIP: string, path: string) =>
+  useQuery({
     queryFn: async () => {
       const res = await apiClient(publicIP).explorer.$post({
         json: {
-          path: currentPath,
+          path: path,
         },
       })
       return await res.json()
     },
-    queryKey: [`file-explorer-${currentPath}`],
+    queryKey: [`file-explorer-${path}`],
     refetchInterval: 4000,
   })
 
-  if (isLoading) {
-    return (
-      <StatusContainer>
-        <Status isLoading>loading</Status>
-      </StatusContainer>
-    )
-  }
+export default function FileExplorer() {
+  const [currentPath, setCurrentPath] = React.useState('/')
+  const disabled = React.useMemo(() => currentPath === '/', [currentPath])
+  const publicIP = useAtomValue(publicIPAtom)
 
-  if (isError || !data || data.code === 'ERROR') {
-    return (
-      <StatusContainer>
-        <Status>error</Status>
-      </StatusContainer>
-    )
-  }
-
-  function handleOnSelect(item: File) {
-    if (item.isDirectory) {
-      setCurrentPath(item.path)
-    } else {
-      setEditFile({
-        path: item.path,
-        name: item.name,
-      })
-    }
-  }
+  const { refetch, isRefetching } = useExplorerQuery(publicIP, currentPath)
 
   function handleOnRefresh() {
     refetch()
@@ -77,7 +52,7 @@ export default function FileExplorer() {
 
   return (
     <div className="flex size-full flex-col space-y-2">
-      <div className="flex">
+      <div className="flex space-x-2">
         <button
           disabled={disabled}
           onClick={handleOnBack}
@@ -95,34 +70,96 @@ export default function FileExplorer() {
           </p>
         </button>
 
+        <div
+          className="group flex size-6 items-center justify-center"
+          data-state={isRefetching}
+        >
+          <div className="size-3 rounded-full bg-gray-7 group-data-[state=false]:hidden group-data-[state=true]:animate-pulse" />
+        </div>
+
         <button
-          className="flex size-6 items-center justify-center text-gray-11 ring-inset hover:bg-sage-4 hover:text-gray-12 hover:ring-1 hover:ring-sage-9"
+          className="flex size-6 shrink-0 items-center justify-center text-gray-11 ring-inset hover:bg-sage-4 hover:text-gray-12 hover:ring-1 hover:ring-sage-9"
+          onClick={() => setCurrentPath('/')}
+        >
+          <SlashIcon className="size-3" />
+        </button>
+
+        <button
+          className="flex size-6 shrink-0 items-center justify-center text-gray-11 ring-inset hover:bg-sage-4 hover:text-gray-12 hover:ring-1 hover:ring-sage-9"
           onClick={handleOnRefresh}
         >
           <RefreshCcwIcon className="size-3" />
         </button>
       </div>
-      <ListBox
-        items={data.files}
-        aria-label="file explorer"
-        selectionMode="multiple"
-        selectionBehavior="replace"
-        className="scrollbar size-full space-y-1 overflow-auto"
-        renderEmptyState={() => (
-          <StatusContainer>
-            <Status>empty</Status>
-          </StatusContainer>
-        )}
-      >
-        {(item: File) => (
-          <FileItem
-            id={item.path}
-            file={item}
-            onAction={() => handleOnSelect(item)}
-          />
-        )}
-      </ListBox>
+
+      <Explorer
+        currentPath={currentPath}
+        onChangePath={(path) => setCurrentPath(path)}
+      />
     </div>
+  )
+}
+
+function Explorer({
+  currentPath,
+  onChangePath,
+}: {
+  currentPath: string
+  onChangePath: (path: string) => void
+}) {
+  const setEditFile = useSetAtom(editFileAtom)
+
+  const publicIP = useAtomValue(publicIPAtom)
+  const { isLoading, data, isError } = useExplorerQuery(publicIP, currentPath)
+
+  function handleOnSelect(item: File) {
+    if (item.isDirectory) {
+      onChangePath(item.path)
+    } else {
+      setEditFile({
+        path: item.path,
+        name: item.name,
+      })
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <StatusContainer>
+        <Status isLoading>loading</Status>
+      </StatusContainer>
+    )
+  }
+
+  if (isError || !data || data.code === 'ERROR') {
+    return (
+      <StatusContainer>
+        <Status>error</Status>
+      </StatusContainer>
+    )
+  }
+
+  return (
+    <ListBox
+      items={data.files}
+      aria-label="file explorer"
+      selectionMode="multiple"
+      selectionBehavior="replace"
+      className="scrollbar size-full space-y-1 overflow-auto"
+      renderEmptyState={() => (
+        <StatusContainer>
+          <Status>empty</Status>
+        </StatusContainer>
+      )}
+    >
+      {(item: File) => (
+        <FileItem
+          id={item.path}
+          file={item}
+          onAction={() => handleOnSelect(item)}
+        />
+      )}
+    </ListBox>
   )
 }
 

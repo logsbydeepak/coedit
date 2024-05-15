@@ -250,7 +250,7 @@ function TextEditorWrapper({
     [filePath]
   )
 
-  const { isLoading, isError, data, refetch } = useQuery({
+  const { isLoading, isError, data, refetch, isFetching } = useQuery({
     queryFn: async () => {
       const res = await fetch(`http://${publicIP}/api/content${filePath}`, {
         credentials: 'include',
@@ -264,7 +264,6 @@ function TextEditorWrapper({
         throw new Error('Failed to fetch file')
       }
       const result = await res.text()
-      console.log({ result })
       return r('OK', { content: result })
     },
     enabled: isValidFile,
@@ -275,46 +274,6 @@ function TextEditorWrapper({
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   })
-
-  if (!isValidFile) {
-    return (
-      <StatusContainer>
-        <Status>not supported</Status>
-      </StatusContainer>
-    )
-  }
-
-  if (!filePath) {
-    return (
-      <StatusContainer>
-        <Status>no file selected</Status>
-      </StatusContainer>
-    )
-  }
-
-  if (isLoading) {
-    return (
-      <StatusContainer>
-        <Status isLoading>loading</Status>
-      </StatusContainer>
-    )
-  }
-
-  if (isError || !data) {
-    return (
-      <StatusContainer>
-        <Status>error</Status>
-      </StatusContainer>
-    )
-  }
-
-  if (data.code === 'NOT_FOUND') {
-    return (
-      <StatusContainer>
-        <Status>file not found</Status>
-      </StatusContainer>
-    )
-  }
 
   let timeout: Timer
   function debounce(func: Function, wait: number) {
@@ -357,7 +316,45 @@ function TextEditorWrapper({
     debounced(value)
   }
 
-  const language = getLanguage(filePath)
+  if (!isValidFile) {
+    return (
+      <StatusContainer>
+        <Status>not supported</Status>
+      </StatusContainer>
+    )
+  }
+
+  if (!filePath) {
+    return (
+      <StatusContainer>
+        <Status>no file selected</Status>
+      </StatusContainer>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <StatusContainer>
+        <Status isLoading>loading</Status>
+      </StatusContainer>
+    )
+  }
+
+  if (isError || !data) {
+    return (
+      <StatusContainer>
+        <Status>error</Status>
+      </StatusContainer>
+    )
+  }
+
+  if (data.code === 'NOT_FOUND') {
+    return (
+      <StatusContainer>
+        <Status>file not found</Status>
+      </StatusContainer>
+    )
+  }
 
   return (
     <>
@@ -368,7 +365,7 @@ function TextEditorWrapper({
         <div className="flex shrink-0 items-center space-x-1">
           <div
             className="group flex size-6 items-center justify-center"
-            data-state={isPending}
+            data-state={isPending || isFetching}
           >
             <div className="size-3 rounded-full bg-gray-7 group-data-[state=false]:hidden group-data-[state=true]:animate-pulse" />
           </div>
@@ -384,7 +381,7 @@ function TextEditorWrapper({
         <OutPortal
           node={portalNode}
           theme={theme.name}
-          defaultLanguage={language}
+          defaultLanguage={getLanguage(filePath)}
           path={filePath}
           onChange={handleOnChange}
           defaultValue={data.content}
