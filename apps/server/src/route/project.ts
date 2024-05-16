@@ -1,13 +1,3 @@
-import {
-  CopySnapshotCommand,
-  CreateSnapshotCommand,
-  DeleteSnapshotCommand,
-  DeleteVolumeCommand,
-  DescribeNetworkInterfacesCommand,
-  DescribeSnapshotsCommand,
-  DescribeVolumesCommand,
-} from '@aws-sdk/client-ec2'
-import { DescribeTasksCommand, RunTaskCommand } from '@aws-sdk/client-ecs'
 import { zValidator } from '@hono/zod-validator'
 import { and, eq } from 'drizzle-orm'
 import { isValid, ulid } from 'ulidx'
@@ -18,12 +8,18 @@ import { r } from '@coedit/r'
 import { zReqString } from '@coedit/zschema'
 
 import { ec2, ecs, redis } from '#/lib/config'
+import {
+  copySnapshotCommand,
+  createSnapshotCommand,
+  getPublicIPCommand,
+  getSnapshotCommand,
+  getVolumeCommand,
+  waitUntilSnapshotAvailable,
+  waitUntilVolumeAvailable,
+} from '#/utils/ec2'
+import { getTaskCommand, runTaskCommand } from '#/utils/ecs'
 import { h, hAuth } from '#/utils/h'
 import { KVProject } from '#/utils/project'
-
-const ECS_CLUSTER = 'coedit-builder'
-const ECS_LAUNCH_TYPE = 'FARGATE'
-const ECS_TASK_DEFINITION = 'coedit'
 
 const createProject = hAuth().post(
   '/',
@@ -45,51 +41,28 @@ const createProject = hAuth().post(
       return c.json(r('INVALID_TEMPLATE_ID'))
     }
 
-    const templateSnapshotCommand = new DescribeSnapshotsCommand({
-      Filters: [
-        {
-          Name: 'tag:type',
-          Values: ['template'],
-        },
-        {
-          Name: 'tag:id',
-          Values: [input.templateId],
-        },
-      ],
+    const ec2Client = ec2(c.env)
+
+    const templateSnapshot = await getSnapshotCommand(ec2Client, {
+      templateId: input.templateId,
     })
 
-    const templateSnapshotRes = await ec2(c.env).send(templateSnapshotCommand)
-    if (
-      !templateSnapshotRes.Snapshots ||
-      templateSnapshotRes.Snapshots.length === 0
-    ) {
+    if (templateSnapshot.code === 'NOT_FOUND') {
+      return c.json(r('INVALID_TEMPLATE_ID'))
+    }
+
+    const templateSnapshotId = templateSnapshot.data.SnapshotId
+    if (!templateSnapshotId) {
       return c.json(r('INVALID_TEMPLATE_ID'))
     }
 
     const newProjectId = ulid()
-
-    const copySnapshotCommand = new CopySnapshotCommand({
-      SourceRegion: c.env.AWS_REGION,
-      SourceSnapshotId: templateSnapshotRes.Snapshots[0].SnapshotId,
-      TagSpecifications: [
-        {
-          ResourceType: 'snapshot',
-          Tags: [
-            {
-              Key: 'type',
-              Value: 'project',
-            },
-            {
-              Key: 'id',
-              Value: newProjectId,
-            },
-          ],
-        },
-      ],
+    const copySnapshot = await copySnapshotCommand(ec2Client, c.env, {
+      sourceSnapshotId: templateSnapshotId,
+      projectTagId: newProjectId,
     })
 
-    const copySnapshotRes = await ec2(c.env).send(copySnapshotCommand)
-    if (!copySnapshotRes.SnapshotId) {
+    if (copySnapshot.code === 'NOT_CREATED') {
       throw new Error('Failed to copy snapshot')
     }
 
@@ -137,249 +110,88 @@ const startProject = hAuth().post(
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
+    const ecsClient = ecs(c.env)
+    const ec2Client = ec2(c.env)
+
     const projectArn = await KVProject(redis(c.env), input.id).get()
 
     if (projectArn) {
-      const describeTasksCommand = new DescribeTasksCommand({
-        cluster: ECS_CLUSTER,
-        tasks: [projectArn],
-      })
-      const describeTasksRes = await ecs(c.env).send(describeTasksCommand)
-      const tasks = describeTasksRes.tasks
+      const task = await getTaskCommand(ecsClient, { projectId: projectArn })
 
-      if (!tasks || tasks.length !== 1) {
+      if (task.code === 'NOT_FOUND') {
         await KVProject(redis(c.env), input.id).remove()
         return c.json(r('INVALID_PROJECT_ID'))
       }
-      const task = tasks[0]
 
-      if (task.desiredStatus === 'RUNNING') {
+      if (task.data.desiredStatus === 'RUNNING') {
         return c.json(r('OK'))
       }
     }
 
     let snapshotId = ''
 
-    const describeSnapshotCommand = new DescribeSnapshotsCommand({
-      Filters: [
-        {
-          Name: 'tag:type',
-          Values: ['project'],
-        },
-        {
-          Name: 'tag:id',
-          Values: [input.id],
-        },
-      ],
+    const projectSnapshot = await getSnapshotCommand(ec2Client, {
+      projectId: input.id,
     })
-    const describeSnapshotRes = await ec2(c.env).send(describeSnapshotCommand)
 
-    if (
-      !describeSnapshotRes.Snapshots ||
-      describeSnapshotRes.Snapshots.length === 0
-    ) {
-      const describeVolumeCommand = new DescribeVolumesCommand({
-        Filters: [
-          {
-            Name: 'tag:type',
-            Values: ['project'],
-          },
-          {
-            Name: 'tag:id',
-            Values: [input.id],
-          },
-        ],
-      })
-      const describeVolumeCommandRes = await ec2(c.env).send(
-        describeVolumeCommand
-      )
+    if (projectSnapshot.code === 'OK') {
+      if (projectSnapshot.data.SnapshotId) {
+        snapshotId = projectSnapshot.data.SnapshotId
+      }
+    }
 
-      if (
-        !describeVolumeCommandRes.Volumes ||
-        describeVolumeCommandRes.Volumes.length === 0
-      ) {
+    if (projectSnapshot.code === 'NOT_FOUND') {
+      const volume = await getVolumeCommand(ec2Client, { projectId: input.id })
+      if (volume.code === 'NOT_FOUND') {
         return c.json(r('INVALID_PROJECT_ID'))
       }
 
-      const volumeId = describeVolumeCommandRes.Volumes[0].VolumeId
-      const createSnapshotCommand = new CreateSnapshotCommand({
-        VolumeId: volumeId,
-        TagSpecifications: [
-          {
-            ResourceType: 'snapshot',
-            Tags: [
-              {
-                Key: 'type',
-                Value: 'project',
-              },
-              {
-                Key: 'id',
-                Value: input.id,
-              },
-            ],
-          },
-        ],
-      })
-      const createSnapshotRes = await ec2(c.env).send(createSnapshotCommand)
-      if (!createSnapshotRes.SnapshotId) {
+      const volumeId = volume.data.VolumeId
+      if (!volumeId) {
         return c.json(r('INVALID_PROJECT_ID'))
       }
 
-      const checkSnapshotStatus = async (snapshotId: string) => {
-        const describeSnapshotCommand = new DescribeSnapshotsCommand({
-          SnapshotIds: [snapshotId],
-        })
-        const describeSnapshotRes = await ec2(c.env).send(
-          describeSnapshotCommand
-        )
+      const snapshot = await createSnapshotCommand(ec2Client, {
+        projectId: input.id,
+        volumeId,
+      })
 
-        if (
-          !describeSnapshotRes.Snapshots ||
-          describeSnapshotRes.Snapshots.length === 0
-        ) {
-          return
-        }
-
-        const snapshot = describeSnapshotRes.Snapshots[0]
-        if (snapshot.State === 'completed') {
-          const deleteVolumeCommand = new DeleteVolumeCommand({
-            VolumeId: volumeId,
-          })
-          await ec2(c.env).send(deleteVolumeCommand)
-          return
-        }
-
-        await checkSnapshotStatus(snapshotId)
+      if (snapshot.code === 'INVALID_PROJECT_ID') {
+        return c.json(r('INVALID_PROJECT_ID'))
+      }
+      if (!snapshot.data.SnapshotId) {
+        return c.json(r('INVALID_PROJECT_ID'))
       }
 
-      await checkSnapshotStatus(createSnapshotRes.SnapshotId)
+      await waitUntilSnapshotAvailable(ec2Client, {
+        snapshotId: snapshot.data.SnapshotId,
+      })
 
-      snapshotId = createSnapshotRes.SnapshotId
-    } else {
-      if (describeSnapshotRes.Snapshots[0].SnapshotId) {
-        snapshotId = describeSnapshotRes.Snapshots[0].SnapshotId
-      }
+      snapshotId = snapshot.data.SnapshotId
     }
 
     if (!snapshotId) {
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
-    const runTaskCommand = new RunTaskCommand({
-      cluster: ECS_CLUSTER,
-      taskDefinition: ECS_TASK_DEFINITION,
-      launchType: ECS_LAUNCH_TYPE,
-      count: 1,
-      networkConfiguration: {
-        awsvpcConfiguration: {
-          securityGroups: [c.env.AWS_SECURITY_GROUP_ID],
-          subnets: [c.env.AWS_SUBNET_ID],
-          assignPublicIp: 'ENABLED',
-        },
-      },
-      volumeConfigurations: [
-        {
-          name: 'workspace',
-          managedEBSVolume: {
-            tagSpecifications: [
-              {
-                resourceType: 'volume',
-                tags: [
-                  { key: 'type', value: 'project' },
-                  {
-                    key: 'id',
-                    value: input.id,
-                  },
-                ],
-              },
-            ],
-            volumeType: 'gp2',
-            encrypted: false,
-            snapshotId: snapshotId,
-            filesystemType: 'ext4',
-            sizeInGiB: 6,
-            roleArn: c.env.AWS_ECS_INFRASTRUCTURE_ROLE_ARN,
-            terminationPolicy: {
-              deleteOnTermination: false,
-            },
-          },
-        },
-      ],
+    const task = await runTaskCommand(ecsClient, c.env, {
+      snapshotId,
+      projectId: input.id,
     })
-
-    const runTaskRes = await ecs(c.env).send(runTaskCommand)
-    if (!runTaskRes.tasks || runTaskRes.tasks.length === 0) {
+    if (task.code === 'NOT_CREATED') {
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
-    const taskArn = runTaskRes.tasks[0].taskArn
+    const taskArn = task.data.taskArn
     if (!taskArn) {
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
     await KVProject(redis(c.env), input.id).set(taskArn)
 
-    const checkIfVolumeExists = async () => {
-      const describeVolumeCommand = new DescribeVolumesCommand({
-        Filters: [
-          {
-            Name: 'tag:type',
-            Values: ['project'],
-          },
-          {
-            Name: 'tag:id',
-            Values: [input.id],
-          },
-        ],
-      })
-      const describeVolumeRes = await ec2(c.env).send(describeVolumeCommand)
-
-      if (
-        !describeVolumeRes.Volumes ||
-        describeVolumeRes.Volumes.length === 0
-      ) {
-        await checkIfVolumeExists()
-        return
-      }
-      return
-    }
-
-    await checkIfVolumeExists()
-
-    const checkVolumeStatus = async (volumeId: string) => {
-      const describeVolumeCommand = new DescribeVolumesCommand({
-        Filters: [
-          {
-            Name: 'tag:type',
-            Values: ['project'],
-          },
-          {
-            Name: 'tag:id',
-            Values: [input.id],
-          },
-        ],
-      })
-      const describeVolumeRes = await ec2(c.env).send(describeVolumeCommand)
-
-      if (
-        !describeVolumeRes.Volumes ||
-        describeVolumeRes.Volumes.length === 0
-      ) {
-        return
-      }
-
-      const volume = describeVolumeRes.Volumes[0]
-      if (volume.State === 'available') {
-        const deleteSnapshotCommand = new DeleteSnapshotCommand({
-          SnapshotId: snapshotId,
-        })
-        await ec2(c.env).send(deleteSnapshotCommand)
-        return
-      }
-
-      await checkVolumeStatus(volumeId)
-    }
-    await checkVolumeStatus(input.id)
+    await waitUntilVolumeAvailable(ec2Client, {
+      volumeId: input.id,
+    })
 
     return c.json(r('OK'))
   }
@@ -420,75 +232,53 @@ const projectStatus = hAuth().get(
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
-    const describeTasksCommand = new DescribeTasksCommand({
-      cluster: ECS_CLUSTER,
-      tasks: [projectArn],
-    })
-    const describeTasksRes = await ecs(c.env).send(describeTasksCommand)
+    const ecsClient = ecs(c.env)
+    const task = await getTaskCommand(ecsClient, { projectId: projectArn })
 
-    const tasks = describeTasksRes.tasks
-
-    if (!tasks || tasks.length !== 1) {
-      await KVProject(redis(c.env), input.id).remove()
+    if (task.code === 'NOT_FOUND') {
       return c.json(r('INVALID_PROJECT_ID'))
     }
-    const task = tasks[0]
 
-    if (task.lastStatus === 'RUNNING') {
-      if (!task.attachments || task.attachments.length === 0) {
+    if (task.data.lastStatus === 'RUNNING') {
+      if (
+        !task.data.attachments ||
+        task.data.attachments.length === 0 ||
+        !task.data.attachments[0].details
+      ) {
         return c.json(r('INVALID_PROJECT_ID'))
       }
 
-      if (!task.attachments[0].details) {
-        return c.json(r('INVALID_PROJECT_ID'))
-      }
-
-      const ElasticNetworkInterface = task.attachments.find(
+      const networkInterface = task.data.attachments.find(
         (attachment) => attachment.type === 'ElasticNetworkInterface'
       )
 
-      if (!ElasticNetworkInterface || !ElasticNetworkInterface.details) {
+      if (!networkInterface || !networkInterface.details) {
         return c.json(r('INVALID_PROJECT_ID'))
       }
 
-      const eniId = ElasticNetworkInterface?.details.find(
+      const eniId = networkInterface?.details.find(
         (detail) => detail.name === 'networkInterfaceId'
       )?.value
 
       if (!eniId) {
         return c.json(r('INVALID_PROJECT_ID'))
       }
+      const ec2Client = ec2(c.env)
 
-      const describeNetworkInterfacesCommand =
-        new DescribeNetworkInterfacesCommand({
-          NetworkInterfaceIds: [eniId],
-        })
+      const publicIP = await getPublicIPCommand(ec2Client, { eniId })
 
-      const describeNetworkInterfacesRes = await ec2(c.env).send(
-        describeNetworkInterfacesCommand
-      )
-
-      if (
-        !describeNetworkInterfacesRes.NetworkInterfaces ||
-        describeNetworkInterfacesRes.NetworkInterfaces.length === 0
-      ) {
+      if (publicIP.code === 'NOT_FOUND') {
         return c.json(r('INVALID_PROJECT_ID'))
       }
 
-      const publicIp =
-        describeNetworkInterfacesRes.NetworkInterfaces[0].Association?.PublicIp
-      if (!publicIp) {
-        return c.json(r('INVALID_PROJECT_ID'))
-      }
-
-      return c.json(r('OK', { publicIP: publicIp }))
+      return c.json(r('OK', { publicIP: publicIP.data.IP }))
     }
 
-    if (!task.lastStatus) {
+    if (!task.data.lastStatus) {
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
-    return c.json(r('OK', { status: task.lastStatus }))
+    return c.json(r('OK', { status: task.data.lastStatus }))
   }
 )
 
