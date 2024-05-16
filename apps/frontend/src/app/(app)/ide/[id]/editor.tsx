@@ -107,7 +107,7 @@ export default function TextEditor() {
 
     setTabs((prev) => prev.filter((tab) => tab.path !== path))
     queryClient.removeQueries({
-      queryKey: [path],
+      queryKey: ['files', path],
     })
   }
 
@@ -176,6 +176,7 @@ export default function TextEditor() {
                   filePath={tab.path}
                   portalNode={portalNode}
                   activeTab={activeTab}
+                  monacoRef={monacoRef}
                 />
               </Tabs.Content>
             ))}
@@ -237,10 +238,12 @@ function TextEditorWrapper({
   filePath,
   portalNode,
   activeTab,
+  monacoRef,
 }: {
   filePath: string
   portalNode: HtmlPortalNode<Component<any>>
   activeTab: string | null
+  monacoRef: React.MutableRefObject<Monaco | null>
 }) {
   const [isPending, startTransition] = React.useTransition()
 
@@ -264,6 +267,13 @@ function TextEditorWrapper({
         throw new Error('Failed to fetch file')
       }
       const result = await res.text()
+
+      monacoRef.current?.editor.getModels().forEach((model) => {
+        if (model.uri.path === filePath) {
+          model.setValue(result)
+        }
+      })
+
       return r('OK', { content: result })
     },
     enabled: isValidFile,
@@ -385,7 +395,6 @@ function TextEditorWrapper({
           path={filePath}
           onChange={handleOnChange}
           defaultValue={data.content}
-          value={data.content}
         />
       )}
     </>
