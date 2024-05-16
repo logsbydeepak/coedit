@@ -22,3 +22,6 @@ AWS_BUCKET=''
 
 CORS_ORIGIN='http://localhost:3000'
 
+# mock OR aws
+CONTAINER_MODE='mock'
+

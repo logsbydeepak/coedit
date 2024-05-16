@@ -110,6 +110,14 @@ const startProject = hAuth().post(
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
+    if (c.env.CONTAINER_MODE === 'mock') {
+      return c.json(
+        r('OK', {
+          status: 'RUNNING',
+        })
+      )
+    }
+
     const ecsClient = ecs(c.env)
     const ec2Client = ec2(c.env)
 
@@ -225,6 +233,14 @@ const projectStatus = hAuth().get(
 
     if (!dbProject) {
       return c.json(r('INVALID_PROJECT_ID'))
+    }
+
+    if (c.env.CONTAINER_MODE === 'mock') {
+      return c.json(
+        r('OK', {
+          publicIP: 'localhost',
+        })
+      )
     }
 
     const projectArn = await KVProject(redis(c.env), input.id).get()

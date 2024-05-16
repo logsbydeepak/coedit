@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { useQuery } from '@tanstack/react-query'
 import { useSetAtom } from 'jotai'
 import { RefreshCcwIcon, SlashIcon, Undo2Icon } from 'lucide-react'
+import ms from 'ms'
 import { ListBox, ListBoxItem } from 'react-aria-components'
 
 import { cn } from '#/utils/style'
@@ -29,8 +30,8 @@ const useExplorerQuery = (path: string) =>
       })
       return await res.json()
     },
-    queryKey: [`file-explorer-${path}`],
-    refetchInterval: 4000,
+    queryKey: ['file-explorer', path],
+    refetchInterval: ms('6s'),
   })
 
 export default function FileExplorer() {
@@ -51,19 +52,17 @@ export default function FileExplorer() {
 
   return (
     <div className="flex size-full flex-col space-y-2">
-      <div className="flex space-x-2">
+      <div className="flex space-x-1">
         <button
           disabled={disabled}
           onClick={handleOnBack}
           className={cn(
-            'flex items-center space-x-2 px-2 py-1',
+            'flex items-center space-x-1 py-1 pl-2 pr-0.5',
             'w-full ring-inset disabled:opacity-50',
-            'hover:bg-sage-4 hover:ring-1 hover:ring-sage-9'
+            'overflow-hidden hover:bg-sage-4 hover:ring-1 hover:ring-sage-9'
           )}
         >
-          <span className="size-3.5 shrink-0">
-            <Undo2Icon />
-          </span>
+          <Undo2Icon className="size-3 shrink-0" />
           <p className="w-full overflow-hidden text-ellipsis text-nowrap text-left text-xs">
             back
           </p>
@@ -73,7 +72,7 @@ export default function FileExplorer() {
           className="group flex size-6 items-center justify-center"
           data-state={isRefetching}
         >
-          <div className="size-3 rounded-full bg-gray-7 group-data-[state=false]:hidden group-data-[state=true]:animate-pulse" />
+          <div className="size-2.5 rounded-full bg-gray-7 group-data-[state=true]:animate-pulse group-data-[state=false]:bg-transparent" />
         </div>
 
         <button

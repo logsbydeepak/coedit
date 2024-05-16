@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Editor, { Monaco } from '@monaco-editor/react'
 import * as Tabs from '@radix-ui/react-tabs'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useAtom, useAtomValue } from 'jotai'
+import { useAtom } from 'jotai'
 import { RefreshCcwIcon, XIcon } from 'lucide-react'
 import { editor } from 'monaco-editor'
 import ms from 'ms'
@@ -23,7 +23,7 @@ import { toast } from 'sonner'
 import { r } from '@coedit/r'
 
 import { Status, StatusContainer } from './components'
-import { editFileAtom, publicIPAtom } from './store'
+import { editFileAtom } from './store'
 import { apiClient, getExtensionIcon } from './utils'
 
 type Tab = {
@@ -242,7 +242,6 @@ function TextEditorWrapper({
   portalNode: HtmlPortalNode<Component<any>>
   activeTab: string | null
 }) {
-  const publicIP = useAtomValue(publicIPAtom)
   const [isPending, startTransition] = React.useTransition()
 
   const isValidFile = React.useMemo(
@@ -252,7 +251,8 @@ function TextEditorWrapper({
 
   const { isLoading, isError, data, refetch, isFetching } = useQuery({
     queryFn: async () => {
-      const res = await fetch(`http://${publicIP}/api/content${filePath}`, {
+      const url = apiClient.content.$url() + filePath
+      const res = await fetch(url, {
         credentials: 'include',
       })
 
@@ -267,7 +267,7 @@ function TextEditorWrapper({
       return r('OK', { content: result })
     },
     enabled: isValidFile,
-    queryKey: [filePath],
+    queryKey: ['files', filePath],
     refetchInterval: false,
     refetchIntervalInBackground: false,
     refetchOnMount: false,

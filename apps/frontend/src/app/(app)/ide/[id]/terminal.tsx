@@ -7,7 +7,6 @@ import * as Tabs from '@radix-ui/react-tabs'
 import { FitAddon } from '@xterm/addon-fit'
 import { WebglAddon } from '@xterm/addon-webgl'
 import { ITheme, Terminal } from '@xterm/xterm'
-import { useAtomValue } from 'jotai'
 import { PlusIcon, XIcon } from 'lucide-react'
 import ms from 'ms'
 import useWebSocket, { ReadyState } from 'react-use-websocket'
@@ -19,7 +18,7 @@ import type {
 } from '@coedit/container'
 
 import { Status, StatusContainer } from './components'
-import { publicIPAtom } from './store'
+import { containerURL } from './utils'
 
 const theme: ITheme = {
   red: '#f07178',
@@ -41,8 +40,8 @@ const theme: ITheme = {
   background: '#191919',
 }
 
-const useSocket = (url: string) =>
-  useWebSocket(url, {
+const useSocket = () =>
+  useWebSocket(containerURL.term, {
     retryOnError: true,
     reconnectInterval: ms('3s'),
     shouldReconnect: () => true,
@@ -50,9 +49,7 @@ const useSocket = (url: string) =>
 type Socket = ReturnType<typeof useSocket>
 
 export default function Term() {
-  const publicIP = useAtomValue(publicIPAtom)
-  const WS_URL = `ws://${publicIP}/ws`
-  const socket = useSocket(WS_URL)
+  const socket = useSocket()
 
   const connectionStatus = {
     [ReadyState.CONNECTING]: 'connecting' as const,

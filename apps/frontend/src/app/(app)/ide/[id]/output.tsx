@@ -1,14 +1,12 @@
 import React from 'react'
-import { useAtomValue } from 'jotai'
 import { PlayIcon, SquareIcon } from 'lucide-react'
 
 import { Status, StatusContainer } from './components'
-import { publicIPAtom } from './store'
+import { containerURL } from './utils'
 
 export default function Output() {
   const ref = React.useRef<HTMLDivElement>(null)
   const [isRunning, setIsRunning] = React.useState(false)
-  const publicIP = useAtomValue(publicIPAtom)
 
   React.useEffect(() => {
     if (!ref.current) return
@@ -24,14 +22,14 @@ export default function Output() {
 
     if (isRunning) {
       const iframe = document.createElement('iframe')
-      iframe.setAttribute('src', `http://${publicIP.split(':')[0]}:3000`)
+      iframe.setAttribute('src', containerURL.output)
       iframe.className = 'size-full'
       ref.current.appendChild(iframe)
     } else {
       if (ref.current.children.length === 0) return
       ref.current.removeChild(ref.current.children[0])
     }
-  }, [isRunning, publicIP])
+  }, [isRunning])
 
   return (
     <div className="flex size-full flex-col">

@@ -1,17 +1,23 @@
 'use client'
 
 import { hc } from 'hono/client'
-import { createStore } from 'jotai'
 
 import type { AppType } from '@coedit/container'
 
 import { ResponseError } from '#/utils/error'
 import extensionConfig from '#/utils/symbol-icon-theme.json'
 
-import { publicIPAtom } from './store'
+import { publicIPAtom, store } from './store'
 
-const store = createStore()
-export const apiClient = hc<AppType>(`http://${store.get(publicIPAtom)}`, {
+const IP = () => store.get(publicIPAtom)
+
+export const containerURL = {
+  api: `http://${IP()}:4000`,
+  term: `ws://${IP()}:4000/ws`,
+  output: `http://${IP()}:3000`,
+}
+
+export const apiClient = hc<AppType>(containerURL.api, {
   fetch: (input, requestInit, Env, executionCtx) =>
     fetch(input, {
       ...requestInit,

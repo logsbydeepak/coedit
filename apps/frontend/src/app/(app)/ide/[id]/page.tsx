@@ -4,6 +4,7 @@ import React from 'react'
 import { useParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { useSetAtom } from 'jotai'
+import ms from 'ms'
 
 import { apiClient } from '#/utils/hc-client'
 
@@ -11,17 +12,13 @@ import { Status, StatusContainer } from './components'
 import { IDE } from './ide'
 import { publicIPAtom } from './store'
 
-// export default function Page() {
-//   const [isReady, setIsReady] = React.useState(false)
-//
-//   if (!isReady) {
-//     return <Init setIsReady={setIsReady} />
-//   }
-//
-//   return <IDE />
-// }
-
 export default function Page() {
+  const [isReady, setIsReady] = React.useState(false)
+
+  if (!isReady) {
+    return <Init setIsReady={setIsReady} />
+  }
+
   return <IDE />
 }
 
@@ -43,7 +40,7 @@ function Init({
 
       return await res.json()
     },
-    queryKey: [''],
+    queryKey: [undefined],
     refetchOnMount: false,
     refetchOnReconnect: false,
     refetchInterval: false,
@@ -61,8 +58,8 @@ function Init({
       return await res.json()
     },
     enabled: findQuery.data?.code === 'OK',
-    queryKey: ['status'],
-    refetchInterval: 4000,
+    queryKey: [undefined],
+    refetchInterval: ms('4s'),
   })
 
   const isError = React.useMemo(

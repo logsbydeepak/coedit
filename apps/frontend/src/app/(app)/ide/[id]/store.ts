@@ -1,9 +1,10 @@
 'use client'
 
-import { atom } from 'jotai'
+import { atom, createStore } from 'jotai'
 
-export const publicIPAtom = atom('localhost:4000')
+export const publicIPAtom = atom('')
 
+export const store = createStore()
 export const editFileAtom = atom<{
   path: string
   name: string

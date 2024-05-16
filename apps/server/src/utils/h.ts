@@ -20,6 +20,8 @@ export type ENV = {
   AWS_SECURITY_GROUP_ID: string
   AWS_SUBNET_ID: string
   AWS_ECS_INFRASTRUCTURE_ROLE_ARN: string
+
+  CONTAINER_MODE: 'mock' | 'aws'
 }
 
 type Variables = {
