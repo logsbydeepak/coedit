@@ -16,9 +16,7 @@ dev-start:
 		-v .:/root/coedit \
 		-v /root/coedit/node_modules/ \
 		-p 4000:4000 \
-		-p 4001:4001 \
-		-p 5000:5000 \
-		-p 5001:5001 \
+		-p 3000:3000 \
 		--add-host host.docker.internal:host-gateway \
 		coedit:dev bash
 
