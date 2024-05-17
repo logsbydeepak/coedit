@@ -2,7 +2,7 @@ import React from 'react'
 import { PlayIcon, SquareIcon } from 'lucide-react'
 
 import { Status, StatusContainer } from './components'
-import { containerURL } from './utils'
+import { containerURL } from './store'
 
 export default function Output() {
   const ref = React.useRef<HTMLDivElement>(null)
@@ -22,7 +22,7 @@ export default function Output() {
 
     if (isRunning) {
       const iframe = document.createElement('iframe')
-      iframe.setAttribute('src', containerURL.output)
+      iframe.setAttribute('src', containerURL().output)
       iframe.className = 'size-full'
       ref.current.appendChild(iframe)
     } else {

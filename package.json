@@ -29,5 +29,6 @@
   ],
   "trustedDependencies": [
     "es5-ext"
-  ]
+  ],
+  "packageManager": "bun@1.1.8"
 }

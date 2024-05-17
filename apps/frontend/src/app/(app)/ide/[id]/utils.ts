@@ -7,32 +7,31 @@ import type { AppType } from '@coedit/container'
 import { ResponseError } from '#/utils/error'
 import extensionConfig from '#/utils/symbol-icon-theme.json'
 
-import { publicIPAtom, store } from './store'
+import { containerURL, getToken } from './store'
 
-const IP = () => store.get(publicIPAtom)
+export const tinyFetch = async (
+  input: RequestInfo | URL,
+  init?: RequestInit
+) => {
+  const headers = new Headers(init?.headers)
+  headers.set('x-auth', getToken())
 
-export const containerURL = {
-  api: `http://${IP()}:4000`,
-  term: `ws://${IP()}:4000/ws`,
-  output: `http://${IP()}:3000`,
+  const newRequestInit: RequestInit = {
+    ...init,
+    headers,
+  }
+
+  return fetch(input, newRequestInit).then((res) => {
+    if (!res.ok) {
+      throw new ResponseError(res.statusText, res)
+    }
+
+    return res
+  })
 }
 
-export const apiClient = hc<AppType>(containerURL.api, {
-  fetch: (input, requestInit, Env, executionCtx) =>
-    fetch(input, {
-      ...requestInit,
-      credentials: 'include',
-    }).then((res) => {
-      if (res.status === 401) {
-        window.dispatchEvent(new CustomEvent('UNAUTHORIZED'))
-      }
-
-      if (!res.ok) {
-        throw new ResponseError(res.statusText, res)
-      }
-
-      return res
-    }),
+export const apiClient = hc<AppType>(containerURL().api, {
+  fetch: (input, requestInit, _, __) => tinyFetch(input, requestInit),
 }).api
 
 export function getExtensionIcon({

@@ -24,7 +24,7 @@ import { r } from '@coedit/r'
 
 import { Status, StatusContainer } from './components'
 import { editFileAtom } from './store'
-import { apiClient, getExtensionIcon } from './utils'
+import { apiClient, getExtensionIcon, tinyFetch } from './utils'
 
 type Tab = {
   name: string
@@ -254,10 +254,8 @@ function TextEditorWrapper({
 
   const { isLoading, isError, data, refetch, isFetching } = useQuery({
     queryFn: async () => {
-      const url = apiClient.content.$url() + filePath
-      const res = await fetch(url, {
-        credentials: 'include',
-      })
+      const url = new URL(filePath, apiClient.content.$url()).toString()
+      const res = await tinyFetch(url)
 
       if (res.status === 404) {
         return r('NOT_FOUND')

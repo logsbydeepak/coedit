@@ -1,6 +1,11 @@
+'use client'
+
+import { useHydrateAtoms } from 'jotai/utils'
 import { LoaderIcon } from 'lucide-react'
 
 import { cn } from '#/utils/style'
+
+import { tokenAtom } from './store'
 
 export function StatusContainer({
   children,
@@ -28,4 +33,9 @@ export function Status({
       <p>{children}</p>
     </div>
   )
+}
+
+export function SetToken({ token }: { token: string }) {
+  useHydrateAtoms([[tokenAtom, token]])
+  return null
 }

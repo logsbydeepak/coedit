@@ -1,4 +1,3 @@
-import { getCookie } from 'hono/cookie'
 import { cors } from 'hono/cors'
 import { HTTPException } from 'hono/http-exception'
 import { secureHeaders } from 'hono/secure-headers'
@@ -28,14 +27,14 @@ export const app = h()
   .use(secureHeaders())
   .use(async (c, next) => {
     setActive()
-    const cookie = getCookie(c, 'x-auth')
+    const token = c.req.header('x-auth')
 
-    if (!cookie) {
+    if (!token) {
       emitStop()
       throw new HTTPException(401, { res: errorResponse })
     }
 
-    const res = await apiClient(cookie).user.isAuth.$get()
+    const res = await apiClient(token).user.isAuth.$get()
     const resData = await res.json()
 
     if (resData.code !== 'OK') {

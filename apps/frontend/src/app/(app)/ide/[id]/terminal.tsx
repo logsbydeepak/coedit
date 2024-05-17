@@ -18,7 +18,7 @@ import type {
 } from '@coedit/container'
 
 import { Status, StatusContainer } from './components'
-import { containerURL } from './utils'
+import { containerURL, getToken } from './store'
 
 const theme: ITheme = {
   red: '#f07178',
@@ -41,10 +41,13 @@ const theme: ITheme = {
 }
 
 const useSocket = () =>
-  useWebSocket(containerURL.term, {
+  useWebSocket(containerURL().term, {
     retryOnError: true,
     reconnectInterval: ms('3s'),
     shouldReconnect: () => true,
+    queryParams: {
+      'x-auth': getToken(),
+    },
   })
 type Socket = ReturnType<typeof useSocket>
 

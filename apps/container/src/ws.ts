@@ -1,5 +1,4 @@
 import { Server as HttpServer } from 'http'
-import cookies from 'cookie'
 import { IPty, spawn } from 'node-pty'
 import { ulid } from 'ulidx'
 import { WebSocket, WebSocketServer } from 'ws'
@@ -20,8 +19,8 @@ export const ws = (server: HttpServer) => {
   })
 
   server.on('upgrade', async (req, socket, head) => {
-    const cookie = cookies.parse(req.headers.cookie || '')
-    const token = cookie['x-auth']
+    const params = new URLSearchParams(req.url?.replace('/ws', ''))
+    const token = params.get('x-auth')
 
     if (!token) {
       socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n')

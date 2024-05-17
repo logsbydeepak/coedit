@@ -52,7 +52,7 @@ export async function middleware(req: NextRequest) {
       }
     }
 
-    return NextResponse.error()
+    return null
   } catch (error) {
     return NextResponse.error()
   }

@@ -17,7 +17,6 @@ export const apiClient = hc<AppType>(env.NEXT_PUBLIC_API_URL, {
     const newRequestInit: RequestInit = {
       ...requestInit,
       headers,
-      credentials: 'include',
     }
 
     return fetch(input, newRequestInit).then((res) => {
