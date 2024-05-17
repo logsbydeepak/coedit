@@ -52,9 +52,9 @@ export async function middleware(req: NextRequest) {
       }
     }
 
-    return null
+    return NextResponse.error()
   } catch (error) {
-    return null
+    return NextResponse.error()
   }
 }
 
