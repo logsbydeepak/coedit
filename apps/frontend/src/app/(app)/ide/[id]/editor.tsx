@@ -254,7 +254,8 @@ function TextEditorWrapper({
 
   const { isLoading, isError, data, refetch, isFetching } = useQuery({
     queryFn: async () => {
-      const url = new URL(filePath, apiClient.content.$url()).toString()
+      const baseURL = apiClient.content.$url().toString()
+      const url = baseURL + filePath
       const res = await tinyFetch(url)
 
       if (res.status === 404) {
@@ -298,12 +299,18 @@ function TextEditorWrapper({
     const debounced = debounce(async (value: string) => {
       startTransition(async () => {
         try {
-          const res = await apiClient.content.$post({
-            json: {
-              path: filePath,
-              body: value,
+          const res = await apiClient.content.$post(
+            {
+              query: {
+                path: filePath,
+              },
             },
-          })
+            {
+              init: {
+                body: value,
+              },
+            }
+          )
           const resData = await res.json()
 
           if (resData.code === 'INVALID_PATH') {

@@ -29,15 +29,16 @@ const get = h().get(
 const update = h().post(
   '/',
   zValidator(
-    'json',
+    'query',
     z.object({
       path: z.string(),
-      body: z.string(),
     })
   ),
   async (c) => {
-    const input = c.req.valid('json')
-    const res = await writePathContent(input.path, input.body)
+    const input = c.req.valid('query')
+    const content = await c.req.text()
+
+    const res = await writePathContent(input.path, content)
 
     if (res.code === 'INVALID_PATH') {
       return c.json(r('INVALID_PATH'))
