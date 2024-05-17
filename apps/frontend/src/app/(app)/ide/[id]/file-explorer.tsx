@@ -23,9 +23,9 @@ type File = {
 const useExplorerQuery = (path: string) =>
   useQuery({
     queryFn: async () => {
-      const res = await apiClient.explorer.$post({
-        json: {
-          path: path,
+      const res = await apiClient.explorer.$get({
+        query: {
+          path,
         },
       })
       return await res.json()

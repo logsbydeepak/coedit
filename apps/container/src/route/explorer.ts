@@ -7,16 +7,16 @@ import { zReqString } from '@coedit/zschema'
 import { getPathContent } from '#/utils/fs'
 import { h } from '#/utils/h'
 
-const get = h().post(
+const get = h().get(
   '/',
   zValidator(
-    'json',
+    'query',
     z.object({
       path: zReqString,
     })
   ),
   async (c) => {
-    const input = c.req.valid('json')
+    const input = c.req.valid('query')
     const files = await getPathContent(input.path)
 
     if (files.code === 'ERROR') {
