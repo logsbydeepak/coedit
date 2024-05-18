@@ -18,6 +18,8 @@
     "@types/node": "^20.4.1"
   },
   "scripts": {
-    "build": "napi build --platform --release"
+    "clean": "cargo clean && rm -rf Cargo.lock && rm -rf *.node",
+    "build:compile": "napi build --platform --release",
+    "build": "run-s clean build:compile"
   }
 }

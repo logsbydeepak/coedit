@@ -30,3 +30,19 @@ dev-attach:
 dev-stop:
 	@echo "-> DEV IMAGE STOP"
 	docker rm -f coedit-dev
+
+prod-start:
+	@echo "-> PROD IMAGE START"
+	docker run --name coedit-prod \
+		-p 4000:4000 \
+		-p 3000:3000 \
+		--add-host host.docker.internal:host-gateway \
+		-e PORT="4000" \
+		-e USER_API="http://host.docker.internal:5000" \
+		-e CORS_ORIGIN='http://localhost:5001' \
+		coedit:latest /root/coedit/coedit-container-process
+
+prod-stop:
+	@echo "-> PROD IMAGE STOP"
+	docker rm -f coedit-prod
+

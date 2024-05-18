@@ -36,7 +36,8 @@
     "shikiji",
     "vitesse",
     "replit",
-    "ruspty"
+    "ruspty",
+    "prebuild"
   ],
   "ignorePaths": [
     "bun.lockb",
