@@ -82,7 +82,9 @@ function createTerm({ id, ws }: { id: string; ws: WSContext }) {
   const pty = new Pty({
     command: 'su',
     args: [USER, '--login', '--pty', '-c', `cd ${WORKSPACE}; bash`],
-    envs: {},
+    envs: {
+      TERM: 'xterm-256color',
+    },
     onExit: () => {
       killTerm(pty)
     },

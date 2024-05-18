@@ -7,9 +7,8 @@
   "types": "tsc/index.d.ts",
   "scripts": {
     "dev": "bun --watch src/index.ts | pino-pretty",
-    "start": "./dist/coedit",
     "build:clean": "rm -rf dist",
-    "build:compile": "bun build --minify --compile --sourcemap src/index.ts  --outfile dist/coedit",
+    "build:compile": "bun build --minify --compile --sourcemap src/index.ts  --outfile dist/coedit-container-process",
     "build": "run-p build:clean build:compile",
     "tsc:clean": "rm -rf tsc tsconfig.tsbuildinfo",
     "tsc:build": "tsc --build",
