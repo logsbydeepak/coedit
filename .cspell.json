@@ -34,11 +34,14 @@
     "FARGATE",
     "awsvpc",
     "shikiji",
-    "vitesse"
+    "vitesse",
+    "replit",
+    "ruspty"
   ],
   "ignorePaths": [
     "bun.lockb",
     "/apps/frontend/public/icons/",
-    "/apps/frontend/src/utils/symbol-icon-theme.json"
+    "/apps/frontend/src/utils/symbol-icon-theme.json",
+    "/packages/ruspty"
   ]
 }

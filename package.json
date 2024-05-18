@@ -13,13 +13,13 @@
     "server:tsc": "bun run --cwd apps/server tsc",
     "tsc": "run-s server:tsc container:tsc",
     "frontend:build": "run-s tsc && bun run --cwd apps/frontend build",
-    "container:build": "run-s tsc && bun run --cwd apps/container build"
+    "container:build": "run-s tsc && bun run --cwd apps/container build",
+    "container:prebuild": "bun run --cwd packages/ruspty build"
   },
   "license": "ISC",
   "dependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^4.2.1",
     "cspell": "^8.6.0",
-    "jotai": "^2.8.0",
     "npm-run-all2": "^6.1.2",
     "prettier": "^3.2.5"
   },
