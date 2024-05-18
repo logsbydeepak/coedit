@@ -18,6 +18,5 @@ const IP = () => store.get(publicIPAtom)
 
 export const containerURL = () => ({
   api: `http://${IP()}:4000`,
-  term: `ws://${IP()}:4000/ws`,
   output: `http://${IP()}:3000`,
 })

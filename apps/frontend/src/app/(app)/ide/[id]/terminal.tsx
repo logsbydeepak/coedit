@@ -13,12 +13,13 @@ import useWebSocket, { ReadyState } from 'react-use-websocket'
 import { toast } from 'sonner'
 
 import type {
-  WSSendData as WSGetData,
-  WSGetData as WSSendData,
+  TerminalSendData as TerminalGetData,
+  TerminalGetData as TerminalSendData,
 } from '@coedit/container'
 
 import { Status, StatusContainer } from './components'
-import { containerURL, getToken } from './store'
+import { getToken } from './store'
+import { apiClient } from './utils'
 
 const theme: ITheme = {
   red: '#f07178',
@@ -40,8 +41,10 @@ const theme: ITheme = {
   background: '#191919',
 }
 
+const url = apiClient.terminal.$url().href
+
 const useSocket = () =>
-  useWebSocket(containerURL().term, {
+  useWebSocket(url, {
     retryOnError: true,
     reconnectInterval: ms('3s'),
     shouldReconnect: () => true,
@@ -322,9 +325,9 @@ function TermContent({
 }
 
 function getData(data: string) {
-  return JSON.parse(data) as WSGetData
+  return JSON.parse(data) as TerminalGetData
 }
 
-function sendData(data: WSSendData): Uint8Array {
-  return new TextEncoder().encode(JSON.stringify(data))
+function sendData(data: TerminalSendData) {
+  return JSON.stringify(data)
 }
