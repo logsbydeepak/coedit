@@ -5,6 +5,7 @@ import { secureHeaders } from 'hono/secure-headers'
 import { env } from './env'
 import { contentRoute } from './route/content'
 import { explorerRoute } from './route/explorer'
+import { terminalRoute } from './route/terminal'
 import { apiClient } from './utils/api-client'
 import { h } from './utils/h'
 import { emitStop, setActive } from './utils/lifecycle'
@@ -12,6 +13,7 @@ import { emitStop, setActive } from './utils/lifecycle'
 const route = h()
   .route('/explorer', explorerRoute)
   .route('/content', contentRoute)
+  .route('/terminal', terminalRoute)
 
 const errorResponse = new Response('Unauthorized', {
   status: 401,
@@ -27,23 +29,40 @@ export const app = h()
   .use(secureHeaders())
   .use(async (c, next) => {
     setActive()
-    const token = c.req.header('x-auth')
+    const url = new URL(c.req.url)
+    let token: string | undefined | null = ''
+    if (url.pathname === '/terminal') {
+      token = url.searchParams.get('x-auth')
+    } else {
+      token = c.req.header('x-auth')
+    }
 
     if (!token) {
       emitStop()
       throw new HTTPException(401, { res: errorResponse })
     }
 
-    const res = await apiClient(token).user.isAuth.$get()
-    const resData = await res.json()
-
-    if (resData.code !== 'OK') {
+    const isAuth = await auth(token)
+    if (!isAuth) {
       emitStop()
       throw new HTTPException(401, { res: errorResponse })
     }
 
     await next()
   })
-  .route('/api', route)
+  .route('/', route)
+
+const auth = async (token: string) => {
+  try {
+    const res = await apiClient(token).user.isAuth.$get()
+    const resData = await res.json()
+    return resData.code === 'OK'
+  } catch (error) {
+    if (error instanceof HTTPException) {
+      return false
+    }
+    return false
+  }
+}
 
 export type AppType = typeof app

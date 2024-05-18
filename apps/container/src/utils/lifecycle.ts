@@ -18,7 +18,7 @@ function wait(ms: number) {
 export function handleStopEvent() {
   event.on('stop', async () => {
     logger.info('Server is stopping')
-    await wait(1000)
+    await wait(ms('5s'))
     process.exit(0)
   })
 }

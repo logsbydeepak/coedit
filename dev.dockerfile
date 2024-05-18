@@ -1,8 +1,9 @@
-FROM node:20 as runner
+FROM ubuntu:22.04
 RUN apt update
-RUN apt -y install bash binutils git xz-utils wget curl sudo unzip make build-essential python3
+RUN apt -y install bash binutils git xz-utils wget curl sudo unzip build-essential
 
 RUN curl -fsSL https://bun.sh/install | bash
+RUN curl -sSf https://sh.rustup.rs | bash -s -- -y
 
 ENV NEW_USER=coedit
 RUN adduser $NEW_USER

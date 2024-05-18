@@ -1,49 +1,19 @@
-import { Server as HttpServer } from 'http'
-import { EventEmitter } from 'node:events'
-import { serve } from '@hono/node-server'
+import { websocket } from '#/utils/ws'
 
-import { app } from './api'
 import { env } from './env'
-import { emitStop, handleStopEvent, startTimeout } from './utils/lifecycle'
+import { app } from './route'
+import { handleStopEvent, startTimeout } from './utils/lifecycle'
 import { logger } from './utils/logger'
-import { ws } from './ws'
 
-export const event = new EventEmitter()
+const server = Bun.serve({
+  fetch: app.fetch,
+  port: env.PORT,
+  websocket,
+})
 
-export type { AppType } from './api'
-export type { WSGetData, WSSendData } from './ws'
-
-async function main() {
-  try {
-    const server = serve(
-      {
-        fetch: app.fetch,
-        port: env.PORT,
-      },
-      (info) => {
-        logger.info(
-          {
-            api: '/api',
-            ws: '/ws',
-          },
-          `Server is running on ${info.port}`
-        )
-      }
-    )
-
-    ws(server as HttpServer)
-
-    server.on('error', (err) => {
-      logger.error(err, 'Server error')
-      emitStop()
-    })
-  } catch (error) {
-    logger.error(error, 'Something went wrong')
-    emitStop()
-  }
-}
-
+logger.info(`Server is running on ${server.url}`)
 handleStopEvent()
 startTimeout()
 
-main()
+export type { AppType } from './route'
+export type { TerminalSendData, TerminalGetData } from '#/route/terminal'
