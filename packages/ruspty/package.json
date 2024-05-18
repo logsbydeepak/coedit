@@ -1,0 +1,23 @@
+{
+  "name": "@replit/ruspty",
+  "version": "2.1.0",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "author": "Szymon Kaliski <hi@szymonkaliski.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/replit/ruspty.git"
+  },
+  "homepage": "https://github.com/replit/ruspty#readme",
+  "bugs": {
+    "url": "https://github.com/replit/ruspty/issues"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@napi-rs/cli": "^2.18.2",
+    "@types/node": "^20.4.1"
+  },
+  "scripts": {
+    "build": "napi build --platform --release"
+  }
+}
