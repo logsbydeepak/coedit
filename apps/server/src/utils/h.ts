@@ -13,6 +13,7 @@ export type ENV = {
   JWT_SECRET: string
   RUNTIME: 'deployment' | 'production'
   CORS_ORIGIN: string
+  COOKIE_DOMAIN: string
 
   AWS_REGION: string
   AWS_ACCESS_KEY_ID: string

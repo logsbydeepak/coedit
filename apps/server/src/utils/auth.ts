@@ -91,6 +91,7 @@ export const setAuthCookie = (
   c: Context,
   env: {
     RUNTIME: string
+    COOKIE_DOMAIN: string
   },
   token: string
 ) => {
@@ -99,6 +100,7 @@ export const setAuthCookie = (
     path: '/',
     sameSite: 'Strict',
     secure: env.RUNTIME === 'production',
+    domain: env.COOKIE_DOMAIN,
     maxAge: cookieMaxAge,
   })
 }
@@ -107,6 +109,7 @@ export const removeAuthCookie = (
   c: Context,
   env: {
     RUNTIME: string
+    COOKIE_DOMAIN: string
   }
 ) => {
   setCookie(c, 'x-auth', '', {
@@ -114,6 +117,7 @@ export const removeAuthCookie = (
     path: '/',
     sameSite: 'Strict',
     secure: env.RUNTIME === 'production',
+    domain: env.COOKIE_DOMAIN,
     maxAge: 0,
   })
 }
