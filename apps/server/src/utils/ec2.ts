@@ -1,20 +1,23 @@
 import {
   CopySnapshotCommand,
   CreateSnapshotCommand,
+  DeleteSnapshotCommand,
+  DeleteVolumeCommand,
   DescribeNetworkInterfacesCommand,
   DescribeSnapshotsCommand,
   DescribeVolumesCommand,
   EC2Client,
 } from '@aws-sdk/client-ec2'
+import ms from 'ms'
 
 import { r } from '@coedit/r'
 
 export async function getVolumeCommand(
   client: EC2Client,
-  input: { projectId: string }
+  input: { projectTagId: string }
 ) {
   const type = 'project'
-  const id = input.projectId
+  const id = input.projectTagId
 
   const command = new DescribeVolumesCommand({
     Filters: [
@@ -40,14 +43,14 @@ export async function getVolumeCommand(
 
 export async function getSnapshotCommand(
   client: EC2Client,
-  input: { templateId: string } | { projectId: string }
+  input: { templateTagId: string } | { projectTagId: string }
 ) {
   const { type, id } =
-    'templateId' in input
-      ? { type: 'template', id: input.templateId }
+    'templateTagId' in input
+      ? { type: 'template', id: input.templateTagId }
       : {
           type: 'project',
-          id: input.projectId,
+          id: input.projectTagId,
         }
 
   const command = new DescribeSnapshotsCommand({
@@ -137,83 +140,43 @@ export async function waitUntilVolumeAvailable(
   client: EC2Client,
   input: { volumeId: string }
 ) {
-  let count = 0
-  let available = false
-
-  async function fn() {
-    const res = await getVolumeCommand(client, { projectId: input.volumeId })
-    if (count > 5) {
-      return
+  for (let i = 0; i < 5; i++) {
+    const res = await getVolumeCommand(client, { projectTagId: input.volumeId })
+    if (res.code === 'OK') {
+      if (res.data.State === 'available') {
+        return r('OK')
+      }
     }
 
-    if (res.code !== 'OK') {
-      count++
-      await fn()
-      return
-    }
-
-    if (res.data.State === 'available') {
-      available = true
-      return
-    }
-
-    count++
-    await fn()
-    return
+    await wait(ms('1s'))
   }
 
-  await fn()
+  return r('TIMEOUT')
+}
 
-  if (!available) {
-    return r('TIMEOUT')
-  }
-  return r('OK')
+function wait(ms: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms)
+  })
 }
 
 export async function waitUntilSnapshotAvailable(
   client: EC2Client,
   input: { snapshotId: string }
 ) {
-  let count = 0
-  let available = false
-  let error = false
-
-  const command = new DescribeSnapshotsCommand({
-    SnapshotIds: [input.snapshotId],
-  })
-
-  async function fn() {
-    const res = await client.send(command)
-
-    if (count > 5) {
-      return
+  for (let i = 0; i < 5; i++) {
+    const res = await getSnapshotCommand(client, {
+      projectTagId: input.snapshotId,
+    })
+    if (res.code === 'OK') {
+      if (res.data.State === 'completed') {
+        return r('OK')
+      }
     }
 
-    if (!res.Snapshots || res.Snapshots.length === 0) {
-      error = true
-      return
-    }
-
-    if (res.Snapshots[0].State === 'completed') {
-      available = true
-      return
-    }
-
-    count++
-    await fn()
-    return
+    await wait(ms('1s'))
   }
-
-  await fn()
-
-  if (error) {
-    return r('NOT_FOUND')
-  }
-
-  if (!available) {
-    return r('TIMEOUT')
-  }
-  return r('OK')
+  return r('TIMEOUT')
 }
 
 export async function createSnapshotCommand(
@@ -246,4 +209,30 @@ export async function createSnapshotCommand(
   }
 
   return r('OK', { data: res })
+}
+
+export async function deleteSnapshotCommand(
+  client: EC2Client,
+  input: { snapshotId: string }
+) {
+  const command = new DeleteSnapshotCommand({
+    SnapshotId: input.snapshotId,
+  })
+
+  await client.send(command)
+
+  return r('OK')
+}
+
+export async function deleteVolumeCommand(
+  client: EC2Client,
+  input: { volumeId: string }
+) {
+  const command = new DeleteVolumeCommand({
+    VolumeId: input.volumeId,
+  })
+
+  await client.send(command)
+
+  return r('OK')
 }

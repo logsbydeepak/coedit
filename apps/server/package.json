@@ -6,7 +6,7 @@
   "types": "tsc/index.d.ts",
   "scripts": {
     "dev": "wrangler dev src/index.ts --port 5000",
-    "deploy": "wrangler deploy --minify src/index.ts",
+    "deploy": "wrangler deploy --minify src/index.ts --name api-coedit",
     "tsc:clean": "rm -rf tsc tsconfig.tsbuildinfo",
     "tsc:build": "tsc --build",
     "tsc": "run-s tsc:clean tsc:build",

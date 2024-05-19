@@ -11,6 +11,8 @@ import { ec2, ecs, redis } from '#/lib/config'
 import {
   copySnapshotCommand,
   createSnapshotCommand,
+  deleteSnapshotCommand,
+  deleteVolumeCommand,
   getPublicIPCommand,
   getSnapshotCommand,
   getVolumeCommand,
@@ -44,7 +46,7 @@ const createProject = hAuth().post(
     const ec2Client = ec2(c.env)
 
     const templateSnapshot = await getSnapshotCommand(ec2Client, {
-      templateId: input.templateId,
+      templateTagId: input.templateId,
     })
 
     if (templateSnapshot.code === 'NOT_FOUND') {
@@ -139,7 +141,7 @@ const startProject = hAuth().post(
     let snapshotId = ''
 
     const projectSnapshot = await getSnapshotCommand(ec2Client, {
-      projectId: input.id,
+      projectTagId: input.id,
     })
 
     if (projectSnapshot.code === 'OK') {
@@ -149,7 +151,9 @@ const startProject = hAuth().post(
     }
 
     if (projectSnapshot.code === 'NOT_FOUND') {
-      const volume = await getVolumeCommand(ec2Client, { projectId: input.id })
+      const volume = await getVolumeCommand(ec2Client, {
+        projectTagId: input.id,
+      })
       if (volume.code === 'NOT_FOUND') {
         return c.json(r('INVALID_PROJECT_ID'))
       }
@@ -171,9 +175,15 @@ const startProject = hAuth().post(
         return c.json(r('INVALID_PROJECT_ID'))
       }
 
-      await waitUntilSnapshotAvailable(ec2Client, {
+      const res = await waitUntilSnapshotAvailable(ec2Client, {
         snapshotId: snapshot.data.SnapshotId,
       })
+
+      if (res.code === 'TIMEOUT') {
+        return c.json(r('TIMEOUT'))
+      }
+
+      await deleteVolumeCommand(ec2Client, { volumeId })
 
       snapshotId = snapshot.data.SnapshotId
     }
@@ -197,9 +207,15 @@ const startProject = hAuth().post(
 
     await KVProject(redis(c.env), input.id).set(taskArn)
 
-    await waitUntilVolumeAvailable(ec2Client, {
+    const res = await waitUntilVolumeAvailable(ec2Client, {
       volumeId: input.id,
     })
+
+    if (res.code !== 'TIMEOUT') {
+      return c.json(r('TIMEOUT'))
+    }
+
+    await deleteSnapshotCommand(ec2Client, { snapshotId })
 
     return c.json(r('OK'))
   }
