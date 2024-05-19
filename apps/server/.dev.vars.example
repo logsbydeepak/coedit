@@ -1,4 +1,4 @@
-# supabase
+# neon db
 DB_URL=''
 
 RESEND_API_KEY=''

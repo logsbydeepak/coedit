@@ -37,7 +37,8 @@
     "vitesse",
     "replit",
     "ruspty",
-    "prebuild"
+    "prebuild",
+    "neondatabase"
   ],
   "ignorePaths": [
     "bun.lockb",
