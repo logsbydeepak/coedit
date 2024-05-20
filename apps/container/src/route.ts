@@ -9,6 +9,7 @@ import { terminalRoute } from './route/terminal'
 import { apiClient } from './utils/api-client'
 import { h } from './utils/h'
 import { emitStop, setActive } from './utils/lifecycle'
+import { logger } from './utils/logger'
 
 const route = h()
   .route('/explorer', explorerRoute)
@@ -58,9 +59,7 @@ const auth = async (token: string) => {
     const resData = await res.json()
     return resData.code === 'OK'
   } catch (error) {
-    if (error instanceof HTTPException) {
-      return false
-    }
+    logger.error('error while checking auth')
     return false
   }
 }

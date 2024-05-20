@@ -31,7 +31,7 @@ const useExplorerQuery = (path: string) =>
       return await res.json()
     },
     queryKey: ['file-explorer', path],
-    refetchInterval: ms('6s'),
+    refetchInterval: ms('4s'),
   })
 
 export default function FileExplorer() {
