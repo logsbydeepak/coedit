@@ -1,4 +1,3 @@
-import { DescribeNetworkInterfacesCommand } from '@aws-sdk/client-ec2'
 import {
   DescribeTasksCommand,
   ECSClient,
@@ -36,7 +35,7 @@ export async function runTaskCommand(
     AWS_SUBNET_ID: string
     AWS_ECS_INFRASTRUCTURE_ROLE_ARN: string
   },
-  input: { snapshotId: string; projectId: string }
+  input: { snapshotId: string; projectTagId: string }
 ) {
   const command = new RunTaskCommand({
     cluster: ECS_CLUSTER,
@@ -61,7 +60,7 @@ export async function runTaskCommand(
                 { key: 'type', value: 'project' },
                 {
                   key: 'id',
-                  value: input.projectId,
+                  value: input.projectTagId,
                 },
               ],
             },

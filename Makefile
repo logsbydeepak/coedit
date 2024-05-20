@@ -15,7 +15,7 @@ dev-start:
 		-it \
 		-v .:/root/coedit \
 		-v /root/coedit/node_modules/ \
-		-p 4000:4000 \
+		-p 4000:80 \
 		-p 3000:3000 \
 		--add-host host.docker.internal:host-gateway \
 		coedit:dev bash
@@ -34,7 +34,7 @@ dev-stop:
 prod-start:
 	@echo "-> PROD IMAGE START"
 	docker run --name coedit-prod \
-		-p 4000:4000 \
+		-p 4000:80 \
 		-p 3000:3000 \
 		--add-host host.docker.internal:host-gateway \
 		-e PORT="4000" \

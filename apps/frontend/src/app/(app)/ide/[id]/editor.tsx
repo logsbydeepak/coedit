@@ -277,6 +277,7 @@ function TextEditorWrapper({
     },
     enabled: isValidFile,
     queryKey: ['files', filePath],
+    staleTime: Infinity,
     refetchInterval: false,
     refetchIntervalInBackground: false,
     refetchOnMount: false,

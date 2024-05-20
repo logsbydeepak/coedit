@@ -164,7 +164,7 @@ const startProject = hAuth().post(
       }
 
       const snapshot = await createSnapshotCommand(ec2Client, {
-        projectId: input.id,
+        projectTagId: input.id,
         volumeId,
       })
 
@@ -176,7 +176,7 @@ const startProject = hAuth().post(
       }
 
       const res = await waitUntilSnapshotAvailable(ec2Client, {
-        snapshotId: snapshot.data.SnapshotId,
+        snapshotTagId: input.id,
       })
 
       if (res.code === 'TIMEOUT') {
@@ -194,7 +194,7 @@ const startProject = hAuth().post(
 
     const task = await runTaskCommand(ecsClient, c.env, {
       snapshotId,
-      projectId: input.id,
+      projectTagId: input.id,
     })
     if (task.code === 'NOT_CREATED') {
       return c.json(r('INVALID_PROJECT_ID'))
@@ -208,10 +208,10 @@ const startProject = hAuth().post(
     await KVProject(redis(c.env), input.id).set(taskArn)
 
     const res = await waitUntilVolumeAvailable(ec2Client, {
-      volumeId: input.id,
+      volumeTagId: input.id,
     })
 
-    if (res.code !== 'TIMEOUT') {
+    if (res.code === 'TIMEOUT') {
       return c.json(r('TIMEOUT'))
     }
 
@@ -254,7 +254,8 @@ const projectStatus = hAuth().get(
     if (c.env.CONTAINER_MODE === 'mock') {
       return c.json(
         r('OK', {
-          publicIP: 'localhost',
+          api: 'http://localhost:4000',
+          output: 'http://localhost:3000',
         })
       )
     }
@@ -303,14 +304,19 @@ const projectStatus = hAuth().get(
         return c.json(r('INVALID_PROJECT_ID'))
       }
 
-      return c.json(r('OK', { publicIP: publicIP.data.IP }))
+      return c.json(
+        r('OK', {
+          api: `http://${publicIP.data.IP}`,
+          output: `http://${publicIP.data.IP}:3000`,
+        })
+      )
     }
 
     if (!task.data.lastStatus) {
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
-    return c.json(r('OK', { status: task.data.lastStatus }))
+    return c.json(r('STATUS', { status: task.data.lastStatus }))
   }
 )
 

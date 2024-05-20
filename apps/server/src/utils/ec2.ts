@@ -138,10 +138,12 @@ export async function getPublicIPCommand(
 
 export async function waitUntilVolumeAvailable(
   client: EC2Client,
-  input: { volumeId: string }
+  input: { volumeTagId: string }
 ) {
-  for (let i = 0; i < 5; i++) {
-    const res = await getVolumeCommand(client, { projectTagId: input.volumeId })
+  for (let i = 0; i < 10; i++) {
+    const res = await getVolumeCommand(client, {
+      projectTagId: input.volumeTagId,
+    })
     if (res.code === 'OK') {
       if (res.data.State === 'available') {
         return r('OK')
@@ -162,11 +164,11 @@ function wait(ms: number) {
 
 export async function waitUntilSnapshotAvailable(
   client: EC2Client,
-  input: { snapshotId: string }
+  input: { snapshotTagId: string }
 ) {
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 10; i++) {
     const res = await getSnapshotCommand(client, {
-      projectTagId: input.snapshotId,
+      projectTagId: input.snapshotTagId,
     })
     if (res.code === 'OK') {
       if (res.data.State === 'completed') {
@@ -181,7 +183,7 @@ export async function waitUntilSnapshotAvailable(
 
 export async function createSnapshotCommand(
   client: EC2Client,
-  input: { volumeId: string; projectId: string }
+  input: { volumeId: string; projectTagId: string }
 ) {
   const command = new CreateSnapshotCommand({
     VolumeId: input.volumeId,
@@ -195,7 +197,7 @@ export async function createSnapshotCommand(
           },
           {
             Key: 'id',
-            Value: input.projectId,
+            Value: input.projectTagId,
           },
         ],
       },

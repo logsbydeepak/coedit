@@ -59,7 +59,7 @@ export function sendAuthEmail(
     code: number
   }
 ) {
-  const text = `coedit: code ${code}`
+  const text = `code: ${code}`
   const resendClient = resend({
     RESEND_API_KEY: env.RESEND_API_KEY,
   })

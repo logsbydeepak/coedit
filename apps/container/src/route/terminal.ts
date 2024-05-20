@@ -21,6 +21,12 @@ const terminal = h().get(
           const term = createTerm({
             id,
             ws,
+            onExit: () => {
+              const term = termGroup.get(id)
+              if (!term) return
+              termGroup.delete(id)
+              ws.send(sendData({ event: 'remove', data: id }))
+            },
           })
 
           termGroup.set(id, term)
@@ -75,7 +81,15 @@ const terminal = h().get(
   })
 )
 
-function createTerm({ id, ws }: { id: string; ws: WSContext }) {
+function createTerm({
+  id,
+  ws,
+  onExit,
+}: {
+  id: string
+  ws: WSContext
+  onExit: () => void
+}) {
   const USER = 'coedit'
   const WORKSPACE = `/home/${USER}/workspace`
 
@@ -85,9 +99,7 @@ function createTerm({ id, ws }: { id: string; ws: WSContext }) {
     envs: {
       TERM: 'xterm-256color',
     },
-    onExit: () => {
-      killTerm(pty)
-    },
+    onExit,
     onData: (error, data) => {
       if (error) return
       ws.send(sendData({ event: 'term', data: { id, data: data.toString() } }))

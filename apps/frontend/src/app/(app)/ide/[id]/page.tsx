@@ -10,7 +10,7 @@ import { apiClient } from '#/utils/hc-client'
 
 import { Status, StatusContainer } from './components'
 import { IDE } from './ide'
-import { publicIPAtom } from './store'
+import { containerURLAtom } from './store'
 
 export default function Page() {
   const [isReady, setIsReady] = React.useState(false)
@@ -28,7 +28,7 @@ function Init({
   setIsReady: React.Dispatch<React.SetStateAction<boolean>>
 }) {
   const params = useParams<{ id: string }>()
-  const setPublicIP = useSetAtom(publicIPAtom)
+  const setContainerURL = useSetAtom(containerURLAtom)
 
   const findQuery = useQuery({
     queryFn: async () => {
@@ -40,7 +40,8 @@ function Init({
 
       return await res.json()
     },
-    queryKey: [undefined],
+    queryKey: ['start', params.id],
+    staleTime: Infinity,
     refetchOnMount: false,
     refetchOnReconnect: false,
     refetchInterval: false,
@@ -57,8 +58,9 @@ function Init({
 
       return await res.json()
     },
+    staleTime: Infinity,
     enabled: findQuery.data?.code === 'OK',
-    queryKey: [undefined],
+    queryKey: ['status', params.id],
     refetchInterval: ms('4s'),
   })
 
@@ -76,6 +78,10 @@ function Init({
       return 'error'
     }
 
+    if (findQuery.data?.code === 'TIMEOUT') {
+      return 'timeout'
+    }
+
     if (
       findQuery.data?.code === 'INVALID_PROJECT_ID' ||
       statusQuery.data?.code === 'INVALID_PROJECT_ID'
@@ -83,10 +89,8 @@ function Init({
       return 'not found'
     }
 
-    if (statusQuery.data?.code === 'OK') {
-      if (!('publicIP' in statusQuery.data)) {
-        return statusQuery.data.status.toLowerCase()
-      }
+    if (statusQuery.data?.code === 'STATUS') {
+      return statusQuery.data.status.toLowerCase()
     }
 
     return 'error'
@@ -100,13 +104,15 @@ function Init({
 
   React.useEffect(() => {
     if (statusQuery.data?.code === 'OK') {
-      if ('publicIP' in statusQuery.data) {
-        setPublicIP(statusQuery.data.publicIP)
-        setIsReady(true)
-        return
-      }
+      console.log(statusQuery.data)
+      setContainerURL({
+        api: statusQuery.data.api,
+        output: statusQuery.data.output,
+      })
+      setIsReady(true)
+      return
     }
-  }, [statusQuery.data, setIsReady, setPublicIP])
+  }, [statusQuery.data, setIsReady, setContainerURL])
 
   return (
     <StatusContainer className="absolute pt-14">

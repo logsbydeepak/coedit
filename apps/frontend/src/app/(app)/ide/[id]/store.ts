@@ -2,7 +2,10 @@
 
 import { atom, createStore } from 'jotai'
 
-export const publicIPAtom = atom('')
+export const containerURLAtom = atom({
+  api: '',
+  output: '',
+})
 
 export const store = createStore()
 export const editFileAtom = atom<{
@@ -14,9 +17,7 @@ export const tokenAtom = atom('')
 
 export const getToken = () => store.get(tokenAtom)
 
-const IP = () => store.get(publicIPAtom)
-
 export const containerURL = () => ({
-  api: `http://${IP()}:4000`,
-  output: `http://${IP()}:3000`,
+  api: store.get(containerURLAtom).api,
+  output: store.get(containerURLAtom).output,
 })
