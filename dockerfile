@@ -12,8 +12,6 @@ ENV PATH="/root/.cargo/bin:$PATH"
 ENV PATH="/root/.bun/bin:$PATH"
 
 RUN bun install
-RUN bun run tsc
-RUN bun run container:prebuild
 RUN bun run container:build
 
 FROM ubuntu:22.04 as runner
@@ -41,7 +39,7 @@ COPY starship.toml /home/coedit/.config/
 RUN chown -R $NEW_USER:$NEW_USER /home/coedit/.config
 
 COPY --from=builder /root/coedit/apps/container/dist/ /root/coedit/
-COPY --from=builder /root/coedit/packages/ruspty/index.linux-arm64-gnu.node /root/coedit/packages/ruspty/
+COPY --from=builder /root/coedit/packages/ruspty/index.*.node /root/coedit/packages/ruspty/
 
 RUN rm -rf /etc/sudoers.d/$NEW_USER
 RUN deluser $NEW_USER sudo
