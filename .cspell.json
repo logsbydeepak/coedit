@@ -38,7 +38,8 @@
     "replit",
     "ruspty",
     "prebuild",
-    "neondatabase"
+    "neondatabase",
+    "astro"
   ],
   "ignorePaths": [
     "bun.lockb",

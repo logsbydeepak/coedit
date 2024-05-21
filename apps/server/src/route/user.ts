@@ -1,8 +1,8 @@
 import { eq } from 'drizzle-orm'
 
+import { db, dbSchema } from '@coedit/db'
 import { r } from '@coedit/r'
 
-import { db, dbSchema } from '#/db'
 import { redis } from '#/lib/config'
 import { removeAuthCookie } from '#/utils/auth'
 import { h, hAuth } from '#/utils/h'

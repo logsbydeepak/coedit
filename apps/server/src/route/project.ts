@@ -3,10 +3,10 @@ import { and, eq } from 'drizzle-orm'
 import { isValid, ulid } from 'ulidx'
 import { z } from 'zod'
 
+import { db, dbSchema } from '@coedit/db'
 import { r } from '@coedit/r'
 import { zReqString } from '@coedit/zschema'
 
-import { db, dbSchema } from '#/db'
 import { ec2, ecs, redis } from '#/lib/config'
 import {
   copySnapshotCommand,

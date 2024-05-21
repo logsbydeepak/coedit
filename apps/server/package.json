@@ -9,19 +9,14 @@
     "deploy": "wrangler deploy --minify src/index.ts --name api-coedit",
     "tsc:clean": "rm -rf tsc tsconfig.tsbuildinfo",
     "tsc:build": "tsc --build",
-    "tsc": "run-s tsc:clean tsc:build",
-    "db:gen": "drizzle-kit generate:mysql",
-    "db:push": "bun --env-file .dev.vars drizzle-kit push:pg",
-    "db:gen:push": "run-s db:gen db:push"
+    "tsc": "run-s tsc:clean tsc:build"
   },
   "dependencies": {
     "@aws-sdk/client-ec2": "^3.568.0",
     "@aws-sdk/client-ecs": "^3.554.0",
     "@hono/zod-validator": "^0.2.1",
-    "@neondatabase/serverless": "^0.9.3",
     "@types/ms": "^0.7.34",
     "@upstash/redis": "^1.29.0",
-    "drizzle-orm": "^0.30.10",
     "hono": "^4.1.4",
     "jose": "^5.2.3",
     "ms": "^2.1.3",
@@ -30,7 +25,6 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240208.0",
-    "drizzle-kit": "^0.20.17",
     "wrangler": "^3.32.0"
   }
 }
