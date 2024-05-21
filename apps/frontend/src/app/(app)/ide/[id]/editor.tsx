@@ -44,6 +44,12 @@ const languageMap: Record<string, BundledLanguage | 'text'> = {
   rs: 'rust',
   svg: 'html',
   gitignore: 'text',
+  txt: 'text',
+  dockerfile: 'dockerfile',
+  Dockerfile: 'dockerfile',
+  yaml: 'yaml',
+  nix: 'nix',
+  astro: 'astro',
 }
 
 export default function TextEditor() {
@@ -414,10 +420,12 @@ const getLanguage = (name: string) => {
 }
 
 const validFileExtensions = (name: string) => {
-  const parts = name.split('.')
+  const newName = name.split('/').pop()
+  if (!newName) return false
+  const parts = newName.split('.')
   const ext = parts[parts.length - 1]
-
   const language = languageMap[ext]
   if (language) return true
+
   return false
 }

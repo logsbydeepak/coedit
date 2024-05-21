@@ -104,7 +104,6 @@ function Init({
 
   React.useEffect(() => {
     if (statusQuery.data?.code === 'OK') {
-      console.log(statusQuery.data)
       setContainerURL({
         api: statusQuery.data.api,
         output: statusQuery.data.output,
