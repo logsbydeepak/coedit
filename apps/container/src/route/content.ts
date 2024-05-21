@@ -1,6 +1,6 @@
 import path from 'node:path'
-import { serveStatic } from '@hono/node-server/serve-static'
 import { zValidator } from '@hono/zod-validator'
+import { serveStatic } from 'hono/bun'
 import { z } from 'zod'
 
 import { r } from '@coedit/r'

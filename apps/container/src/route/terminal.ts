@@ -95,7 +95,13 @@ function createTerm({
 
   const pty = new Pty({
     command: 'su',
-    args: [USER, '--login', '--pty', '-c', `cd ${WORKSPACE}; bash`],
+    args: [
+      USER,
+      '--login',
+      '--pty',
+      '-c',
+      `cd ${WORKSPACE}; devbox init && devbox shell`,
+    ],
     envs: {
       TERM: 'xterm-256color',
     },
