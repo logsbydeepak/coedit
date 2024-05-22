@@ -92,6 +92,10 @@ step_print() {
   echo "--------------------------------------"
 }
 
+delay() {
+  sleep 10
+}
+
 
 
 # RUN
@@ -132,6 +136,8 @@ do
   step_print "Creating volume"
   VOLUME_ID=$(create_volume)
 
+  delay
+
   step_print "Attaching volume"
   attach_volume
 
@@ -144,6 +150,8 @@ do
   step_print "Detaching volume"
   detach_volume $VOLUME_ID
 
+  delay
+
   step_print "Creating snapshot"
   VOLUME_TAG_ID=$(generate_tag_id)
   create_snapshot $VOLUME_ID $VOLUME_TAG_ID
@@ -151,8 +159,12 @@ do
   step_print "Inserting into db"
   bun run db.ts --type insert --id $VOLUME_TAG_ID --name "$name"
 
+  delay
+
   step_print "Deleting volume"
   delete_volume $VOLUME_ID
+
+  delay
 done < template.csv
 
 step_print "Removing all template volumes"

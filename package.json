@@ -6,6 +6,7 @@
     "cspell": "cspell ** --gitignore --cache",
     "fix": "run-s format cspell && bun run --filter '*' fix",
     "tsc": "bun run --filter '*' tsc",
+    "db:gen:push": "bun run --cwd packages/db db:gen:push",
     "frontend:dev": "bun run --cwd apps/frontend dev",
     "container:dev": "bun run --cwd apps/container dev",
     "server:dev": "bun run --cwd apps/server dev",

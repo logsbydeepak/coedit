@@ -57,7 +57,7 @@ export function Form({ name, email }: { name: string; email: string }) {
           json: {
             code: data.code,
             email: data.email,
-            name: data.code,
+            name: data.name,
           },
         })
 
