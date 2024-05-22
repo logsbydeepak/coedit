@@ -41,7 +41,7 @@ function Init({
       return await res.json()
     },
     queryKey: ['start', params.id],
-    staleTime: Infinity,
+    staleTime: 0,
     refetchOnMount: false,
     refetchOnReconnect: false,
     refetchInterval: false,
@@ -58,7 +58,7 @@ function Init({
 
       return await res.json()
     },
-    staleTime: Infinity,
+    staleTime: 0,
     enabled: findQuery.data?.code === 'OK',
     queryKey: ['status', params.id],
     refetchInterval: ms('4s'),

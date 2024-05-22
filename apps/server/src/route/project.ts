@@ -1,3 +1,4 @@
+import { EC2Client } from '@aws-sdk/client-ec2'
 import { zValidator } from '@hono/zod-validator'
 import { and, eq } from 'drizzle-orm'
 import { isValid, ulid } from 'ulidx'
@@ -13,6 +14,7 @@ import {
   createSnapshotCommand,
   deleteSnapshotCommand,
   deleteVolumeCommand,
+  getLatestVolumeORSnapshot,
   getPublicIPCommand,
   getSnapshotCommand,
   getVolumeCommand,
@@ -140,27 +142,27 @@ const startProject = hAuth().post(
 
     let snapshotId = ''
 
-    const projectSnapshot = await getSnapshotCommand(ec2Client, {
+    const latestVolumeORSnapshot = await getLatestVolumeORSnapshot(ec2Client, {
       projectTagId: input.id,
     })
 
-    if (projectSnapshot.code === 'OK') {
-      if (projectSnapshot.data.SnapshotId) {
-        snapshotId = projectSnapshot.data.SnapshotId
-      }
+    if (latestVolumeORSnapshot.code === 'NOT_FOUND') {
+      return c.json(r('INVALID_PROJECT_ID'))
     }
 
-    if (projectSnapshot.code === 'NOT_FOUND') {
-      const volume = await getVolumeCommand(ec2Client, {
-        projectTagId: input.id,
-      })
-      if (volume.code === 'NOT_FOUND') {
-        return c.json(r('INVALID_PROJECT_ID'))
-      }
+    if (latestVolumeORSnapshot.data.type === 'snapshot') {
+      snapshotId = latestVolumeORSnapshot.data.id
+    }
 
-      const volumeId = volume.data.VolumeId
-      if (!volumeId) {
-        return c.json(r('INVALID_PROJECT_ID'))
+    if (latestVolumeORSnapshot.data.type === 'volume') {
+      const volumeId = latestVolumeORSnapshot.data.id
+
+      const waitVolume = await waitUntilVolumeAvailable(ec2Client, {
+        volumeId,
+      })
+
+      if (waitVolume.code === 'TIMEOUT') {
+        return c.json(r('TIMEOUT'))
       }
 
       const snapshot = await createSnapshotCommand(ec2Client, {
@@ -175,21 +177,18 @@ const startProject = hAuth().post(
         return c.json(r('INVALID_PROJECT_ID'))
       }
 
-      const res = await waitUntilSnapshotAvailable(ec2Client, {
-        snapshotTagId: input.id,
-      })
-
-      if (res.code === 'TIMEOUT') {
-        return c.json(r('TIMEOUT'))
-      }
-
-      await deleteVolumeCommand(ec2Client, { volumeId })
-
       snapshotId = snapshot.data.SnapshotId
     }
 
     if (!snapshotId) {
       return c.json(r('INVALID_PROJECT_ID'))
+    }
+
+    const waitSnapshot = await waitUntilSnapshotAvailable(ec2Client, {
+      snapshotId: snapshotId,
+    })
+    if (waitSnapshot.code === 'TIMEOUT') {
+      return c.json(r('TIMEOUT'))
     }
 
     const task = await runTaskCommand(ecsClient, c.env, {
@@ -206,16 +205,6 @@ const startProject = hAuth().post(
     }
 
     await KVProject(redis(c.env), input.id).set(taskArn)
-
-    const res = await waitUntilVolumeAvailable(ec2Client, {
-      volumeTagId: input.id,
-    })
-
-    if (res.code === 'TIMEOUT') {
-      return c.json(r('TIMEOUT'))
-    }
-
-    await deleteSnapshotCommand(ec2Client, { snapshotId })
 
     return c.json(r('OK'))
   }

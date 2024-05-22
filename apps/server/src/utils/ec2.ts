@@ -138,19 +138,22 @@ export async function getPublicIPCommand(
 
 export async function waitUntilVolumeAvailable(
   client: EC2Client,
-  input: { volumeTagId: string }
+  input: { volumeId: string }
 ) {
   for (let i = 0; i < 10; i++) {
-    const res = await getVolumeCommand(client, {
-      projectTagId: input.volumeTagId,
+    const command = new DescribeVolumesCommand({
+      VolumeIds: [input.volumeId],
     })
-    if (res.code === 'OK') {
-      if (res.data.State === 'available') {
+
+    const res = await client.send(command)
+
+    if (res.Volumes && res.Volumes.length > 0) {
+      if (res.Volumes[0].State === 'available') {
         return r('OK')
       }
     }
 
-    await wait(ms('1s'))
+    await wait(ms('5s'))
   }
 
   return r('TIMEOUT')
@@ -164,19 +167,22 @@ function wait(ms: number) {
 
 export async function waitUntilSnapshotAvailable(
   client: EC2Client,
-  input: { snapshotTagId: string }
+  input: { snapshotId: string }
 ) {
   for (let i = 0; i < 10; i++) {
-    const res = await getSnapshotCommand(client, {
-      projectTagId: input.snapshotTagId,
+    const command = new DescribeSnapshotsCommand({
+      SnapshotIds: [input.snapshotId],
     })
-    if (res.code === 'OK') {
-      if (res.data.State === 'completed') {
+
+    const res = await client.send(command)
+
+    if (res.Snapshots && res.Snapshots.length > 0) {
+      if (res.Snapshots[0].State === 'completed') {
         return r('OK')
       }
     }
 
-    await wait(ms('1s'))
+    await wait(ms('5s'))
   }
   return r('TIMEOUT')
 }
@@ -237,4 +243,86 @@ export async function deleteVolumeCommand(
   await client.send(command)
 
   return r('OK')
+}
+
+export async function getLatestVolumeORSnapshot(
+  ec2Client: EC2Client,
+  input: { projectTagId: string }
+) {
+  const allVolumesCommand = new DescribeVolumesCommand({
+    Filters: [
+      {
+        Name: 'tag:type',
+        Values: ['project'],
+      },
+      {
+        Name: 'tag:id',
+        Values: [input.projectTagId],
+      },
+    ],
+  })
+
+  const allSnapshotsCommand = new DescribeSnapshotsCommand({
+    Filters: [
+      {
+        Name: 'tag:type',
+        Values: ['project'],
+      },
+      {
+        Name: 'tag:id',
+        Values: [input.projectTagId],
+      },
+    ],
+  })
+
+  const volumesRes = ec2Client.send(allVolumesCommand)
+  const snapshotsRes = ec2Client.send(allSnapshotsCommand)
+
+  const latest = await Promise.all([volumesRes, snapshotsRes])
+  if (!latest) {
+    return r('NOT_FOUND')
+  }
+
+  const volumes = latest[0].Volumes
+  const snapshots = latest[1].Snapshots
+
+  if (!volumes || !snapshots) {
+    return r('NOT_FOUND')
+  }
+
+  if (volumes.length === 0 && snapshots.length === 0) {
+    return r('NOT_FOUND')
+  }
+
+  let latestDate = new Date(0)
+
+  const result: {
+    id: string
+    type: 'volume' | 'snapshot'
+  } = {
+    id: '',
+    type: 'volume',
+  }
+
+  volumes.forEach((volume) => {
+    if (!volume.CreateTime) return
+    if (!volume.VolumeId) return
+    if (volume.CreateTime > latestDate) {
+      latestDate = volume.CreateTime
+      result.id = volume.VolumeId
+      result.type = 'volume'
+    }
+  })
+
+  snapshots.forEach((snapshot) => {
+    if (!snapshot.StartTime) return
+    if (!snapshot.SnapshotId) return
+    if (snapshot.StartTime > latestDate) {
+      latestDate = snapshot.StartTime
+      result.id = snapshot.SnapshotId
+      result.type = 'snapshot'
+    }
+  })
+
+  return r('OK', { data: result })
 }
