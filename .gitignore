@@ -41,3 +41,10 @@ static
 
 # ruspty
 release
+
+*.prod.toml
+*.dev.toml
+*.prod.env
+*.dev.env
+apps/container/certificate/
+
