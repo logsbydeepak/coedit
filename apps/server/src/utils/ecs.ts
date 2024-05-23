@@ -69,7 +69,7 @@ export async function runTaskCommand(
           encrypted: false,
           snapshotId: input.snapshotId,
           filesystemType: 'ext4',
-          sizeInGiB: 6,
+          sizeInGiB: 10,
           roleArn: env.AWS_ECS_INFRASTRUCTURE_ROLE_ARN,
           terminationPolicy: {
             deleteOnTermination: false,

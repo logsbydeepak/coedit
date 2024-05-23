@@ -295,8 +295,8 @@ const projectStatus = hAuth().get(
 
       return c.json(
         r('OK', {
-          api: `http://${publicIP.data.IP}`,
-          output: `http://${publicIP.data.IP}:3000`,
+          api: `https://${publicIP.data.IP}`,
+          output: `https://${publicIP.data.IP}:3000`,
         })
       )
     }

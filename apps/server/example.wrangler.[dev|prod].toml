@@ -1,0 +1,31 @@
+name = "api-coedit"
+compatibility_date = "2023-12-01"
+compatibility_flags = [ "nodejs_compat" ]
+
+[dev]
+port=5000
+
+[vars]
+AWS_ACCESS_KEY_ID=""
+AWS_ECS_INFRASTRUCTURE_ROLE_ARN=""
+AWS_REGION=""
+AWS_SECRET_ACCESS_KEY=""
+AWS_SECURITY_GROUP_ID=""
+AWS_SUBNET_ID=""
+
+CONTAINER_MODE="aws" # mock OR aws
+
+DB_URL="" # neon db
+
+JWT_SECRET=""
+
+RESEND_API_KEY=""
+RESEND_FROM="team <abc@example.com>"
+
+UPSTASH_REDIS_REST_TOKEN=""
+UPSTASH_REDIS_REST_URL=""
+
+RUNTIME="production" # production OR development
+
+COOKIE_DOMAIN="localhost"
+CORS_ORIGIN="http://localhost:5001"
