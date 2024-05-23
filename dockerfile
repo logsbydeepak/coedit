@@ -40,6 +40,8 @@ RUN chown -R $NEW_USER:$NEW_USER /home/coedit/.config
 
 COPY --from=builder /root/coedit/apps/container/dist/ /root/coedit/
 COPY --from=builder /root/coedit/packages/ruspty/index.*.node /root/coedit/packages/ruspty/
+COPY --from=builder /root/coedit/apps/container/certificate/ /root/coedit/apps/container/certificate/
+
 
 RUN rm -rf /etc/sudoers.d/$NEW_USER
 RUN deluser $NEW_USER sudo
