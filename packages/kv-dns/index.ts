@@ -1,7 +1,7 @@
 import { Redis } from '@upstash/redis'
 
 export function KVdns(client: Redis, subdomain: string) {
-  const key = `dns-${subdomain}`
+  const key = subdomain
 
   async function set(ip: string) {
     const res = await client.set(key, ip)
