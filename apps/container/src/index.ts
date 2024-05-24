@@ -16,6 +16,7 @@ const server = Bun.serve(
         port: 443,
         cert: Bun.file('/root/coedit/apps/container/certificate/cert.pem'),
         key: Bun.file('/root/coedit/apps/container/certificate/key.pem'),
+        ca: Bun.file('/root/coedit/apps/container/certificate/chain.pem'),
         websocket,
       }
 )
