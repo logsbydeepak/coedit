@@ -39,7 +39,8 @@
     "ruspty",
     "prebuild",
     "neondatabase",
-    "astro"
+    "astro",
+    "NXDOMAIN"
   ],
   "ignorePaths": [
     "bun.lockb",

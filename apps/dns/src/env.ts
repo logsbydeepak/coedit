@@ -3,8 +3,8 @@ import { z } from 'zod'
 import { zReqString } from '@coedit/zschema'
 
 const schema = z.object({
-  UPSTASH_REDIS_REST_URL: zReqString.url(),
-  UPSTASH_REDIS_REST_TOKEN: zReqString,
+  DNS_UPSTASH_REDIS_REST_URL: zReqString.url(),
+  DNS_UPSTASH_REDIS_REST_TOKEN: zReqString,
   ROOT_DOMAIN: zReqString,
 })
 

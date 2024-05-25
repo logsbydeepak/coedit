@@ -1,76 +1,116 @@
+import dgram from 'dgram'
 import dnsPacket from 'dns-packet'
 
 import '#/env'
 
 import { KVdns } from '@coedit/kv-dns'
 
-import { env } from '#/env'
 import { logger } from '#/utils/logger'
 
 import { getSubdomain } from './utils'
 import { redis } from './utils/config'
 
-await Bun.udpSocket({
-  port: 53,
-  socket: {
-    error: (_, error) => {
-      logger.error(error, 'Socket error')
-    },
-    data: async (socket, buf, port, addr) => {
-      const decode = dnsPacket.decode(buf)
-      try {
-        const questions = decode?.questions
-        if (!questions) return
-        if (questions.length === 0) return
-        const question = questions[0]
+const server = dgram.createSocket('udp4')
 
-        logger.info(question, 'DNS request')
+const NXDOMAIN = 0x03
+server.on('message', async (msg, rinfo) => {
+  const decode = dnsPacket.decode(msg)
+  const questions = decode?.questions
 
-        if (!question.name) return
-        if (question.type !== 'A') return
+  if (!questions) return
+  if (questions.length === 0) return
+  const question = questions[0]
 
-        const subdomain = getSubdomain(question.name)
-        if (subdomain.code !== 'OK') {
-          throw new Error('Invalid URL')
-        }
+  try {
+    logger.info(question, 'DNS request')
 
-        const redisClient = redis(env)
-        const KVClient = KVdns(redisClient, subdomain.data)
-        const ip = await KVClient.get()
-        if (!ip) {
-          throw new Error('KVClient not found')
-        }
+    if (!question.name) {
+      throw new Error("Invalid request: 'name' is required")
+    }
 
-        const response = dnsPacket.encode({
-          type: 'response',
-          id: decode.id,
-          flags: dnsPacket.AUTHORITATIVE_ANSWER,
-          questions: decode.questions,
-          answers: [
-            {
-              type: 'A',
-              class: 'IN',
-              name: question.name,
-              ttl: 300,
-              data: ip,
-            },
-          ],
-        })
+    if (question.type !== 'A') {
+      throw new Error("Invalid request: 'type' must be 'A'")
+    }
 
-        socket.send(response, port, addr)
-      } catch (error) {
-        const response = dnsPacket.encode({
-          type: 'response',
-          id: decode.id,
-          flags: dnsPacket.AUTHORITATIVE_ANSWER,
-          questions: decode.questions,
-          answers: [],
-        })
+    const subdomain = getSubdomain(question.name)
+    if (subdomain.code !== 'OK') {
+      throw new Error('Invalid URL')
+    }
 
-        socket.send(response, port, addr)
+    await ipLookup({
+      info: JSON.stringify(rinfo),
+      subdomain: subdomain.data,
+      questions,
+      decoded: decode,
+    })
+  } catch (error) {
+    const response = dnsPacket.encode({
+      type: 'response',
+      id: decode.id,
+      flags: NXDOMAIN,
+      questions: questions,
+    })
+
+    server.send(response, rinfo.port, rinfo.address, (err) => {
+      if (err) {
+        logger.error(err, 'Error sending response')
+      } else {
+        logger.info('Response sent')
       }
-    },
-  },
+    })
+  }
 })
 
-logger.info(`Listening on port 53`)
+const ipLookup = async ({
+  info,
+  subdomain,
+  questions,
+  decoded,
+}: {
+  info: string
+  subdomain: string
+  questions: dnsPacket.Question[]
+  decoded: dnsPacket.DecodedPacket
+}) => {
+  const taskInfo = JSON.parse(info)
+  const redisClient = redis()
+  const KVClient = KVdns(redisClient, subdomain)
+  const ip = await KVClient.get()
+  if (!ip) {
+    throw new Error('IP not found')
+  }
+
+  const response = dnsPacket.encode({
+    type: 'response',
+    id: decoded.id,
+    flags: dnsPacket.AUTHORITATIVE_ANSWER,
+    questions: questions,
+    answers: [
+      {
+        type: 'A',
+        class: 'IN',
+        name: subdomain,
+        data: ip,
+      },
+    ],
+  })
+
+  server.send(response, taskInfo.port, taskInfo.address, (err) => {
+    if (err) {
+      logger.error(err, 'Error sending response')
+    } else {
+      logger.info('Response sent')
+    }
+  })
+}
+
+server.on('error', (err) => {
+  logger.error(err, 'Server error')
+})
+
+server.on('listening', () => {
+  const address = server.address()
+  logger.info(`Listening on ${address.address}:${address.port}`)
+})
+
+server.bind(53)
