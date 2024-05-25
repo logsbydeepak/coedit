@@ -1,10 +1,10 @@
-import { EC2Client } from '@aws-sdk/client-ec2'
 import { zValidator } from '@hono/zod-validator'
 import { and, eq } from 'drizzle-orm'
 import { isValid, ulid } from 'ulidx'
 import { z } from 'zod'
 
 import { db, dbSchema } from '@coedit/db'
+import { KVdns } from '@coedit/kv-dns'
 import { r } from '@coedit/r'
 import { zReqString } from '@coedit/zschema'
 
@@ -12,12 +12,9 @@ import { ec2, ecs, redis } from '#/lib/config'
 import {
   copySnapshotCommand,
   createSnapshotCommand,
-  deleteSnapshotCommand,
-  deleteVolumeCommand,
   getLatestVolumeORSnapshot,
   getPublicIPCommand,
   getSnapshotCommand,
-  getVolumeCommand,
   waitUntilSnapshotAvailable,
   waitUntilVolumeAvailable,
 } from '#/utils/ec2'
@@ -293,10 +290,22 @@ const projectStatus = hAuth().get(
         return c.json(r('INVALID_PROJECT_ID'))
       }
 
+      const dnsRedisClient = redis({
+        APP_UPSTASH_REDIS_REST_URL: c.env.DNS_UPSTASH_REDIS_REST_URL,
+        APP_UPSTASH_REDIS_REST_TOKEN: c.env.DNS_UPSTASH_REDIS_REST_TOKEN,
+      })
+
+      const subdomain = ulid().toLowerCase()
+
+      const KVClient = KVdns(dnsRedisClient, subdomain)
+      await KVClient.set(publicIP.data.IP)
+
+      const url = `https://${subdomain}${c.env.DNS_ROOT_DOMAIN}`
+
       return c.json(
         r('OK', {
-          api: `https://${publicIP.data.IP}`,
-          output: `https://${publicIP.data.IP}:3000`,
+          api: url,
+          output: `${url}:3000`,
         })
       )
     }

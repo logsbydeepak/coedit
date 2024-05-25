@@ -8,10 +8,13 @@ export const resend = ({ RESEND_API_KEY }: { RESEND_API_KEY: string }) => {
 }
 
 export const redis = (env: {
-  UPSTASH_REDIS_REST_URL: string
-  UPSTASH_REDIS_REST_TOKEN: string
+  APP_UPSTASH_REDIS_REST_URL: string
+  APP_UPSTASH_REDIS_REST_TOKEN: string
 }) => {
-  return Redis.fromEnv(env)
+  return Redis.fromEnv({
+    UPSTASH_REDIS_REST_URL: env.APP_UPSTASH_REDIS_REST_URL,
+    UPSTASH_REDIS_REST_TOKEN: env.APP_UPSTASH_REDIS_REST_TOKEN,
+  })
 }
 
 export const ecs = (env: {

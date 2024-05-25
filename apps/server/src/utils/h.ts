@@ -8,12 +8,16 @@ export type ENV = {
   RESEND_API_KEY: string
   RESEND_FROM: string
   DB_URL: string
-  UPSTASH_REDIS_REST_URL: string
-  UPSTASH_REDIS_REST_TOKEN: string
   JWT_SECRET: string
   RUNTIME: 'deployment' | 'production'
   CORS_ORIGIN: string
   COOKIE_DOMAIN: string
+
+  APP_UPSTASH_REDIS_REST_URL: string
+  APP_UPSTASH_REDIS_REST_TOKEN: string
+  DNS_UPSTASH_REDIS_REST_URL: string
+  DNS_UPSTASH_REDIS_REST_TOKEN: string
+  DNS_ROOT_DOMAIN: string
 
   AWS_REGION: string
   AWS_ACCESS_KEY_ID: string
