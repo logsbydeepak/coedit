@@ -14,9 +14,8 @@ const server = Bun.serve(
     : {
         fetch: app.fetch,
         port: 443,
-        cert: Bun.file('/root/coedit/apps/container/certificate/cert.pem'),
+        cert: Bun.file('/root/coedit/apps/container/certificate/fullchain.pem'),
         key: Bun.file('/root/coedit/apps/container/certificate/key.pem'),
-        ca: Bun.file('/root/coedit/apps/container/certificate/chain.pem'),
         websocket,
       }
 )
