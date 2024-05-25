@@ -13,7 +13,7 @@ import { redis } from './utils/config'
 const server = dgram.createSocket('udp4')
 
 const NXDOMAIN = 0x03
-server.on('message', async (msg, rinfo) => {
+server.on('message', (msg, rinfo) => {
   const decode = dnsPacket.decode(msg)
   const questions = decode?.questions
 
@@ -37,7 +37,7 @@ server.on('message', async (msg, rinfo) => {
       throw new Error('Invalid URL')
     }
 
-    await ipLookup({
+    ipLookup({
       info: JSON.stringify(rinfo),
       subdomain: subdomain.data,
       questions,
@@ -73,35 +73,54 @@ const ipLookup = async ({
   decoded: dnsPacket.DecodedPacket
 }) => {
   const taskInfo = JSON.parse(info)
-  const redisClient = redis()
-  const KVClient = KVdns(redisClient, subdomain)
-  const ip = await KVClient.get()
-  if (!ip) {
-    throw new Error('IP not found')
-  }
+  const question = questions[0]
 
-  const response = dnsPacket.encode({
-    type: 'response',
-    id: decoded.id,
-    flags: dnsPacket.AUTHORITATIVE_ANSWER,
-    questions: questions,
-    answers: [
-      {
-        type: 'A',
-        class: 'IN',
-        name: subdomain,
-        data: ip,
-      },
-    ],
-  })
-
-  server.send(response, taskInfo.port, taskInfo.address, (err) => {
-    if (err) {
-      logger.error(err, 'Error sending response')
-    } else {
-      logger.info('Response sent')
+  try {
+    const redisClient = redis()
+    const KVClient = KVdns(redisClient, subdomain)
+    const ip = await KVClient.get()
+    if (!ip) {
+      throw new Error('IP not found')
     }
-  })
+
+    const response = dnsPacket.encode({
+      type: 'response',
+      id: decoded.id,
+      flags: dnsPacket.AUTHORITATIVE_ANSWER,
+      questions: questions,
+      answers: [
+        {
+          type: 'A',
+          class: question.class,
+          name: question.name,
+          data: ip,
+        },
+      ],
+    })
+
+    server.send(response, taskInfo.port, taskInfo.address, (err) => {
+      if (err) {
+        logger.error(err, 'Error sending response')
+      } else {
+        logger.info('Response sent')
+      }
+    })
+  } catch (error) {
+    const response = dnsPacket.encode({
+      type: 'response',
+      id: decoded.id,
+      flags: NXDOMAIN,
+      questions: questions,
+    })
+
+    server.send(response, taskInfo.port, taskInfo.address, (err) => {
+      if (err) {
+        logger.error(err, 'Error sending response')
+      } else {
+        logger.info('Response sent')
+      }
+    })
+  }
 }
 
 server.on('error', (err) => {
