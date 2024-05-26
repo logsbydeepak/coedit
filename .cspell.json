@@ -40,7 +40,9 @@
     "prebuild",
     "neondatabase",
     "astro",
-    "NXDOMAIN"
+    "NXDOMAIN",
+    "journalctl",
+    "fullchain"
   ],
   "ignorePaths": [
     "bun.lockb",

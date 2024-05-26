@@ -1,4 +1,5 @@
 import { parseArgs } from 'util'
+import { ulid } from 'ulidx'
 
 import { db, dbSchema } from '@coedit/db'
 
@@ -37,6 +38,10 @@ async function main() {
           name: values.name,
         })
     }
+  }
+
+  if (values.type === 'id') {
+    console.log(ulid())
   }
 }
 main()

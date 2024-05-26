@@ -26,7 +26,7 @@ remove_all_template_volumes() {
 
 upload_file() {
   PATH_TO_UPLOAD=$REMOTE_FILE_PATH/$1
-  scp -i $KEY_PAIR_PATH -r ./$1 $EC2_USER@$EC2_IP:$PATH_TO_UPLOAD
+  scp -i $KEY_PAIR_PATH -r ./src/$1 $EC2_USER@$EC2_IP:$PATH_TO_UPLOAD
 }
 
 create_volume() {
@@ -68,7 +68,7 @@ create_snapshot() {
 }
 
 generate_tag_id() {
-  ID=$(bun generate_template_id.ts | xargs)
+  ID=$(bun utils.ts --type id | xargs)
   echo $ID
 }
 
@@ -97,7 +97,6 @@ delay() {
 }
 
 
-
 # RUN
 source .env
 step_print "Checking environment variables"
@@ -110,7 +109,7 @@ for env_var in $LIST_OF_ENV_VARS; do
 done
 
 step_print "Removing all template from db"
-bun run db.ts --type clean
+bun run utils.ts --type clean
 
 step_print "Removing all template snapshots"
 remove_all_template_snapshots
@@ -157,7 +156,7 @@ do
   create_snapshot $VOLUME_ID $VOLUME_TAG_ID
 
   step_print "Inserting into db"
-  bun run db.ts --type insert --id $VOLUME_TAG_ID --name "$name"
+  bun run utils.ts --type insert --id $VOLUME_TAG_ID --name "$name"
 
   delay
 
