@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "bun --watch src/index.ts | pino-pretty",
     "build:clean": "rm -rf dist",
-    "build:compile": "bun build --compile --target=bun-linux-x64 --minify --sourcemap src/index.ts  --outfile dist/coedit-dns",
+    "build:compile": "bun build --compile --target=bun-linux-x64 --minify --sourcemap src/index.ts  --outfile dist/coedit-ns",
     "build": "run-p build:clean build:compile"
   },
   "dependencies": {

@@ -1,0 +1,12 @@
+[Unit]
+Description=coedit-ns
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/coedit-ns
+EnvironmentFile=/etc/coedit-ns.env
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
