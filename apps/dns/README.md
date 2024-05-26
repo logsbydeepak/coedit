@@ -6,7 +6,7 @@
 bun run dev
 ```
 
-## Test
+Test
 
 ```bash
 dig @localhost test.{ DOMAIN }
@@ -41,9 +41,16 @@ sudo mv ~/coedit-ns.env /etc/
 sudo mv ~/coedit-ns.service /etc/systemd/system
 ```
 
-[coedit-ns.service](coedit-ns.service) path: `/etc/systemd/system/coedit-ns.service`
+Add environment variables before copying. Otherwise, you can edit the file after copying.
 
-[coedit-ns.env](coedit-ns.env) path: `/etc/coedit-ns.env`
+```bash
+# using nano
+sudo nano /etc/coedit-ns.env
+# using vim
+sudo vim /etc/coedit-ns.env
+```
+
+Command to manage service
 
 ```bash
 # reload service file to include new changes
