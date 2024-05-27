@@ -15,6 +15,10 @@ export function Projects() {
       const res = await apiClient.project.$get()
       return await res.json()
     },
+    refetchOnMount: false,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
+    refetchIntervalInBackground: false,
     queryKey: ['projects'],
   })
 

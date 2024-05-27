@@ -35,6 +35,10 @@ function User() {
       return await res.json()
     },
     queryKey: ['user'],
+    refetchOnMount: false,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
+    refetchIntervalInBackground: false,
     retry: 0,
   })
 

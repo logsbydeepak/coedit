@@ -334,7 +334,7 @@ function TextEditorWrapper({
           })
         }
       })
-    }, ms('2s'))
+    }, ms('1s'))
     debounced(value)
   }
 
