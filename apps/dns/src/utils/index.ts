@@ -13,7 +13,7 @@ export function getSubdomain(url: string) {
       throw new Error('the length of split is 0')
     }
 
-    const first = split[0]
+    const first = split[0].replace('-app', '').replace('-server', '')
 
     return r('OK', { data: first })
   } catch (error) {
