@@ -297,15 +297,14 @@ const projectStatus = hAuth().get(
 
       const subdomain = ulid().toLowerCase()
 
+      const IP = publicIP.data.IP
       const KVClient = KVdns(dnsRedisClient, subdomain)
-      await KVClient.set(publicIP.data.IP)
-
-      const url = `https://${subdomain}${c.env.DNS_ROOT_DOMAIN}`
+      await KVClient.set(IP)
 
       return c.json(
         r('OK', {
-          api: url,
-          output: `${url}:3000`,
+          api: `https://${subdomain}-server${c.env.DNS_ROOT_DOMAIN}`,
+          output: `https://${subdomain}-app${c.env.DNS_ROOT_DOMAIN}`,
         })
       )
     }

@@ -1,3 +1,6 @@
+FROM caddy:2.7.6-builder AS caddy-builder
+RUN xcaddy build
+
 FROM ubuntu:22.04
 RUN apt update
 RUN apt -y install bash binutils git xz-utils wget curl sudo unzip build-essential
@@ -27,6 +30,8 @@ RUN chown -R $NEW_USER:$NEW_USER /home/coedit/.config
 
 RUN rm -rf /etc/sudoers.d/$NEW_USER
 RUN deluser $NEW_USER sudo
+
+COPY --from=caddy-builder /usr/bin/caddy /usr/bin/caddy
 
 USER $NEW_USER
 WORKDIR /home/coedit/workspace/

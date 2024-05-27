@@ -15,7 +15,7 @@ dev-start:
 		-it \
 		-v .:/root/coedit \
 		-v /root/coedit/node_modules/ \
-		-p 4000:80 \
+		-p 4000:8000 \
 		-p 3000:3000 \
 		--add-host host.docker.internal:host-gateway \
 		coedit:dev bash
@@ -37,9 +37,9 @@ prod-start:
 		-p 4000:80 \
 		-p 3000:3000 \
 		--add-host host.docker.internal:host-gateway \
-		-e PORT="4000" \
 		-e USER_API="http://host.docker.internal:5000" \
 		-e CORS_ORIGIN='http://localhost:5001' \
+		-e ROOT_DOMAIN='.container.localhost'
 		coedit:latest /root/coedit/coedit-container-process
 
 prod-stop:

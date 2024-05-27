@@ -1,3 +1,6 @@
+FROM caddy:2.7.6-builder AS caddy-builder
+RUN xcaddy build
+
 FROM ubuntu:22.04 as builder
 RUN apt update
 RUN apt install -y curl unzip git make build-essential bash
@@ -41,7 +44,8 @@ RUN chown -R $NEW_USER:$NEW_USER /home/coedit/.config
 COPY --from=builder /root/coedit/apps/container/dist/ /root/coedit/
 COPY --from=builder /root/coedit/packages/ruspty/index.*.node /root/coedit/packages/ruspty/
 COPY --from=builder /root/coedit/apps/container/certificate/ /root/coedit/apps/container/certificate/
-
+COPY --from=builder /root/coedit/apps/container/Caddyfile /root/coedit/apps/container/Caddyfile
+COPY --from=caddy-builder /usr/bin/caddy /root/coedit/caddy
 
 RUN rm -rf /etc/sudoers.d/$NEW_USER
 RUN deluser $NEW_USER sudo
@@ -50,4 +54,5 @@ USER $NEW_USER
 WORKDIR /home/coedit/workspace/
 
 USER root
-ENTRYPOINT ["/bin/bash", "-c", "chown -R coedit:coedit /home/coedit/workspace && exec $0 $@"]
+ENTRYPOINT ["/bin/bash", "-c", "/root/coedit/caddy start --config /root/coedit/apps/container/Caddyfile && chown -R coedit:coedit /home/coedit/workspace  && exec $0 $@"]
+

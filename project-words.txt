@@ -32,3 +32,10 @@ NXDOMAIN
 journalctl
 fullchain
 bun.lockb
+xcaddy
+Caddyfile
+mydomain
+redir
+cloudflared
+certonly
+certbot
