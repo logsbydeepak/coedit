@@ -12,6 +12,8 @@ import ms from 'ms'
 
 import { r } from '@coedit/r'
 
+import { ENV } from './h'
+
 export async function getVolumeCommand(
   client: EC2Client,
   input: { projectTagId: string }
@@ -77,9 +79,7 @@ export async function getSnapshotCommand(
 
 export async function copySnapshotCommand(
   client: EC2Client,
-  env: {
-    AWS_REGION: string
-  },
+  env: Pick<ENV, 'AWS_REGION'>,
   input: { sourceSnapshotId: string; projectTagId: string }
 ) {
   const command = new CopySnapshotCommand({

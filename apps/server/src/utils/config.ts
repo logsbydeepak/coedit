@@ -3,25 +3,24 @@ import { ECSClient } from '@aws-sdk/client-ecs'
 import { Redis } from '@upstash/redis/cloudflare'
 import { Resend } from 'resend'
 
-export const resend = ({ RESEND_API_KEY }: { RESEND_API_KEY: string }) => {
-  return new Resend(RESEND_API_KEY)
+import { ENV } from './h'
+
+export const resend = (env: Pick<ENV, 'RESEND_API_KEY'>) => {
+  return new Resend(env.RESEND_API_KEY)
 }
 
-export const redis = (env: {
-  APP_UPSTASH_REDIS_REST_URL: string
-  APP_UPSTASH_REDIS_REST_TOKEN: string
-}) => {
+export const redis = (
+  env: Pick<ENV, 'APP_UPSTASH_REDIS_REST_URL' | 'APP_UPSTASH_REDIS_REST_TOKEN'>
+) => {
   return Redis.fromEnv({
     UPSTASH_REDIS_REST_URL: env.APP_UPSTASH_REDIS_REST_URL,
     UPSTASH_REDIS_REST_TOKEN: env.APP_UPSTASH_REDIS_REST_TOKEN,
   })
 }
 
-export const ecs = (env: {
-  AWS_ACCESS_KEY_ID: string
-  AWS_SECRET_ACCESS_KEY: string
-  AWS_REGION: string
-}) => {
+export const ecs = (
+  env: Pick<ENV, 'AWS_ACCESS_KEY_ID' | 'AWS_SECRET_ACCESS_KEY' | 'AWS_REGION'>
+) => {
   return new ECSClient({
     region: env.AWS_REGION,
     credentials: {
@@ -31,11 +30,9 @@ export const ecs = (env: {
   })
 }
 
-export const ec2 = (env: {
-  AWS_ACCESS_KEY_ID: string
-  AWS_SECRET_ACCESS_KEY: string
-  AWS_REGION: string
-}) => {
+export const ec2 = (
+  env: Pick<ENV, 'AWS_ACCESS_KEY_ID' | 'AWS_SECRET_ACCESS_KEY' | 'AWS_REGION'>
+) => {
   return new EC2Client({
     region: env.AWS_REGION,
     credentials: {

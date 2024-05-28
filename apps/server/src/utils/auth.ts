@@ -11,12 +11,15 @@ import { redis, resend } from '#/utils/config'
 
 import { ENV } from './h'
 
-function genExpTime(ExpMs: number) {
-  return Date.now() + ExpMs
-}
-const cookieMaxAge = ms('30 days') / 1000
+const MAX_AGE = ms('30 days') / 1000
 
-export async function checkIsAuth(env: ENV, token?: string) {
+export async function checkIsAuth(
+  env: Pick<
+    ENV,
+    'JWT_SECRET' | 'APP_UPSTASH_REDIS_REST_URL' | 'APP_UPSTASH_REDIS_REST_TOKEN'
+  >,
+  token?: string
+) {
   try {
     if (!token) return r('NO_TOKEN')
     const secret = jose.base64url.decode(env.JWT_SECRET)
@@ -51,23 +54,18 @@ interface CreateEmailResponse {
 }
 
 export function sendAuthEmail(
-  env: ENV,
-  {
-    email,
-    code,
-  }: {
+  env: Pick<ENV, 'RESEND_API_KEY' | 'RESEND_FROM'>,
+  input: {
     email: string
     code: number
   }
 ) {
-  const text = `code: ${code}`
-  const resendClient = resend({
-    RESEND_API_KEY: env.RESEND_API_KEY,
-  })
+  const text = `code: ${input.code}`
+  const resendClient = resend(env)
 
   return resendClient.emails.send({
     from: env.RESEND_FROM,
-    to: email,
+    to: input.email,
     subject: text,
     text,
   }) as Promise<CreateEmailResponse>
@@ -84,16 +82,13 @@ export const generateAuthToken = async ({
   return await new jose.EncryptJWT({ userId })
     .setProtectedHeader({ alg: 'dir', enc: 'A128CBC-HS256' })
     .setAudience('auth')
-    .setExpirationTime(genExpTime(cookieMaxAge))
+    .setExpirationTime(Date.now() + MAX_AGE)
     .encrypt(secret)
 }
 
 export const setAuthCookie = (
   c: Context,
-  env: {
-    RUNTIME: string
-    COOKIE_DOMAIN: string
-  },
+  env: Pick<ENV, 'RUNTIME' | 'COOKIE_DOMAIN'>,
   token: string
 ) => {
   setCookie(c, 'x-auth', token, {
@@ -102,16 +97,13 @@ export const setAuthCookie = (
     sameSite: 'Strict',
     secure: env.RUNTIME === 'production',
     domain: env.COOKIE_DOMAIN,
-    maxAge: cookieMaxAge,
+    maxAge: MAX_AGE,
   })
 }
 
 export const removeAuthCookie = (
   c: Context,
-  env: {
-    RUNTIME: string
-    COOKIE_DOMAIN: string
-  }
+  env: Pick<ENV, 'RUNTIME' | 'COOKIE_DOMAIN'>
 ) => {
   setCookie(c, 'x-auth', '', {
     httpOnly: true,

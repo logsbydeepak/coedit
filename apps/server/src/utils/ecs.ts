@@ -6,6 +6,8 @@ import {
 
 import { r } from '@coedit/r'
 
+import { ENV } from './h'
+
 const ECS_CLUSTER = 'coedit-builder'
 const ECS_LAUNCH_TYPE = 'FARGATE'
 const ECS_TASK_DEFINITION = 'coedit'
@@ -30,11 +32,12 @@ export async function getTaskCommand(
 
 export async function runTaskCommand(
   client: ECSClient,
-  env: {
-    AWS_SECURITY_GROUP_ID: string
-    AWS_SUBNET_ID: string
-    AWS_ECS_INFRASTRUCTURE_ROLE_ARN: string
-  },
+  env: Pick<
+    ENV,
+    | 'AWS_SECURITY_GROUP_ID'
+    | 'AWS_SUBNET_ID'
+    | 'AWS_ECS_INFRASTRUCTURE_ROLE_ARN'
+  >,
   input: { snapshotId: string; projectTagId: string }
 ) {
   const command = new RunTaskCommand({
