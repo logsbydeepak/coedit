@@ -6,7 +6,6 @@ WORKDIR
 zschema
 compat
 upstash
-ulidx
 jiti
 zustand
 ianvs

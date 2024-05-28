@@ -1,7 +1,7 @@
 import { parseArgs } from 'util'
-import { ulid } from 'ulidx'
 
 import { db, dbSchema } from '@coedit/db'
+import { genID } from '@coedit/id'
 
 async function main() {
   const { values } = parseArgs({
@@ -41,7 +41,7 @@ async function main() {
   }
 
   if (values.type === 'id') {
-    console.log(ulid())
+    console.log(genID())
   }
 }
 main()

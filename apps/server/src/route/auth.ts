@@ -2,10 +2,10 @@ import { zValidator } from '@hono/zod-validator'
 import { Redis } from '@upstash/redis'
 import { eq } from 'drizzle-orm'
 import ms from 'ms'
-import { ulid } from 'ulidx'
 import { z } from 'zod'
 
 import { db, dbSchema } from '@coedit/db'
+import { genID } from '@coedit/id'
 import { r } from '@coedit/r'
 import { zEmail, zReqString } from '@coedit/zschema'
 
@@ -206,7 +206,7 @@ const registerVerify = h().post(
       throw new Error("can't delete redis key")
     }
 
-    const userId = ulid()
+    const userId = genID()
 
     const user = await db(c.env).insert(dbSchema.users).values({
       id: userId,

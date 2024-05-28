@@ -1,9 +1,10 @@
 import { zValidator } from '@hono/zod-validator'
 import { and, eq } from 'drizzle-orm'
-import { isValid, ulid } from 'ulidx'
+import { generate } from 'random-words'
 import { z } from 'zod'
 
 import { db, dbSchema } from '@coedit/db'
+import { genID, isValidID } from '@coedit/id'
 import { KVdns } from '@coedit/kv-dns'
 import { r } from '@coedit/r'
 import { zReqString } from '@coedit/zschema'
@@ -29,7 +30,7 @@ const createProject = hAuth().post(
     const userId = c.get('x-userId')
     const input = c.req.valid('json')
 
-    if (!isValid(input.templateId)) {
+    if (!isValidID(input.templateId)) {
       return c.json(r('INVALID_TEMPLATE_ID'))
     }
 
@@ -57,7 +58,7 @@ const createProject = hAuth().post(
       return c.json(r('INVALID_TEMPLATE_ID'))
     }
 
-    const newProjectId = ulid()
+    const newProjectId = genID()
     const copySnapshot = await copySnapshotCommand(ec2Client, c.env, {
       sourceSnapshotId: templateSnapshotId,
       projectTagId: newProjectId,
@@ -93,7 +94,7 @@ const startProject = hAuth().post(
     const input = c.req.valid('param')
     const userId = c.get('x-userId')
 
-    if (!isValid(input.id)) {
+    if (!isValidID(input.id)) {
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
@@ -219,7 +220,7 @@ const projectStatus = hAuth().get(
     const input = c.req.valid('param')
     const userId = c.get('x-userId')
 
-    if (!isValid(input.id)) {
+    if (!isValidID(input.id)) {
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
@@ -295,9 +296,12 @@ const projectStatus = hAuth().get(
         APP_UPSTASH_REDIS_REST_TOKEN: c.env.DNS_UPSTASH_REDIS_REST_TOKEN,
       })
 
-      const subdomain = ulid().toLowerCase()
-
       const IP = publicIP.data.IP
+      const subdomain = await generateSubdomain(async (subdomain) => {
+        const KVClient = KVdns(dnsRedisClient, subdomain)
+        return await KVClient.exists()
+      })
+
       const KVClient = KVdns(dnsRedisClient, subdomain)
       await KVClient.set(IP)
 
@@ -316,6 +320,28 @@ const projectStatus = hAuth().get(
     return c.json(r('STATUS', { status: task.data.lastStatus }))
   }
 )
+
+async function generateSubdomain(
+  isExist: (subdomain: string) => Promise<boolean>
+) {
+  while (true) {
+    const subdomain = generate({
+      exactly: 1,
+      wordsPerString: 2,
+      separator: '-',
+    })[0].toLowerCase()
+
+    if (subdomain.includes('-app') || subdomain.includes('-server')) {
+      continue
+    }
+
+    const isExistSubdomain = await isExist(subdomain)
+
+    if (!isExistSubdomain) {
+      return subdomain
+    }
+  }
+}
 
 const getAllProject = hAuth().get('/', async (c) => {
   const userId = c.get('x-userId')
@@ -351,7 +377,7 @@ const deleteProject = hAuth().delete(
     const input = c.req.valid('param')
     const userId = c.get('x-userId')
 
-    if (!isValid(input.id)) {
+    if (!isValidID(input.id)) {
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
@@ -394,7 +420,7 @@ const editProject = hAuth().post(
     const userId = c.get('x-userId')
     const input = c.req.valid('json')
 
-    if (!isValid(projectId)) {
+    if (!isValidID(projectId)) {
       return c.json(r('INVALID_PROJECT_ID'))
     }
 

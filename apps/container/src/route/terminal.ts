@@ -1,6 +1,7 @@
 import { Pty } from '@replit/ruspty'
 import { WSContext } from 'hono/ws'
-import { ulid } from 'ulidx'
+
+import { genID } from '@coedit/id'
 
 import { h } from '#/utils/h'
 import { setActive } from '#/utils/lifecycle'
@@ -17,7 +18,7 @@ const terminal = h().get(
         const data = getData(rawData.data.toString())
 
         if (data.event === 'add') {
-          const id = ulid()
+          const id = genID()
           const term = createTerm({
             id,
             ws,
