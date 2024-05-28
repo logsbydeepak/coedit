@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { desc, eq } from 'drizzle-orm'
 
 import { db, dbSchema } from '@coedit/db'
 import { r } from '@coedit/r'
@@ -12,17 +12,16 @@ export const getAllProject = hAuth().get('/', async (c) => {
     .select()
     .from(dbSchema.projects)
     .where(eq(dbSchema.projects.userId, userId))
+    .orderBy(desc(dbSchema.projects.createdAt))
 
   if (!dbProjects) {
     return c.json(r('OK', { projects: [] }))
   }
 
-  const projects = dbProjects
-    .map((project) => ({
-      name: project.name,
-      id: project.id,
-    }))
-    .reverse()
+  const projects = dbProjects.map((project) => ({
+    name: project.name,
+    id: project.id,
+  }))
 
   return c.json(r('OK', { projects: projects }))
 })

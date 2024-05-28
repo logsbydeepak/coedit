@@ -1,4 +1,4 @@
-import { index, pgTable, varchar } from 'drizzle-orm/pg-core'
+import { index, pgTable, timestamp, varchar } from 'drizzle-orm/pg-core'
 
 const id = (name = 'id') => varchar(name, { length: 26 }).notNull()
 
@@ -27,6 +27,7 @@ export const projects = pgTable(
     id: id(),
     userId: varchar('user_id', { length: 26 }).notNull(),
     name: varchar('name', { length: 256 }).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (table) => {
     return {
