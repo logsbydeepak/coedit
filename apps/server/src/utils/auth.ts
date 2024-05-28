@@ -1,3 +1,4 @@
+import { Redis } from '@upstash/redis'
 import { Context } from 'hono'
 import { setCookie } from 'hono/cookie'
 import * as jose from 'jose'
@@ -6,7 +7,7 @@ import { ErrorResponse as ErrorResponseType } from 'resend'
 
 import { r } from '@coedit/r'
 
-import { redis, resend } from '#/lib/config'
+import { redis, resend } from '#/utils/config'
 
 import { ENV } from './h'
 
@@ -119,5 +120,44 @@ export const removeAuthCookie = (
     secure: env.RUNTIME === 'production',
     domain: env.COOKIE_DOMAIN,
     maxAge: 0,
+  })
+}
+
+export function KVAuth(
+  redis: Redis,
+  type: 'login' | 'register',
+  email: string
+) {
+  const key = `${type}:$${email}`
+
+  async function exists() {
+    const res = await redis.exists(key)
+    return !!res
+  }
+
+  async function set(code: number) {
+    const res = await redis.set(key, code, {
+      px: ms('15 minutes'),
+    })
+    if (res !== 'OK') {
+      throw new Error("can't set redis key")
+    }
+  }
+
+  async function get() {
+    const res = await redis.get<number>(key)
+    return res
+  }
+
+  async function remove() {
+    const res = await redis.del(key)
+    return !!res
+  }
+
+  return Object.freeze({
+    exists,
+    set,
+    get,
+    remove,
   })
 }
