@@ -52,7 +52,7 @@ export const register = h().post(
     })
 
     if (error) {
-      throw new Error("can't send email")
+      throw error
     }
 
     await KVAuthClient.set(code)
