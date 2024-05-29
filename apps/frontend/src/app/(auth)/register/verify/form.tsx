@@ -127,7 +127,7 @@ export function Form({ name, email }: { name: string; email: string }) {
           </Button>
         </FormFieldset>
 
-        <p className="text-sm text-gray-11 text-center text-balance">
+        <p className="text-balance text-center text-sm text-gray-11">
           check your email inbox and spam folder for the code
         </p>
       </FormRoot>
