@@ -1,5 +1,6 @@
 import { createEnv } from '@t3-oss/env-nextjs'
-import { z } from 'zod'
+
+import { z } from '@coedit/zschema'
 
 const zRequired = z.string().min(1, { message: 'required' }).trim()
 

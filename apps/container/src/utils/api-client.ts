@@ -8,7 +8,7 @@ import { env } from '#/env'
 
 import { emitStop } from './lifecycle'
 
-export class ResponseError extends Error {
+class ResponseError extends Error {
   response: Response
   constructor(message: string, res: Response) {
     super()

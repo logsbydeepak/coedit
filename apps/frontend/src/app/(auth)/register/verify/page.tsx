@@ -1,8 +1,7 @@
 import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { z } from 'zod'
 
-import { zEmail, zReqString } from '@coedit/zschema'
+import { z, zEmail, zReqString } from '@coedit/zschema'
 
 import { Heading } from '../../_component'
 import { Form } from './form'

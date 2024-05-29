@@ -101,20 +101,6 @@ export const setAuthCookie = (
   })
 }
 
-export const removeAuthCookie = (
-  c: Context,
-  env: Pick<ENV, 'RUNTIME' | 'COOKIE_DOMAIN'>
-) => {
-  setCookie(c, 'x-auth', '', {
-    httpOnly: true,
-    path: '/',
-    sameSite: 'Strict',
-    secure: env.RUNTIME === 'production',
-    domain: env.COOKIE_DOMAIN,
-    maxAge: 0,
-  })
-}
-
 export function KVAuth(
   redis: Redis,
   type: 'login' | 'register',

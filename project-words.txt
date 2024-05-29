@@ -1,40 +1,58 @@
-Hono
-webgl
+# all
 coedit
 outfile
-WORKDIR
 zschema
-compat
-upstash
-jiti
-zustand
-ianvs
-binutils
-adduser
-usermod
-NOPASSWD
-devbox
-uninstantiated
-sonner
 tsbuildinfo
+knip
+
+# docker
 deluser
-FARGATE
-awsvpc
-shikiji
-vitesse
-replit
-ruspty
+devbox
+NOPASSWD
+usermod
+adduser
+binutils
+WORKDIR
+
 prebuild
-neondatabase
+bun.lockb
+
+# frontend
 astro
+vitesse
+shikiji
+sonner
+uninstantiated
+zustand
+jiti
+ianvs
+webgl
+
+# dns
 NXDOMAIN
+
+# container
 journalctl
 fullchain
-bun.lockb
 xcaddy
 Caddyfile
 mydomain
 redir
-cloudflared
 certonly
 certbot
+replit
+ruspty
+
+# server
+Hono
+cloudflared
+neondatabase
+awsvpc
+FARGATE
+
+# redis
+upstash
+sismember
+srem
+sadd
+smembers

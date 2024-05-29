@@ -1,9 +1,9 @@
 import path from 'node:path'
 import { zValidator } from '@hono/zod-validator'
 import { serveStatic } from 'hono/bun'
-import { z } from 'zod'
 
 import { r } from '@coedit/r'
+import { z } from '@coedit/zschema'
 
 import { writePathContent } from '#/utils/fs'
 import { h } from '#/utils/h'

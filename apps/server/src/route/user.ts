@@ -1,6 +1,4 @@
-import { eq } from 'drizzle-orm'
-
-import { db, dbSchema } from '@coedit/db'
+import { db, dbSchema, eq } from '@coedit/db'
 import { r } from '@coedit/r'
 
 import { h, hAuth } from '#/utils/h'

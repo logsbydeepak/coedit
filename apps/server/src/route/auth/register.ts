@@ -1,11 +1,9 @@
 import { zValidator } from '@hono/zod-validator'
-import { eq } from 'drizzle-orm'
-import { z } from 'zod'
 
-import { db, dbSchema } from '@coedit/db'
+import { db, dbSchema, eq } from '@coedit/db'
 import { genID } from '@coedit/id'
 import { r } from '@coedit/r'
-import { zEmail, zReqString } from '@coedit/zschema'
+import { z, zEmail, zReqString } from '@coedit/zschema'
 
 import {
   codeGenerator,

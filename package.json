@@ -13,13 +13,14 @@
     "ruspty:build": "bun run --cwd packages/ruspty build",
     "frontend:build": "run-s tsc && bun run --cwd apps/frontend build",
     "container:build": "run-s tsc ruspty:build && bun run --cwd apps/container build",
-    "server:deploy": "bun run --cwd apps/server deploy"
+    "server:deploy": "bun run --cwd apps/server deploy",
+    "unused": "knip"
   },
   "license": "ISC",
   "dependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^4.2.1",
     "cspell": "^8.6.0",
-    "nanoid": "^5.0.7",
+    "knip": "^5.17.3",
     "npm-run-all2": "^6.1.2",
     "prettier": "^3.2.5"
   },

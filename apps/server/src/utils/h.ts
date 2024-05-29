@@ -34,7 +34,7 @@ type Variables = {
   'x-auth': string
 }
 
-export const hono = <T extends Variables>() =>
+const hono = <T extends Variables>() =>
   new Hono<{
     Bindings: ENV
     Variables: T
@@ -42,6 +42,7 @@ export const hono = <T extends Variables>() =>
 
 export const h = () => hono()
 
+/** @alias */
 export const hAuth = () =>
   hono<Variables>().use(async (c, next) => {
     const authToken = getCookie(c, 'x-auth')

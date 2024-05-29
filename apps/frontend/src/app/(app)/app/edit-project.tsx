@@ -5,9 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
-import { z } from 'zod'
 
-import { zReqString } from '@coedit/zschema'
+import { z, zReqString } from '@coedit/zschema'
 
 import { Head } from '#/components/head'
 import { Alert, useAlert } from '#/components/icons/alert'

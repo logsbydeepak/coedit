@@ -1,0 +1,12 @@
+{
+  "$schema": "https://unpkg.com/knip@3/schema.json",
+  "ignoreBinaries": ["tsc"],
+  "ignoreWorkspaces": ["packages/ruspty"],
+  "ignore": ["others/**", "**/tsc/**"],
+  "ignoreDependencies": [
+    "@hono/zod-validator",
+    "jiti",
+    "@typescript-eslint/parser",
+    "monaco-editor"
+  ]
+}

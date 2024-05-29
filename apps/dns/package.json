@@ -14,7 +14,11 @@
     "@types/dns-packet": "^5.6.5",
     "dns-packet": "^5.6.1",
     "pino": "^8.20.0",
-    "pino-pretty": "^11.0.0"
+    "pino-pretty": "^11.0.0",
+    "@upstash/redis": "^1.29.0",
+    "@coedit/zschema": "workspace:*",
+    "@coedit/r": "workspace:*",
+    "@coedit/kv-dns": "workspace:*"
   },
   "devDependencies": {}
 }

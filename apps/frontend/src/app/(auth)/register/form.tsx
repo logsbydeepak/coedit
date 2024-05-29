@@ -5,9 +5,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { z } from 'zod'
 
-import { zEmail, zReqString } from '@coedit/zschema'
+import { z, zEmail, zReqString } from '@coedit/zschema'
 
 import { Alert, useAlert } from '#/components/icons/alert'
 import { Button } from '#/components/ui/button'

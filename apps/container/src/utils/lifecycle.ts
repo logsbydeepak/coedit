@@ -3,7 +3,7 @@ import ms from 'ms'
 
 import { logger } from './logger'
 
-export const event = new EventEmitter()
+const event = new EventEmitter()
 
 export function emitStop() {
   event.emit('stop')

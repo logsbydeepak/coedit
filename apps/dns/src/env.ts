@@ -1,6 +1,4 @@
-import { z } from 'zod'
-
-import { zReqString } from '@coedit/zschema'
+import { z, zReqString } from '@coedit/zschema'
 
 const schema = z.object({
   DNS_UPSTASH_REDIS_REST_URL: zReqString.url(),

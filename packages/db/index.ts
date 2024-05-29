@@ -3,6 +3,8 @@ import { drizzle } from 'drizzle-orm/neon-http'
 
 import * as schema from './schema'
 
+export { eq, and, desc } from 'drizzle-orm'
+
 export const db = ({ DB_URL }: { DB_URL: string }) => {
   const sql = neon(DB_URL)
   return drizzle(sql)

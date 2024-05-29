@@ -1,8 +1,7 @@
 import { zValidator } from '@hono/zod-validator'
-import { z } from 'zod'
 
 import { r } from '@coedit/r'
-import { zReqString } from '@coedit/zschema'
+import { z, zReqString } from '@coedit/zschema'
 
 import { getPathContent } from '#/utils/fs'
 import { h } from '#/utils/h'
