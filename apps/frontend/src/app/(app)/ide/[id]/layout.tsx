@@ -1,9 +1,14 @@
+import { Metadata } from 'next'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { Provider } from 'jotai'
 
 import { SetToken } from './components'
 import { store } from './store'
+
+export const metadata: Metadata = {
+  title: 'Project',
+}
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const token = cookies().get('x-auth')?.value
