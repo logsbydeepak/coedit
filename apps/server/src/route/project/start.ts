@@ -17,6 +17,7 @@ import {
 import { getTaskCommand, runTaskCommand } from '#/utils/ecs'
 import { hAuth } from '#/utils/h'
 import { KVProject } from '#/utils/project'
+import { KVScheduleFreeProjectResource } from '#/utils/scheduled'
 
 export const startProject = hAuth().post(
   '/start/:id',
@@ -59,7 +60,10 @@ export const startProject = hAuth().post(
     const ecsClient = ecs(c.env)
     const ec2Client = ec2(c.env)
 
-    const projectArn = await KVProject(redis(c.env), input.id).get()
+    const redisClient = redis(c.env)
+    const KVProjectClient = KVProject(redisClient, input.id)
+
+    const projectArn = await KVProjectClient.get()
 
     if (projectArn) {
       const task = await getTaskCommand(ecsClient, { projectId: projectArn })
@@ -83,6 +87,8 @@ export const startProject = hAuth().post(
     if (latestVolumeORSnapshot.code === 'NOT_FOUND') {
       return c.json(r('INVALID_PROJECT_ID'))
     }
+
+    await KVScheduleFreeProjectResource(redisClient).set(input.id)
 
     if (latestVolumeORSnapshot.data.type === 'snapshot') {
       snapshotId = latestVolumeORSnapshot.data.id
@@ -138,7 +144,7 @@ export const startProject = hAuth().post(
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
-    await KVProject(redis(c.env), input.id).set(taskArn)
+    await KVProjectClient.set(taskArn)
 
     return c.json(r('OK'))
   }

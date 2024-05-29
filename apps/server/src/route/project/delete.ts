@@ -7,7 +7,9 @@ import { isValidID } from '@coedit/id'
 import { r } from '@coedit/r'
 import { zReqString } from '@coedit/zschema'
 
+import { redis } from '#/utils/config'
 import { hAuth } from '#/utils/h'
+import { KVScheduleDeleteProject } from '#/utils/scheduled'
 
 export const deleteProject = hAuth().delete(
   '/:id',
@@ -40,6 +42,9 @@ export const deleteProject = hAuth().delete(
     if (!res) {
       return c.json(r('INVALID_PROJECT_ID'))
     }
+
+    const redisClient = redis(c.env)
+    await KVScheduleDeleteProject(redisClient).set(input.id)
 
     return c.json(r('OK'))
   }

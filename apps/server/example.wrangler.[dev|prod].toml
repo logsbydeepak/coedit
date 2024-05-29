@@ -2,6 +2,9 @@ name = "api-coedit"
 compatibility_date = "2023-12-01"
 compatibility_flags = [ "nodejs_compat" ]
 
+[triggers]
+crons = ["0 */6 * * *"]
+
 [dev]
 port=5000
 

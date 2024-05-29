@@ -5,7 +5,7 @@
   "main": "src/index.ts",
   "types": "tsc/index.d.ts",
   "scripts": {
-    "dev": "wrangler dev src/index.ts --config wrangler.dev.toml",
+    "dev": "wrangler dev src/index.ts --test-scheduled --config wrangler.dev.toml",
     "deploy": "wrangler deploy --minify src/index.ts --config wrangler.prod.toml",
     "tsc:clean": "rm -rf tsc tsconfig.tsbuildinfo",
     "tsc:build": "tsc --build",
