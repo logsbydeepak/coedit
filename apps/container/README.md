@@ -1,6 +1,8 @@
 # @coedit/container
 
-> Caution: Do not forget to build [@replit/rust](https://github.com/replit/ruspty) before running or building this package.
+Run this inside [dev container](/dev.dockerfile)
+
+> Caution: Do not forget to build [@replit/rust](/packages/ruspty/README.md) before running or building this package.
 
 ### Generate certificate
 
@@ -10,26 +12,4 @@ This will generate a wildcard certificate for `*.mydomain.com` 1 depth only.
 
 ```bash
 certbot certonly --manual -d '*.mydomain.com'
-```
-
-### Container
-
-Run them from the root of the project.
-
-Development container:
-
-```bash
-# build the image
-make dev
-# start the container
-make dev-start
-# stop or remove the container
-make dev-stop
-```
-
-Production container:
-
-```bash
-# build the image
-make prod
 ```
