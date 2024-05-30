@@ -1,6 +1,6 @@
 # @coedit/dns
 
-## Local
+## Development
 
 ```bash
 bun run dev
@@ -12,7 +12,9 @@ Test
 dig @localhost test.{ DOMAIN }
 ```
 
-## Deploy
+## Production
+
+Deploy to ec2 instance
 
 Build
 

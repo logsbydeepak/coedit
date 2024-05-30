@@ -6,18 +6,10 @@ IDE on the web 🌐
 
 Requirements:
 
+- `bun` for running and managing the project
 - `docker` for container
 - `rust` for building pty
-- `bun` for running and managing the project
 - `make` for managing the container makefile
-
-Setup project in order
-
-- [templates](/others/templates/README.md)
-- [container server](/apps/container/README.md)
-- [build container](/CONTAINER.md)
-- [server](/apps/server/README.md)
-- [frontend](/apps/frontend/README.md)
 
 > **Note:** Every package has `.env.example` file. Fill it before running.
 
