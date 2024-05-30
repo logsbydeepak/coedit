@@ -48,11 +48,7 @@ export const startProject = hAuth().post(
     }
 
     if (c.env.CONTAINER_MODE === 'mock') {
-      return c.json(
-        r('OK', {
-          status: 'RUNNING',
-        })
-      )
+      return c.json(r('OK'))
     }
 
     const ecsClient = ecs(c.env)
@@ -66,12 +62,10 @@ export const startProject = hAuth().post(
     if (projectArn) {
       const task = await getTaskCommand(ecsClient, { projectId: projectArn })
 
-      if (task.code === 'NOT_FOUND') {
-        await KVProject(redis(c.env), input.id).remove()
-        return c.json(r('INVALID_PROJECT_ID'))
-      }
-
-      if (task.data.desiredStatus === 'RUNNING') {
+      if (
+        task.code === 'OK' &&
+        task.data.desiredStatus?.toUpperCase() === 'RUNNING'
+      ) {
         return c.json(r('OK'))
       }
     }

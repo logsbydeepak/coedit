@@ -124,7 +124,7 @@ export async function waitUntilVolumeAvailable(
       }
     }
 
-    await wait(ms('5s'))
+    await wait(ms('10s'))
   }
 
   return r('TIMEOUT')
@@ -153,7 +153,7 @@ export async function waitUntilSnapshotAvailable(
       }
     }
 
-    await wait(ms('5s'))
+    await wait(ms('10s'))
   }
   return r('TIMEOUT')
 }

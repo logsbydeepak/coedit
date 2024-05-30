@@ -130,11 +130,10 @@ export function Form({ email }: { email: string }) {
             Login
           </Button>
         </FormFieldset>
-
-        <p className="text-balance text-center text-sm text-gray-11">
-          check your email inbox and spam folder for the code
-        </p>
       </FormRoot>
+      <p className="rounded-md border border-dashed border-gray-6 bg-gray-3 px-4 py-2 text-center font-mono text-xs text-gray-10">
+        check your email inbox and spam folder for the code
+      </p>
     </>
   )
 }

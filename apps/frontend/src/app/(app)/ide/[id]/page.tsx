@@ -30,14 +30,13 @@ function Init({
   const params = useParams<{ id: string }>()
   const setContainerURL = useSetAtom(containerURLAtom)
 
-  const findQuery = useQuery({
+  const startQuery = useQuery({
     queryFn: async () => {
       const res = await apiClient.project.start[':id'].$post({
         param: {
           id: params.id,
         },
       })
-
       return await res.json()
     },
     queryKey: ['start', params.id],
@@ -59,18 +58,18 @@ function Init({
       return await res.json()
     },
     staleTime: 0,
-    enabled: findQuery.data?.code === 'OK',
+    enabled: startQuery.data?.code === 'OK',
     queryKey: ['status', params.id],
     refetchInterval: ms('4s'),
   })
 
   const isError = React.useMemo(
-    () => findQuery.isError || statusQuery.isError,
-    [findQuery.isError, statusQuery.isError]
+    () => startQuery.isError || statusQuery.isError,
+    [startQuery.isError, statusQuery.isError]
   )
 
   const message: string = React.useMemo(() => {
-    if (findQuery.isLoading || statusQuery.isLoading) {
+    if (startQuery.isLoading || statusQuery.isLoading) {
       return 'loading'
     }
 
@@ -78,12 +77,12 @@ function Init({
       return 'error'
     }
 
-    if (findQuery.data?.code === 'TIMEOUT') {
+    if (startQuery.data?.code === 'TIMEOUT') {
       return 'timeout'
     }
 
     if (
-      findQuery.data?.code === 'INVALID_PROJECT_ID' ||
+      startQuery.data?.code === 'INVALID_PROJECT_ID' ||
       statusQuery.data?.code === 'INVALID_PROJECT_ID'
     ) {
       return 'not found'
@@ -95,12 +94,30 @@ function Init({
 
     return 'error'
   }, [
-    findQuery.isLoading,
+    startQuery.isLoading,
     statusQuery.isLoading,
     isError,
-    findQuery.data?.code,
+    startQuery.data?.code,
     statusQuery.data,
   ])
+
+  const isLoading: boolean = React.useMemo(() => {
+    if (isError) return false
+
+    if (startQuery.data?.code === 'TIMEOUT') {
+      return false
+    }
+
+    if (startQuery.data?.code === 'INVALID_PROJECT_ID') {
+      return false
+    }
+
+    if (statusQuery.data?.code === 'INVALID_PROJECT_ID') {
+      return false
+    }
+
+    return true
+  }, [isError, startQuery.data?.code, statusQuery.data?.code])
 
   React.useEffect(() => {
     if (statusQuery.data?.code === 'OK') {
@@ -114,16 +131,12 @@ function Init({
   }, [statusQuery.data, setIsReady, setContainerURL])
 
   return (
-    <StatusContainer className="absolute pt-14">
-      <Status
-        isLoading={
-          !isError &&
-          (findQuery.data?.code !== 'INVALID_PROJECT_ID' ||
-            statusQuery.data?.code !== 'INVALID_PROJECT_ID')
-        }
-      >
-        {message}
-      </Status>
+    <StatusContainer className="absolute flex-col space-y-6 pt-14">
+      <Status isLoading={isLoading}>{message}</Status>
+      <p className="max-w-96 rounded-md border border-dashed border-gray-6 bg-gray-3 p-2 text-center font-mono text-xs text-gray-10">
+        if facing any issue, try refreshing the page, initializing the project
+        might take a while
+      </p>
     </StatusContainer>
   )
 }
