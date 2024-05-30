@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 
-import { z, zLogin } from '@coedit/zschema'
+import { z, zLoginUser } from '@coedit/zschema'
 
 import { Alert, useAlert } from '#/components/icons/alert'
 import { Button } from '#/components/ui/button'
@@ -19,7 +19,7 @@ import {
 } from '#/components/ui/form'
 import { apiClient } from '#/utils/hc-client'
 
-type FromValues = z.infer<typeof zLogin>
+type FromValues = z.infer<typeof zLoginUser>
 
 export function Form() {
   const router = useRouter()
@@ -31,7 +31,7 @@ export function Form() {
     handleSubmit,
     formState: { errors },
   } = useForm<FromValues>({
-    resolver: zodResolver(zLogin),
+    resolver: zodResolver(zLoginUser),
   })
 
   const onSubmit = async (data: FromValues) => {
