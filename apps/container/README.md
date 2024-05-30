@@ -1,5 +1,7 @@
 # @coedit/container
 
+> Caution: Do not forget to build [@replit/rust](https://github.com/replit/ruspty) before running or building this package.
+
 ### Generate certificate
 
 This will generate a wildcard certificate for `*.mydomain.com` 1 depth only.

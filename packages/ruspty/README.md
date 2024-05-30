@@ -1,24 +1,11 @@
-# `@replit/ruspty` - PTY for Bun (and Node) through Rust FFI
+# @replit/ruspty
 
-Running:
+This package is forked from [@replit/rust](https://github.com/replit/ruspty)
 
-- `bun install`
-- `bun run build` / `bun run build:debug`
-- `bun test:linux` on Linux
-- `npm run test:darwin` on macOS
+Recommended to build the project inside dev container from root it as pre-configured with all the required tools.
 
-The code mainly targets Bun on Linux.
+### build
 
-The biggest difference from existing PTY libraries is that this one works with Bun, and doesn't cross the FFI bridge for every input/output instead requiring the consumer to deal with the `fd` of the PTY.
-
-**WARNING**: as of 2024-05-06 there's a [bug in Bun](https://github.com/oven-sh/bun/issues/9907) which prevents us from using `fd` with Bun, and a temporary workaround with `onData` handler was introduced in `v2.0.1`. Check out Linux tests for usage.
-
-## Publishing
-
-Following ["Publish It" section from `napi-rs` docs](https://napi.rs/docs/introduction/simple-package#publish-it):
-
-1. `git clean -f && bun install && npm run build`
-2. `npm version [major|minor|patch]`
-3. Send that as a Pull Request to GitHub. Ensure that the commit message consisting **only** of `x.y.z` - this is how the CI decides to publish to `npm`!
-
-`NPM_TOKEN` is part of the repo secrets, generated [like this](https://httptoolkit.com/blog/automatic-npm-publish-gha/).
+```bash
+bun run build
+```
