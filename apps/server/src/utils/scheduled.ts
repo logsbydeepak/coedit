@@ -1,7 +1,7 @@
 import { Redis } from '@upstash/redis'
 
 import { ec2, redis } from './config'
-import { freeProjectResource } from './ec2'
+import { deleteProjectResource, freeProjectResource } from './ec2'
 import { ENV } from './h'
 
 export function KVScheduleFreeProjectResource(client: Redis) {
@@ -55,7 +55,8 @@ export async function scheduled(env: ENV) {
   const KVScheduleDeleteProjectClient = KVScheduleDeleteProject(redisClient)
 
   const projectResource = await KVScheduleFreeProjectResourceClient.get()
-  projectResource.forEach(async (projectId) => {
+
+  for (const projectId of projectResource) {
     const ec2Client = ec2(env)
     const res = await freeProjectResource(ec2Client, {
       projectTagId: projectId,
@@ -63,16 +64,19 @@ export async function scheduled(env: ENV) {
     if (res.code === 'NO_RESOURCE') {
       await KVScheduleFreeProjectResourceClient.remove(projectId)
     }
-  })
+  }
 
   const deleteProject = await KVScheduleDeleteProjectClient.get()
-  deleteProject.forEach(async (projectId) => {
+
+  for (const projectId of deleteProject) {
     const ec2Client = ec2(env)
-    const res = await freeProjectResource(ec2Client, {
+
+    const res = await deleteProjectResource(ec2Client, {
       projectTagId: projectId,
     })
+
     if (res.code === 'NO_RESOURCE') {
       await KVScheduleDeleteProjectClient.remove(projectId)
     }
-  })
+  }
 }

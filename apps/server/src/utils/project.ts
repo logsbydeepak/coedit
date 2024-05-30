@@ -1,10 +1,13 @@
 import { Redis } from '@upstash/redis'
+import ms from 'ms'
 
 export function KVProject(redis: Redis, id: string) {
   const key = `project:${id}`
 
   async function set(arn: string) {
-    const res = await redis.set(key, arn)
+    const res = await redis.set(key, arn, {
+      px: ms('1d'),
+    })
 
     if (res !== 'OK') {
       throw new Error("can't set redis key")

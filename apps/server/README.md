@@ -13,3 +13,7 @@ openssl rand -base64 32
 ```bash
 cloudflared tunnel --url http://localhost:5000
 ```
+
+### Test cron job in dev
+
+`http://localhost:5000/__scheduled`

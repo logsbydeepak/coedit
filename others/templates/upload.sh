@@ -93,7 +93,7 @@ step_print() {
 }
 
 delay() {
-  sleep 10
+  sleep 40
 }
 
 

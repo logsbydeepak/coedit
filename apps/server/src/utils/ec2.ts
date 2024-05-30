@@ -249,9 +249,31 @@ export async function getLatestVolumeORSnapshot(
     type: 'volume',
   }
 
+  for (const volume of volumes) {
+    if (!volume.CreateTime) continue
+    if (!volume.VolumeId) continue
+    if (!(volume.CreateTime > latestDate)) continue
+
+    latestDate = volume.CreateTime
+    result.id = volume.VolumeId
+    result.type = 'volume'
+  }
+
+  for (const snapshot of snapshots) {
+    if (!snapshot.StartTime) continue
+    if (!snapshot.SnapshotId) continue
+    if (!(snapshot.StartTime > latestDate)) continue
+
+    latestDate = snapshot.StartTime
+    result.id = snapshot.SnapshotId
+    result.type = 'snapshot'
+  }
+
   volumes.forEach((volume) => {
     if (!volume.CreateTime) return
     if (!volume.VolumeId) return
+    if (!(volume.CreateTime > latestDate)) return
+
     if (volume.CreateTime > latestDate) {
       latestDate = volume.CreateTime
       result.id = volume.VolumeId
@@ -300,35 +322,67 @@ export async function freeProjectResource(
       return r('NO_RESOURCE')
     }
 
-    volumes.forEach(async (volume) => {
-      if (data.id !== volume.VolumeId) {
-        if (volume.State === 'available') {
-          const command = new DeleteVolumeCommand({
-            VolumeId: volume.VolumeId,
-          })
+    for (const volume of volumes) {
+      if (data.id === volume.VolumeId) continue
+      if (volume.State !== 'available') continue
 
-          await client.send(command)
-        }
+      const command = new DeleteVolumeCommand({
+        VolumeId: volume.VolumeId,
+      })
 
-        const command = new DeleteVolumeCommand({
-          VolumeId: volume.VolumeId,
-        })
+      await client.send(command)
+    }
 
-        await client.send(command)
-      }
-    })
+    for (const snapshot of snapshots) {
+      if (data.id === snapshot.SnapshotId) continue
+      if (snapshot.State !== 'completed') continue
 
-    snapshots.forEach(async (snapshot) => {
-      if (data.id !== snapshot.SnapshotId) {
-        if (snapshot.State === 'completed') {
-          const command = new DeleteSnapshotCommand({
-            SnapshotId: snapshot.SnapshotId,
-          })
+      const command = new DeleteSnapshotCommand({
+        SnapshotId: snapshot.SnapshotId,
+      })
 
-          await client.send(command)
-        }
-      }
-    })
+      await client.send(command)
+    }
+  }
+
+  return r('OK')
+}
+
+export async function deleteProjectResource(
+  client: EC2Client,
+  input: { projectTagId: string }
+) {
+  const res = await getLatestVolumeORSnapshot(client, input)
+
+  if (res.code === 'NOT_FOUND') {
+    return r('NO_RESOURCE')
+  }
+
+  if (res.code === 'OK') {
+    const { data, volumes, snapshots } = res
+    if (!data) {
+      return r('NO_RESOURCE')
+    }
+
+    for (const volume of volumes) {
+      if (volume.State !== 'available') continue
+
+      const command = new DeleteVolumeCommand({
+        VolumeId: volume.VolumeId,
+      })
+
+      await client.send(command)
+    }
+
+    for (const snapshot of snapshots) {
+      if (snapshot.State !== 'completed') continue
+
+      const command = new DeleteSnapshotCommand({
+        SnapshotId: snapshot.SnapshotId,
+      })
+
+      await client.send(command)
+    }
   }
 
   return r('OK')
