@@ -1,5 +1,7 @@
 # coedit
 
+![IDE](/IDE.png)
+
 IDE on the web
 
 Requirements:
