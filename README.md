@@ -1,8 +1,8 @@
 # coedit
 
-![IDE](/IDE.png)
+IDE on the web 🌐
 
-IDE on the web
+![IDE](/IDE.png)
 
 Requirements:
 
