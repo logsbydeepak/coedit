@@ -3,7 +3,7 @@ import { zValidator } from '@hono/zod-validator'
 import { db, dbSchema, eq } from '@coedit/db'
 import { genID, isValidID } from '@coedit/id'
 import { r } from '@coedit/r'
-import { z, zReqString } from '@coedit/zschema'
+import { zCreateProject } from '@coedit/zschema'
 
 import { ec2 } from '#/utils/config'
 import { copySnapshotCommand, getSnapshotCommand } from '#/utils/ec2'
@@ -11,7 +11,7 @@ import { hAuth } from '#/utils/h'
 
 export const createProject = hAuth().post(
   '/',
-  zValidator('json', z.object({ templateId: zReqString, name: zReqString })),
+  zValidator('json', zCreateProject),
   async (c) => {
     const userId = c.get('x-userId')
     const input = c.req.valid('json')

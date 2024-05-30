@@ -11,6 +11,12 @@ Requirements:
 - `rust` for building pty
 - `make` for managing the container makefile
 
+### Installation
+
+```bash
+bun run install
+```
+
 > **Note:** Every package has `.env.example` file. Fill it before running.
 
 ### Scripts

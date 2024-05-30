@@ -7,7 +7,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
-import { z, zReqString } from '@coedit/zschema'
+import { z, zCreateProject } from '@coedit/zschema'
 
 import { Head } from '#/components/head'
 import { Alert, useAlert } from '#/components/icons/alert'
@@ -46,12 +46,7 @@ export function NewProjectDialog() {
   )
 }
 
-const zSchema = z.object({
-  name: zReqString,
-  templateId: zReqString,
-})
-
-type FormValues = z.infer<typeof zSchema>
+type FormValues = z.infer<typeof zCreateProject>
 
 function Content({
   handleClose,
@@ -72,7 +67,7 @@ function Content({
     watch,
     handleSubmit,
   } = useForm<FormValues>({
-    resolver: zodResolver(zSchema),
+    resolver: zodResolver(zCreateProject),
     defaultValues: {
       name: '',
       templateId: '',

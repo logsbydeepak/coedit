@@ -2,7 +2,7 @@ import { zValidator } from '@hono/zod-validator'
 
 import { db, dbSchema, eq } from '@coedit/db'
 import { r } from '@coedit/r'
-import { z, zEmail, zReqString } from '@coedit/zschema'
+import { zLoginUser, zVerifyLoginUser } from '@coedit/zschema'
 
 import {
   codeGenerator,
@@ -16,7 +16,7 @@ import { h } from '#/utils/h'
 
 export const login = h().post(
   '/',
-  zValidator('json', z.object({ email: zEmail })),
+  zValidator('json', zLoginUser),
   async (c) => {
     const input = c.req.valid('json')
 
@@ -53,13 +53,7 @@ export const login = h().post(
 
 export const loginVerify = h().post(
   '/',
-  zValidator(
-    'json',
-    z.object({
-      email: zEmail,
-      code: zReqString.length(6),
-    })
-  ),
+  zValidator('json', zVerifyLoginUser),
   async (c) => {
     const input = c.req.valid('json')
 

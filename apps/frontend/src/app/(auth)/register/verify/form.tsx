@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 
-import { z, zEmail, zReqString } from '@coedit/zschema'
+import { z, zVerifyRegisterUser } from '@coedit/zschema'
 
 import { Alert, useAlert } from '#/components/icons/alert'
 import { Button } from '#/components/ui/button'
@@ -23,13 +23,7 @@ import {
 } from '#/components/ui/input-otp'
 import { apiClient } from '#/utils/hc-client'
 
-const zSchema = z.object({
-  code: zReqString.length(6, 'required'),
-  name: zReqString,
-  email: zEmail,
-})
-
-type FromValues = z.infer<typeof zSchema>
+type FromValues = z.infer<typeof zVerifyRegisterUser>
 
 export function Form({ name, email }: { name: string; email: string }) {
   const router = useRouter()
@@ -42,7 +36,7 @@ export function Form({ name, email }: { name: string; email: string }) {
     watch,
     formState: { errors },
   } = useForm<FromValues>({
-    resolver: zodResolver(zSchema),
+    resolver: zodResolver(zVerifyRegisterUser),
     defaultValues: {
       name,
       email,

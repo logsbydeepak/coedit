@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 
-import { z, zEmail, zReqString } from '@coedit/zschema'
+import { z, zRegisterUser } from '@coedit/zschema'
 
 import { Alert, useAlert } from '#/components/icons/alert'
 import { Button } from '#/components/ui/button'
@@ -19,12 +19,7 @@ import {
 } from '#/components/ui/form'
 import { apiClient } from '#/utils/hc-client'
 
-const zSchema = z.object({
-  email: zEmail,
-  name: zReqString,
-})
-
-type FromValues = z.infer<typeof zSchema>
+type FromValues = z.infer<typeof zRegisterUser>
 
 export function Form() {
   const [isPending, startTransition] = React.useTransition()
@@ -36,7 +31,7 @@ export function Form() {
     handleSubmit,
     formState: { errors },
   } = useForm<FromValues>({
-    resolver: zodResolver(zSchema),
+    resolver: zodResolver(zRegisterUser),
   })
 
   const onSubmit = async (data: FromValues) => {
