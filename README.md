@@ -15,6 +15,9 @@ Requirements:
 
 ```bash
 bun run install
+# clear cache if having issues
+bun pm cache rm
+rm -rf .bun.lockb
 ```
 
 > **Note:** Every package has `.env.example` file. Fill it before running.

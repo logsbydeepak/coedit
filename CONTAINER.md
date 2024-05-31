@@ -5,10 +5,23 @@
 ```bash
 # build the image
 make dev
-# start the container
+# start the container and attach the terminal, by default the working directory is /home/coedit/workspace
 make dev-start
 # stop or remove the container
 make dev-stop
+
+# change the directory to source code which is mounted to the container
+cd /root/coedit
+
+# because node_modules is not being mounted
+bun install
+
+# start container server
+# from root of the project
+bun run container:dev
+ # or from container package
+cd /root/coedit/apps/container
+bun run dev
 ```
 
 ### Production
