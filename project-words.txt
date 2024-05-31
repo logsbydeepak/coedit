@@ -27,6 +27,7 @@ zustand
 jiti
 ianvs
 webgl
+miguelsolorio
 
 # dns
 NXDOMAIN
