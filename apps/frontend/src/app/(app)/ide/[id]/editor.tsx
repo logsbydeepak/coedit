@@ -50,6 +50,8 @@ const languageMap: Record<string, BundledLanguage | 'text'> = {
   yaml: 'yaml',
   nix: 'nix',
   astro: 'astro',
+  toml: 'toml',
+  mod: 'text',
 }
 
 export default function TextEditor() {
