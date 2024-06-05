@@ -5,7 +5,7 @@ import '#/env'
 
 import { KVdns } from '@coedit/kv'
 
-import { logger } from '#/utils/logger'
+import { log } from '#/utils/log'
 
 import { getSubdomain } from './utils'
 import { redis } from './utils/config'
@@ -23,7 +23,7 @@ server.on('message', (msg, rinfo) => {
   const question = questions[0]
 
   try {
-    logger.info(question, 'DNS request')
+    log.info(question, 'DNS request')
 
     if (!question.name) {
       throw new Error("Invalid request: 'name' is required")
@@ -54,9 +54,9 @@ server.on('message', (msg, rinfo) => {
 
     server.send(response, rinfo.port, rinfo.address, (err) => {
       if (err) {
-        logger.error(err, 'Error sending response')
+        log.error(err, 'Error sending response')
       } else {
-        logger.info('Response sent')
+        log.info('Response sent')
       }
     })
   }
@@ -99,9 +99,9 @@ const ipLookup = async ({
 
     server.send(response, taskInfo.port, taskInfo.address, (err) => {
       if (err) {
-        logger.error(err, 'Error sending response')
+        log.error(err, 'Error sending response')
       } else {
-        logger.info('Response sent')
+        log.info('Response sent')
       }
     })
   } catch (error) {
@@ -114,21 +114,21 @@ const ipLookup = async ({
 
     server.send(response, taskInfo.port, taskInfo.address, (err) => {
       if (err) {
-        logger.error(err, 'Error sending response')
+        log.error(err, 'Error sending response')
       } else {
-        logger.info('Response sent')
+        log.info('Response sent')
       }
     })
   }
 }
 
 server.on('error', (err) => {
-  logger.error(err, 'Server error')
+  log.error(err, 'Server error')
 })
 
 server.on('listening', () => {
   const address = server.address()
-  logger.info(`Listening on ${address.address}:${address.port}`)
+  log.info(`Listening on ${address.address}:${address.port}`)
 })
 
 server.bind(53)

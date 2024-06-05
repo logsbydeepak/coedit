@@ -2,7 +2,7 @@ import { websocket } from '#/utils/ws'
 
 import { app } from './route'
 import { handleStopEvent, startTimeout } from './utils/lifecycle'
-import { logger } from './utils/logger'
+import { log } from './utils/log'
 
 const server = Bun.serve({
   port: 8000,
@@ -10,7 +10,7 @@ const server = Bun.serve({
   websocket,
 })
 
-logger.info(`Server is running on ${server.port}`)
+log.info(`Server is running on ${server.port}`)
 handleStopEvent()
 startTimeout()
 

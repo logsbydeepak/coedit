@@ -1,7 +1,7 @@
 import { EventEmitter } from 'node:events'
 import ms from 'ms'
 
-import { logger } from './logger'
+import { log } from './log'
 
 const event = new EventEmitter()
 
@@ -17,7 +17,7 @@ function wait(ms: number) {
 
 export function handleStopEvent() {
   event.on('stop', async () => {
-    logger.info('Server is stopping')
+    log.info('Server is stopping')
     await wait(ms('5s'))
     process.exit(0)
   })
@@ -27,7 +27,7 @@ let timeout: Timer
 
 export function startTimeout() {
   timeout = setTimeout(() => {
-    logger.info('Server is inactive')
+    log.info('Server is inactive')
     emitStop()
   }, ms('5m'))
 }

@@ -5,7 +5,7 @@ import { genID } from '@coedit/id'
 
 import { h } from '#/utils/h'
 import { setActive } from '#/utils/lifecycle'
-import { logger } from '#/utils/logger'
+import { log } from '#/utils/log'
 import { upgradeWebSocket } from '#/utils/ws'
 
 const terminal = h().get(
@@ -61,22 +61,22 @@ const terminal = h().get(
         }
       },
       onClose: () => {
-        logger.info('websocket closed')
+        log.info('websocket closed')
         for (const term of termGroup.values()) {
           killTerm(term)
         }
       },
       onError: () => {
-        logger.error('websocket error')
+        log.error('websocket error')
         for (const term of termGroup.values()) {
           killTerm(term)
         }
       },
       onUpgrade: () => {
-        logger.info('websocket upgraded')
+        log.info('websocket upgraded')
       },
       onOpen: () => {
-        logger.info('websocket opened')
+        log.info('websocket opened')
       },
     }
   })
@@ -122,7 +122,7 @@ function killTerm(term: Pty) {
     term.close()
     process.kill(pid)
   } catch (error) {
-    logger.error('error while killing term')
+    log.error('error while killing term')
   }
 }
 
