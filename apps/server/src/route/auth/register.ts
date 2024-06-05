@@ -2,13 +2,13 @@ import { zValidator } from '@hono/zod-validator'
 
 import { db, dbSchema, eq } from '@coedit/db'
 import { genID } from '@coedit/id'
+import { KVAuthCode } from '@coedit/kv'
 import { r } from '@coedit/r'
 import { zRegisterUser, zVerifyRegisterUser } from '@coedit/zschema'
 
 import {
   codeGenerator,
   generateAuthToken,
-  KVAuth,
   sendAuthEmail,
   setAuthCookie,
 } from '#/utils/auth'
@@ -21,9 +21,9 @@ export const register = h().post(
   async (c) => {
     const input = c.req.valid('json')
 
-    const KVAuthClient = KVAuth(redis(c.env), 'register', input.email)
+    const KVAuthCodeClient = KVAuthCode(redis(c.env), 'REGISTER', input.email)
 
-    const isCodeSent = await KVAuthClient.exists()
+    const isCodeSent = await KVAuthCodeClient.exists()
     if (isCodeSent) {
       return c.json(r('EMAIL_ALREADY_SENT'))
     }
@@ -47,7 +47,7 @@ export const register = h().post(
       throw error
     }
 
-    await KVAuthClient.set(code)
+    await KVAuthCodeClient.set(code)
     return c.json(r('OK'))
   }
 )
@@ -58,9 +58,9 @@ export const registerVerify = h().post(
   async (c) => {
     const input = c.req.valid('json')
 
-    const KVAuthClient = KVAuth(redis(c.env), 'register', input.email)
+    const KVAuthCodeClient = KVAuthCode(redis(c.env), 'REGISTER', input.email)
 
-    const code = await KVAuthClient.get()
+    const code = await KVAuthCodeClient.get()
     if (!code) {
       return c.json(r('CODE_EXPIRED'))
     }
@@ -69,7 +69,7 @@ export const registerVerify = h().post(
       return c.json(r('CODE_NOT_MATCH'))
     }
 
-    const deleteCode = await KVAuthClient.remove()
+    const deleteCode = await KVAuthCodeClient.remove()
     if (!deleteCode) {
       throw new Error("can't delete redis key")
     }

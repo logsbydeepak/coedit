@@ -1,4 +1,3 @@
-import { Redis } from '@upstash/redis'
 import { Context } from 'hono'
 import { setCookie } from 'hono/cookie'
 import * as jose from 'jose'
@@ -7,17 +6,14 @@ import { ErrorResponse as ErrorResponseType } from 'resend'
 
 import { r } from '@coedit/r'
 
-import { redis, resend } from '#/utils/config'
+import { resend } from '#/utils/config'
 
 import { ENV } from './h'
 
 const MAX_AGE = ms('30 days') / 1000
 
 export async function checkIsAuth(
-  env: Pick<
-    ENV,
-    'JWT_SECRET' | 'APP_UPSTASH_REDIS_REST_URL' | 'APP_UPSTASH_REDIS_REST_TOKEN'
-  >,
+  env: Pick<ENV, 'JWT_SECRET'>,
   token?: string
 ) {
   try {
@@ -28,9 +24,6 @@ export async function checkIsAuth(
     })
     if (!payload || !payload?.userId || typeof payload.userId !== 'string')
       return r('INVALID_PAYLOAD')
-
-    const redisRes = await redis(env).exists(`logout:${token}`)
-    if (redisRes === 1) return r('LOGGED_OUT')
 
     return r('OK', {
       userId: payload.userId,
@@ -98,44 +91,5 @@ export const setAuthCookie = (
     secure: env.RUNTIME === 'production',
     domain: env.COOKIE_DOMAIN,
     maxAge: MAX_AGE,
-  })
-}
-
-export function KVAuth(
-  redis: Redis,
-  type: 'login' | 'register',
-  email: string
-) {
-  const key = `${type}:$${email}`
-
-  async function exists() {
-    const res = await redis.exists(key)
-    return !!res
-  }
-
-  async function set(code: number) {
-    const res = await redis.set(key, code, {
-      px: ms('15 minutes'),
-    })
-    if (res !== 'OK') {
-      throw new Error("can't set redis key")
-    }
-  }
-
-  async function get() {
-    const res = await redis.get<number>(key)
-    return res
-  }
-
-  async function remove() {
-    const res = await redis.del(key)
-    return !!res
-  }
-
-  return Object.freeze({
-    exists,
-    set,
-    get,
-    remove,
   })
 }

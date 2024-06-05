@@ -3,7 +3,7 @@ import dnsPacket from 'dns-packet'
 
 import '#/env'
 
-import { KVdns } from '@coedit/kv-dns'
+import { KVdns } from '@coedit/kv'
 
 import { logger } from '#/utils/logger'
 
@@ -11,6 +11,7 @@ import { getSubdomain } from './utils'
 import { redis } from './utils/config'
 
 const server = dgram.createSocket('udp4')
+const redisClient = redis()
 
 const NXDOMAIN = 0x03
 server.on('message', (msg, rinfo) => {
@@ -76,9 +77,7 @@ const ipLookup = async ({
   const question = questions[0]
 
   try {
-    const redisClient = redis()
-    const KVClient = KVdns(redisClient, subdomain)
-    const ip = await KVClient.get()
+    const ip = await KVdns(redisClient, subdomain).get()
     if (!ip) {
       throw new Error('IP not found')
     }

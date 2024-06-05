@@ -2,6 +2,7 @@ import { zValidator } from '@hono/zod-validator'
 
 import { and, db, dbSchema, eq } from '@coedit/db'
 import { isValidID } from '@coedit/id'
+import { KVDisposeProject, KVRunningProject } from '@coedit/kv'
 import { r } from '@coedit/r'
 import { z, zReqString } from '@coedit/zschema'
 
@@ -14,8 +15,6 @@ import {
 } from '#/utils/ec2'
 import { getTaskCommand, runTaskCommand } from '#/utils/ecs'
 import { hAuth } from '#/utils/h'
-import { KVProject } from '#/utils/project'
-import { KVScheduleFreeProjectResource } from '#/utils/scheduled'
 
 export const startProject = hAuth().post(
   '/start/:id',
@@ -55,9 +54,9 @@ export const startProject = hAuth().post(
     const ec2Client = ec2(c.env)
 
     const redisClient = redis(c.env)
-    const KVProjectClient = KVProject(redisClient, input.id)
+    const KVRunningProjectClient = KVRunningProject(redisClient, input.id)
 
-    const projectArn = await KVProjectClient.get()
+    const projectArn = await KVRunningProjectClient.get()
 
     if (projectArn) {
       const task = await getTaskCommand(ecsClient, { projectId: projectArn })
@@ -67,6 +66,8 @@ export const startProject = hAuth().post(
         task.data.desiredStatus?.toUpperCase() === 'RUNNING'
       ) {
         return c.json(r('OK'))
+      } else {
+        await KVRunningProjectClient.remove()
       }
     }
 
@@ -80,7 +81,7 @@ export const startProject = hAuth().post(
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
-    await KVScheduleFreeProjectResource(redisClient).set(input.id)
+    await KVDisposeProject(redisClient).set(input.id)
 
     if (latestVolumeORSnapshot.data.type === 'snapshot') {
       snapshotId = latestVolumeORSnapshot.data.id
@@ -136,7 +137,7 @@ export const startProject = hAuth().post(
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
-    await KVProjectClient.set(taskArn)
+    await KVRunningProjectClient.set(taskArn)
 
     return c.json(r('OK'))
   }

@@ -16,7 +16,6 @@
     "@aws-sdk/client-ecs": "^3.554.0",
     "@hono/zod-validator": "^0.2.1",
     "@types/ms": "^0.7.34",
-    "@upstash/redis": "^1.29.0",
     "hono": "^4.1.4",
     "jose": "^5.2.3",
     "ms": "^2.1.3",
@@ -26,7 +25,7 @@
     "@coedit/db": "workspace:*",
     "@coedit/zschema": "workspace:*",
     "@coedit/id": "workspace:*",
-    "@coedit/kv-dns": "workspace:*"
+    "@coedit/kv": "workspace:*"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240208.0",

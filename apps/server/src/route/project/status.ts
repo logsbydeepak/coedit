@@ -3,7 +3,7 @@ import { generate } from 'random-words'
 
 import { and, db, dbSchema, eq } from '@coedit/db'
 import { isValidID } from '@coedit/id'
-import { KVdns } from '@coedit/kv-dns'
+import { KVdns, KVRunningProject } from '@coedit/kv'
 import { r } from '@coedit/r'
 import { z, zReqString } from '@coedit/zschema'
 
@@ -11,7 +11,6 @@ import { ec2, ecs, redis } from '#/utils/config'
 import { getPublicIPCommand } from '#/utils/ec2'
 import { getTaskCommand } from '#/utils/ecs'
 import { hAuth } from '#/utils/h'
-import { KVProject } from '#/utils/project'
 
 export const projectStatus = hAuth().get(
   '/status/:id',
@@ -52,7 +51,7 @@ export const projectStatus = hAuth().get(
       )
     }
 
-    const projectArn = await KVProject(redis(c.env), input.id).get()
+    const projectArn = await KVRunningProject(redis(c.env), input.id).get()
     if (!projectArn) {
       return c.json(r('INVALID_PROJECT_ID'))
     }
@@ -103,12 +102,10 @@ export const projectStatus = hAuth().get(
 
       const IP = publicIP.data.IP
       const subdomain = await generateSubdomain(async (subdomain) => {
-        const KVClient = KVdns(dnsRedisClient, subdomain)
-        return await KVClient.exists()
+        return await KVdns(dnsRedisClient, subdomain).exists()
       })
 
-      const KVClient = KVdns(dnsRedisClient, subdomain)
-      await KVClient.set(IP)
+      await KVdns(dnsRedisClient, subdomain).set(IP)
 
       return c.json(
         r('OK', {

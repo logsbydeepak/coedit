@@ -2,12 +2,12 @@ import { zValidator } from '@hono/zod-validator'
 
 import { and, db, dbSchema, eq } from '@coedit/db'
 import { isValidID } from '@coedit/id'
+import { KVDeleteProject } from '@coedit/kv'
 import { r } from '@coedit/r'
 import { z, zReqString } from '@coedit/zschema'
 
 import { redis } from '#/utils/config'
 import { hAuth } from '#/utils/h'
-import { KVScheduleDeleteProject } from '#/utils/scheduled'
 
 export const deleteProject = hAuth().delete(
   '/:id',
@@ -42,7 +42,7 @@ export const deleteProject = hAuth().delete(
     }
 
     const redisClient = redis(c.env)
-    await KVScheduleDeleteProject(redisClient).set(input.id)
+    await KVDeleteProject(redisClient).set(input.id)
 
     return c.json(r('OK'))
   }
