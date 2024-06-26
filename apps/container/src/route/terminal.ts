@@ -17,47 +17,53 @@ const terminal = h().get(
       onMessage: (rawData, ws) => {
         const data = getData(rawData.data.toString())
 
-        if (data.event === 'add') {
-          const id = genID()
-          const term = createTerm({
-            id,
-            ws,
-            onExit: () => {
-              const term = termGroup.get(id)
-              if (!term) return
-              termGroup.delete(id)
-              ws.send(sendData({ event: 'remove', data: id }))
-            },
-          })
+        switch (data.event) {
+          case 'add': {
+            const id = genID()
+            const term = createTerm({
+              id,
+              ws,
+              onExit: () => {
+                const term = termGroup.get(id)
+                if (!term) return
+                termGroup.delete(id)
+                ws.send(sendData({ event: 'remove', data: id }))
+              },
+            })
 
-          termGroup.set(id, term)
-          ws.send(sendData({ event: 'add', data: id }))
-        }
+            termGroup.set(id, term)
+            ws.send(sendData({ event: 'add', data: id }))
+            break
+          }
 
-        if (data.event === 'remove') {
-          const id = data.data
-          const term = termGroup.get(id)
-          if (!term) return
-          killTerm(term)
-          termGroup.delete(id)
-          ws.send(sendData({ event: 'remove', data: id }))
-        }
+          case 'remove': {
+            const id = data.data
+            const term = termGroup.get(id)
+            if (!term) return
+            killTerm(term)
+            termGroup.delete(id)
+            ws.send(sendData({ event: 'remove', data: id }))
+            break
+          }
 
-        if (data.event === 'resize') {
-          const id = data.data.id
-          const term = termGroup.get(id)
-          if (!term) return
-          term.resize({
-            cols: data.data.cols,
-            rows: data.data.rows,
-          })
-        }
+          case 'resize': {
+            const id = data.data.id
+            const term = termGroup.get(id)
+            if (!term) return
+            term.resize({
+              cols: data.data.cols,
+              rows: data.data.rows,
+            })
+            break
+          }
 
-        if (data.event === 'term') {
-          const id = data.data.id
-          const term = termGroup.get(id)
-          if (!term) return
-          Bun.write(term.fd(), data.data.data)
+          case 'term': {
+            const id = data.data.id
+            const term = termGroup.get(id)
+            if (!term) return
+            Bun.write(term.fd(), data.data.data)
+            break
+          }
         }
       },
       onClose: () => {

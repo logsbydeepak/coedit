@@ -52,6 +52,7 @@ const languageMap: Record<string, BundledLanguage | 'text'> = {
   astro: 'astro',
   toml: 'toml',
   mod: 'text',
+  go: 'go',
 }
 
 export default function TextEditor() {
