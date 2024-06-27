@@ -9,7 +9,7 @@ class _KVAuthCode {
 
   constructor(client: Redis, type: 'LOGIN' | 'REGISTER', email: string) {
     this.client = client
-    this.key = prefix.authCode.concat(type, ':', email)
+    this.key = prefix.authCode.concat('-', type, ':', email)
   }
 
   async exists() {

@@ -8,7 +8,7 @@ class _KVdns {
   private client: Redis
 
   constructor(client: Redis, subdomain: string) {
-    this.key = prefix.dns.concat(subdomain)
+    this.key = prefix.dns.concat('-', subdomain)
     this.client = client
   }
 

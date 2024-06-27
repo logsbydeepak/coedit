@@ -8,7 +8,7 @@ class _KVRunningProject {
   private client: Redis
 
   constructor(client: Redis, id: string) {
-    this.key = prefix.runningProject.concat(id)
+    this.key = prefix.runningProject.concat('-', id)
     this.client = client
   }
 
