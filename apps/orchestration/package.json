@@ -1,0 +1,17 @@
+{
+  "name": "@coedit/orchestration",
+  "private": true,
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "bun --watch src/index.ts | pino-pretty"
+  },
+  "dependencies": {
+    "dockerode": "^4.0.2",
+    "hono": "^4.2.4",
+    "@hono/zod-validator": "^0.2.1",
+    "pino": "^8.20.0",
+    "pino-pretty": "^11.0.0"
+  },
+  "devDependencies": {}
+}
