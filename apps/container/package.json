@@ -18,16 +18,16 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@coedit/server": "workspace:*",
     "@coedit/id": "workspace:*",
+    "@coedit/r": "workspace:*",
+    "@coedit/server": "workspace:*",
+    "@coedit/zschema": "workspace:*",
+    "@replit/ruspty": "^3.1.3",
     "hono": "^4.2.4",
     "ms": "^2.1.3",
     "pino": "^8.20.0",
     "pino-pretty": "^11.0.0",
-    "typescript": "^5.4.5",
-    "@replit/ruspty": "workspace:*",
-    "@coedit/zschema": "workspace:*",
-    "@coedit/r": "workspace:*"
+    "typescript": "^5.4.5"
   },
   "devDependencies": {
     "@types/bun": "^1.1.3",

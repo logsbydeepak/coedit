@@ -10,5 +10,4 @@ ignorePaths:
   - 'bun.lockb'
   - '/apps/frontend/public/icons/'
   - '/apps/frontend/src/utils/symbol-icon-theme.json'
-  - '/packages/ruspty'
   - '/project-words.txt'
