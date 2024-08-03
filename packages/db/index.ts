@@ -1,12 +1,12 @@
-import { neon } from '@neondatabase/serverless'
-import { drizzle } from 'drizzle-orm/neon-http'
+import { drizzle } from 'drizzle-orm/postgres-js'
+import postgres from 'postgres'
 
 import * as schema from './schema'
 
 export { eq, and, desc } from 'drizzle-orm'
 
 export const db = ({ DB_URL }: { DB_URL: string }) => {
-  const sql = neon(DB_URL)
-  return drizzle(sql)
+  const client = postgres(DB_URL, { prepare: false })
+  return drizzle(client, {})
 }
 export const dbSchema = schema

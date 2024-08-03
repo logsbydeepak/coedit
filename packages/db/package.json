@@ -9,8 +9,8 @@
     "db:gen:push": "run-s db:gen db:push"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^0.9.3",
-    "drizzle-orm": "^0.30.10"
+    "drizzle-orm": "^0.30.10",
+    "postgres": "^3.4.4"
   },
   "devDependencies": {
     "drizzle-kit": "^0.20.17"
