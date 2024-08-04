@@ -60,3 +60,8 @@ smembers
 
 # orchestration
 dockerode
+
+# templates
+unzipper
+autodrain
+

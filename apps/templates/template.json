@@ -1,0 +1,18 @@
+[
+  {
+    "name": "next-js",
+    "path": "next-js.zip"
+  },
+  {
+    "name": "rust",
+    "path": "rust.zip"
+  },
+  {
+    "name": "go",
+    "path": "go.zip"
+  },
+  {
+    "name": "empty",
+    "path": "empty.zip"
+  }
+]
