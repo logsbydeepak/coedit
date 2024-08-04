@@ -27,6 +27,7 @@ export type ENV = {
   AWS_ECS_INFRASTRUCTURE_ROLE_ARN: string
 
   CONTAINER_MODE: 'mock' | 'aws'
+  ORCHESTRATION_URL: string
 }
 
 type Variables = {

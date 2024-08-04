@@ -2,11 +2,10 @@ import { zValidator } from '@hono/zod-validator'
 
 import { and, db, dbSchema, eq } from '@coedit/db'
 import { isValidID } from '@coedit/id'
-import { KVDeleteProject } from '@coedit/kv'
 import { r } from '@coedit/r'
 import { z, zReqString } from '@coedit/zschema'
 
-import { redis } from '#/utils/config'
+import { orchestration } from '#/utils/config'
 import { hAuth } from '#/utils/h'
 
 export const deleteProject = hAuth().delete(
@@ -41,8 +40,17 @@ export const deleteProject = hAuth().delete(
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
-    const redisClient = redis(c.env)
-    await KVDeleteProject(redisClient).set(input.id)
+    const orchestrationRes = await orchestration(c.env).project.$delete({
+      json: {
+        userId: userId,
+        projectId: input.id,
+      },
+    })
+    const orchestrationResData = await orchestrationRes.json()
+
+    if (orchestrationResData.code === 'INVALID_PROJECT_ID') {
+      return c.json(r('INVALID_PROJECT_ID'))
+    }
 
     return c.json(r('OK'))
   }
