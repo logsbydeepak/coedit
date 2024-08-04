@@ -4,15 +4,16 @@
   "version": "1.0.0",
   "main": "src/index.ts",
   "scripts": {
-    "db:gen": "drizzle-kit generate:mysql",
-    "db:push": "bun --env-file .env.local drizzle-kit push:pg",
-    "db:gen:push": "run-s db:gen db:push"
+    "db:gen": "drizzle-kit generate",
+    "db:push": "bun --env-file .env.local drizzle-kit push",
+    "db:gen:push": "run-s db:gen db:push",
+    "db:studio": "bun --env-file .env.local drizzle-kit studio"
   },
   "dependencies": {
-    "drizzle-orm": "^0.30.10",
+    "drizzle-orm": "^0.32.1",
     "postgres": "^3.4.4"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.20.17"
+    "drizzle-kit": "^0.23.1"
   }
 }
