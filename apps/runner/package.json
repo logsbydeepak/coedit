@@ -1,0 +1,26 @@
+{
+  "name": "@coedit/runner",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.ts",
+  "types": "tsc/index.d.ts",
+  "scripts": {
+    "dev": "bun --watch src/index.ts | pino-pretty",
+    "build:clean": "rm -rf dist",
+    "build:compile": "bun build --minify --compile --sourcemap src/index.ts  --outfile dist/coedit-container-process",
+    "build": "run-p build:clean build:compile",
+    "tsc:clean": "rm -rf tsc tsconfig.tsbuildinfo",
+    "tsc:build": "tsc --build",
+    "tsc": "run-s tsc:clean tsc:build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "typescript": "^5.4.5"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.3"
+  }
+}
