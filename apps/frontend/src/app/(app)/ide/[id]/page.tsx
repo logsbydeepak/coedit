@@ -4,7 +4,6 @@ import React from 'react'
 import { useParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { useSetAtom } from 'jotai'
-import ms from 'ms'
 
 import { apiClient } from '#/utils/hc-client'
 
@@ -47,29 +46,10 @@ function Init({
     refetchOnWindowFocus: false,
   })
 
-  const statusQuery = useQuery({
-    queryFn: async () => {
-      const res = await apiClient.project.status[':id'].$get({
-        param: {
-          id: params.id,
-        },
-      })
-
-      return await res.json()
-    },
-    staleTime: 0,
-    enabled: startQuery.data?.code === 'OK',
-    queryKey: ['status', params.id],
-    refetchInterval: ms('4s'),
-  })
-
-  const isError = React.useMemo(
-    () => startQuery.isError || statusQuery.isError,
-    [startQuery.isError, statusQuery.isError]
-  )
+  const isError = React.useMemo(() => startQuery.isError, [startQuery.isError])
 
   const message: string = React.useMemo(() => {
-    if (startQuery.isLoading || statusQuery.isLoading) {
+    if (startQuery.isLoading) {
       return 'loading'
     }
 
@@ -77,58 +57,33 @@ function Init({
       return 'error'
     }
 
-    if (startQuery.data?.code === 'TIMEOUT') {
-      return 'timeout'
-    }
-
-    if (
-      startQuery.data?.code === 'INVALID_PROJECT_ID' ||
-      statusQuery.data?.code === 'INVALID_PROJECT_ID'
-    ) {
+    if (startQuery.data?.code === 'INVALID_PROJECT_ID') {
       return 'not found'
     }
 
-    if (statusQuery.data?.code === 'STATUS') {
-      return statusQuery.data.status.toLowerCase()
-    }
-
     return 'error'
-  }, [
-    startQuery.isLoading,
-    statusQuery.isLoading,
-    isError,
-    startQuery.data?.code,
-    statusQuery.data,
-  ])
+  }, [startQuery.isLoading, isError, startQuery.data?.code])
 
   const isLoading: boolean = React.useMemo(() => {
     if (isError) return false
-
-    if (startQuery.data?.code === 'TIMEOUT') {
-      return false
-    }
 
     if (startQuery.data?.code === 'INVALID_PROJECT_ID') {
       return false
     }
 
-    if (statusQuery.data?.code === 'INVALID_PROJECT_ID') {
-      return false
-    }
-
     return true
-  }, [isError, startQuery.data?.code, statusQuery.data?.code])
+  }, [isError, startQuery.data?.code])
 
   React.useEffect(() => {
-    if (statusQuery.data?.code === 'OK') {
+    if (startQuery.data?.code === 'OK') {
       setContainerURL({
-        api: statusQuery.data.api,
-        output: statusQuery.data.output,
+        api: startQuery.data.api,
+        output: startQuery.data.output,
       })
       setIsReady(true)
       return
     }
-  }, [statusQuery.data, setIsReady, setContainerURL])
+  }, [setIsReady, setContainerURL, startQuery.data])
 
   return (
     <StatusContainer className="absolute flex-col space-y-6 pt-14">

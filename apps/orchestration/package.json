@@ -7,9 +7,10 @@
     "dev": "bun --watch src/index.ts | pino-pretty"
   },
   "dependencies": {
+    "@hono/zod-validator": "^0.2.1",
+    "@types/dockerode": "^3.3.31",
     "dockerode": "^4.0.2",
     "hono": "^4.2.4",
-    "@hono/zod-validator": "^0.2.1",
     "pino": "^8.20.0",
     "pino-pretty": "^11.0.0"
   },

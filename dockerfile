@@ -1,6 +1,3 @@
-FROM caddy:2.7.6-builder AS caddy-builder
-RUN xcaddy build
-
 FROM ubuntu:22.04 as builder
 RUN apt update
 RUN apt install -y curl unzip git make build-essential bash
@@ -11,11 +8,10 @@ RUN curl -sSf https://sh.rustup.rs | bash -s -- -y
 WORKDIR /root/coedit
 COPY . .
 
-ENV PATH="/root/.cargo/bin:$PATH"
 ENV PATH="/root/.bun/bin:$PATH"
 
 RUN bun install
-RUN bun run container:build
+RUN bun run runner:build
 
 FROM ubuntu:22.04 as runner
 RUN apt update
@@ -41,11 +37,7 @@ RUN echo "eval '$(starship init bash)'" >> /home/coedit/.bashrc
 COPY starship.toml /home/coedit/.config/
 RUN chown -R $NEW_USER:$NEW_USER /home/coedit/.config
 
-COPY --from=builder /root/coedit/apps/container/dist/ /root/coedit/
-COPY --from=builder /root/coedit/packages/ruspty/index.*.node /root/coedit/packages/ruspty/
-COPY --from=builder /root/coedit/apps/container/certificate/ /root/coedit/apps/container/certificate/
-COPY --from=builder /root/coedit/apps/container/Caddyfile /root/coedit/apps/container/Caddyfile
-COPY --from=caddy-builder /usr/bin/caddy /root/coedit/caddy
+COPY --from=builder /root/coedit/apps/runner/dist/ /root/coedit/
 
 RUN rm -rf /etc/sudoers.d/$NEW_USER
 RUN deluser $NEW_USER sudo
@@ -54,5 +46,4 @@ USER $NEW_USER
 WORKDIR /home/coedit/workspace/
 
 USER root
-ENTRYPOINT ["/bin/bash", "-c", "/root/coedit/caddy start --config /root/coedit/apps/container/Caddyfile && chown -R coedit:coedit /home/coedit/workspace  && exec $0 $@"]
 
