@@ -60,8 +60,14 @@ smembers
 
 # orchestration
 dockerode
+IPAM
 
 # templates
 unzipper
 autodrain
 
+#coedit-proxy
+caddyserver
+caddyconfig
+httpcaddyfile
+caddyhttp

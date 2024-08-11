@@ -1,14 +1,18 @@
 {
 	auto_https off
+	order coedit_proxy before reverse_proxy
 }
 
 :80 {
-	route {
-		coedit_proxy stdout
-		@orchestration expression {host} == "orchestration.{$ROOT_DOMAIN}"
-		@server expression {host}.endsWith("-server.{$ROOT_DOMAIN}")
+	@orchestration expression {host} == "orchestration.{$ROOT_DOMAIN}"
+	reverse_proxy @orchestration localhost:5002
 
-		reverse_proxy @orchestration localhost:5002
-		reverse_proxy @server localhost:5002
+	@coedit expression {host}.matches("^[a-zA-Z]+-[a-zA-Z]+-(server|app)\\.{$ROOT_DOMAIN}$")
+	route @coedit {
+		coedit_proxy stdio
+	}
+
+	header {
+		Server "coedit"
 	}
 }

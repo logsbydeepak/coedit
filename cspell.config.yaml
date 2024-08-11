@@ -11,3 +11,5 @@ ignorePaths:
   - '/apps/frontend/public/icons/'
   - '/apps/frontend/src/utils/symbol-icon-theme.json'
   - '/project-words.txt'
+  - '/apps/orchestration/coedit-proxy/go.sum'
+  - '/apps/orchestration/coedit-proxy/go.mod'
