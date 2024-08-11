@@ -2,22 +2,10 @@ name = "api-coedit"
 compatibility_date = "2023-12-01"
 compatibility_flags = [ "nodejs_compat" ]
 
-[triggers]
-crons = ["0 */6 * * *"]
-
 [dev]
 port=5000
 
 [vars]
-AWS_ACCESS_KEY_ID=""
-AWS_ECS_INFRASTRUCTURE_ROLE_ARN=""
-AWS_REGION=""
-AWS_SECRET_ACCESS_KEY=""
-AWS_SECURITY_GROUP_ID=""
-AWS_SUBNET_ID=""
-
-CONTAINER_MODE="aws" # mock OR aws
-
 DB_URL="" # neon db
 
 JWT_SECRET=""
@@ -27,10 +15,6 @@ RESEND_FROM="team <abc@example.com>"
 
 APP_UPSTASH_REDIS_REST_TOKEN=""
 APP_UPSTASH_REDIS_REST_URL=""
-
-DNS_UPSTASH_REDIS_REST_TOKEN=""
-DNS_UPSTASH_REDIS_REST_URL=""
-DNS_ROOT_DOMAIN="" # .abc.example.com
 
 RUNTIME="production" # production OR development
 

@@ -6,7 +6,6 @@ import { projectRoute } from './route/project'
 import { templateRoute } from './route/template'
 import { userRoute } from './route/user'
 import { ENV, h } from './utils/h'
-import { scheduled } from './utils/scheduled'
 
 const app = h()
   .use(secureHeaders())
@@ -25,12 +24,4 @@ export type AppType = typeof app
 
 export default {
   fetch: async (request: Request, env: ENV) => await app.fetch(request, env),
-
-  scheduled: async (
-    _event: ScheduledEvent,
-    env: ENV,
-    ctx: ExecutionContext
-  ) => {
-    ctx.waitUntil(scheduled(env))
-  },
 }

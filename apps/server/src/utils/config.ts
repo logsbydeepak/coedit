@@ -1,5 +1,3 @@
-import { EC2Client } from '@aws-sdk/client-ec2'
-import { ECSClient } from '@aws-sdk/client-ecs'
 import { hc } from 'hono/client'
 import { Resend } from 'resend'
 
@@ -18,30 +16,6 @@ export const redis = (
   return new RedisCloudflare({
     url: env.APP_UPSTASH_REDIS_REST_URL,
     token: env.APP_UPSTASH_REDIS_REST_TOKEN,
-  })
-}
-
-export const ecs = (
-  env: Pick<ENV, 'AWS_ACCESS_KEY_ID' | 'AWS_SECRET_ACCESS_KEY' | 'AWS_REGION'>
-) => {
-  return new ECSClient({
-    region: env.AWS_REGION,
-    credentials: {
-      accessKeyId: env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-    },
-  })
-}
-
-export const ec2 = (
-  env: Pick<ENV, 'AWS_ACCESS_KEY_ID' | 'AWS_SECRET_ACCESS_KEY' | 'AWS_REGION'>
-) => {
-  return new EC2Client({
-    region: env.AWS_REGION,
-    credentials: {
-      accessKeyId: env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-    },
   })
 }
 

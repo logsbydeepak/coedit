@@ -1,5 +1,4 @@
 import { zValidator } from '@hono/zod-validator'
-import { generate } from 'random-words'
 
 import { and, db, dbSchema, eq } from '@coedit/db'
 import { isValidID } from '@coedit/id'
@@ -55,37 +54,11 @@ export const startProject = hAuth().post(
       throw new Error('Error while starting container')
     }
 
-    const subdomain = generateSubdomain(async (subdomain) => {
-      return true
-    })
-
     return c.json(
       r('OK', {
-        api: `http://${subdomain}-server${c.env.DNS_ROOT_DOMAIN}`,
-        output: `http://${subdomain}-app${c.env.DNS_ROOT_DOMAIN}`,
+        api: resData.api,
+        output: resData.output,
       })
     )
   }
 )
-
-async function generateSubdomain(
-  isExist: (subdomain: string) => Promise<boolean>
-) {
-  while (true) {
-    const subdomain = generate({
-      exactly: 1,
-      wordsPerString: 2,
-      separator: '-',
-    })[0].toLowerCase()
-
-    if (subdomain.includes('-app') || subdomain.includes('-server')) {
-      continue
-    }
-
-    const isExistSubdomain = await isExist(subdomain)
-
-    if (!isExistSubdomain) {
-      return subdomain
-    }
-  }
-}
