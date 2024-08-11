@@ -44,7 +44,7 @@ async function main() {
       return new Promise<void>((resolve, reject) => {
         fs.createReadStream(inputPath)
           .pipe(unzipper.Parse())
-          .on('entry', function(entry) {
+          .on('entry', function (entry) {
             const fileName = entry.path
             const type = entry.type
 
