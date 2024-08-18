@@ -1,0 +1,24 @@
+{
+  "name": "@replit/ruspty",
+  "version": "3.1.3",
+  "main": "wrapper.ts",
+  "author": "Szymon Kaliski <hi@szymonkaliski.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/replit/ruspty.git"
+  },
+  "homepage": "https://github.com/replit/ruspty#readme",
+  "bugs": {
+    "url": "https://github.com/replit/ruspty/issues"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@napi-rs/cli": "^2.18.2",
+    "@napi-rs/triples": "^1.2.0",
+    "@types/node": "^20.14.2",
+    "typescript": "^5.4.5"
+  },
+  "scripts": {
+    "build": "napi build --platform --release"
+  }
+}
