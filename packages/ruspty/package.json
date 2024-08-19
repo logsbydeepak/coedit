@@ -1,7 +1,8 @@
 {
   "name": "@replit/ruspty",
-  "version": "3.1.3",
-  "main": "wrapper.ts",
+  "version": "2.1.0",
+  "main": "index.js",
+  "types": "index.d.ts",
   "author": "Szymon Kaliski <hi@szymonkaliski.com>",
   "repository": {
     "type": "git",
@@ -14,11 +15,11 @@
   "license": "MIT",
   "devDependencies": {
     "@napi-rs/cli": "^2.18.2",
-    "@napi-rs/triples": "^1.2.0",
-    "@types/node": "^20.14.2",
-    "typescript": "^5.4.5"
+    "@types/node": "^20.4.1"
   },
   "scripts": {
-    "build": "napi build --platform --release"
+    "clean": "cargo clean && rm -rf Cargo.lock && rm -rf *.node",
+    "build:compile": "napi build --platform --release",
+    "build": "run-s clean build:compile"
   }
 }

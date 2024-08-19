@@ -1,4 +1,5 @@
 import { Pty } from '@replit/ruspty'
+import { WSContext } from 'hono/ws'
 
 import { genID } from '@coedit/id'
 
@@ -20,20 +21,14 @@ const terminal = h().get(
           case 'add': {
             const id = genID()
             const term = createTerm({
+              id,
+              ws,
               onExit: () => {
                 const term = termGroup.get(id)
                 if (!term) return
                 termGroup.delete(id)
                 ws.send(sendData({ event: 'remove', data: id }))
               },
-            })
-
-            const read = term.read
-            read.on('data', (data) => {
-              if (!data) return
-              ws.send(
-                sendData({ event: 'term', data: { id, data: data.toString() } })
-              )
             })
 
             termGroup.set(id, term)
@@ -66,7 +61,7 @@ const terminal = h().get(
             const id = data.data.id
             const term = termGroup.get(id)
             if (!term) return
-            term.write.write(data.data.data)
+            Bun.write(term.fd(), data.data.data)
             break
           }
         }
@@ -93,7 +88,15 @@ const terminal = h().get(
   })
 )
 
-function createTerm({ onExit }: { onExit: () => void }) {
+function createTerm({
+  id,
+  ws,
+  onExit,
+}: {
+  id: string
+  ws: WSContext
+  onExit: () => void
+}) {
   const USER = 'coedit'
   const WORKSPACE = `/home/${USER}/workspace`
 
@@ -110,6 +113,10 @@ function createTerm({ onExit }: { onExit: () => void }) {
       TERM: 'xterm-256color',
     },
     onExit,
+    onData: (error, data) => {
+      if (error) return
+      ws.send(sendData({ event: 'term', data: { id, data: data.toString() } }))
+    },
   })
 
   return pty
