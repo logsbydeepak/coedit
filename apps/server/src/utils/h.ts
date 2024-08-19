@@ -17,6 +17,7 @@ export type ENV = {
   APP_UPSTASH_REDIS_REST_TOKEN: string
 
   ORCHESTRATION_URL: string
+  ORCHESTRATION_MODE: 'mock' | 'caddy'
 }
 
 type Variables = {

@@ -20,6 +20,15 @@ export const startProject = hAuth().post(
     const input = c.req.valid('param')
     const userId = c.get('x-userId')
 
+    if (c.env.ORCHESTRATION_MODE === 'mock') {
+      return c.json(
+        r('OK', {
+          api: 'http://localhost:4000',
+          output: 'http://localhost:3000',
+        })
+      )
+    }
+
     if (!isValidID(input.id)) {
       return c.json(r('INVALID_PROJECT_ID'))
     }
