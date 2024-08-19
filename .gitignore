@@ -41,6 +41,7 @@ static
 
 # ruspty
 release
+target
 
 *.prod.toml
 *.dev.toml

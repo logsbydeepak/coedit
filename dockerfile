@@ -11,7 +11,7 @@ COPY . .
 ENV PATH="/root/.bun/bin:$PATH"
 
 RUN bun install
-RUN bun run runner:build
+RUN bun run container:build
 
 FROM ubuntu:22.04 as runner
 RUN apt update

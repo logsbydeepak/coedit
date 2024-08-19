@@ -11,6 +11,7 @@ dev:
 dev-start:
 	@echo "-> DEV IMAGE START"
 	docker run --name coedit-dev \
+		--rm \
 		--user root \
 		-it \
 		-v .:/root/coedit \

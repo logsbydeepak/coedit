@@ -12,6 +12,7 @@
     "server:dev": "bun run --cwd apps/server dev",
     "frontend:build": "run-s tsc && bun run --cwd apps/frontend build",
     "container:build": "bun run --cwd apps/container build",
+    "ruspty:build": "bun run --cwd packages/ruspty build",
     "server:deploy": "bun run --cwd apps/server deploy",
     "unused": "knip",
     "check:repo": "sherif"

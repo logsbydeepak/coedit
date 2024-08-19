@@ -13,3 +13,4 @@ ignorePaths:
   - '/project-words.txt'
   - '/apps/orchestration/coedit-proxy/go.sum'
   - '/apps/orchestration/coedit-proxy/go.mod'
+  - '/packages/ruspty'
