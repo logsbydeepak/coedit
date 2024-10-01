@@ -5,54 +5,34 @@ import (
 	"net/http"
 
 	"github.com/caddyserver/caddy/v2"
-	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
 	"github.com/caddyserver/caddy/v2/caddyconfig/httpcaddyfile"
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 )
 
 func init() {
-	caddy.RegisterModule(Middleware{})
-	httpcaddyfile.RegisterHandlerDirective("coedit_proxy", parseCaddyfile)
+	caddy.RegisterModule(JWTShardRouter{})
+	httpcaddyfile.RegisterHandlerDirective("coedit_proxy", jwtParseCaddyfile)
 }
 
-type Middleware struct {
+type JWTShardRouter struct {
 }
 
-func (Middleware) CaddyModule() caddy.ModuleInfo {
+func (JWTShardRouter) CaddyModule() caddy.ModuleInfo {
 	return caddy.ModuleInfo{
 		ID:  "http.handlers.coedit_proxy",
-		New: func() caddy.Module { return new(Middleware) },
+		New: func() caddy.Module { return new(JWTShardRouter) },
 	}
 }
 
-func (m *Middleware) Provision(ctx caddy.Context) error {
-	return nil
-}
-
-func (m Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyhttp.Handler) error {
+func (m JWTShardRouter) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyhttp.Handler) error {
 	fmt.Println(r.Host)
+	shard := "127.0.0.1:5002"
+	caddyhttp.SetVar(r.Context(), "shard.upstream", shard)
 
-	return nil
+	return next.ServeHTTP(w, r)
 }
 
-func (m *Middleware) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
-	d.Next()
-
-	if !d.NextArg() {
-		return d.ArgErr()
-	}
-
-	return nil
+func jwtParseCaddyfile(h httpcaddyfile.Helper) (caddyhttp.MiddlewareHandler, error) {
+	var m JWTShardRouter
+	return m, nil
 }
-
-func parseCaddyfile(h httpcaddyfile.Helper) (caddyhttp.MiddlewareHandler, error) {
-	var m Middleware
-	err := m.UnmarshalCaddyfile(h.Dispenser)
-	return m, err
-}
-
-var (
-	_ caddy.Provisioner           = (*Middleware)(nil)
-	_ caddyhttp.MiddlewareHandler = (*Middleware)(nil)
-	_ caddyfile.Unmarshaler       = (*Middleware)(nil)
-)

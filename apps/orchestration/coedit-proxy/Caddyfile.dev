@@ -1,15 +1,16 @@
 {
 	auto_https off
-	order coedit_proxy before reverse_proxy
+	order coedit_proxy before method
 }
 
 :80 {
-	@orchestration expression {host} == "orchestration.{$ROOT_DOMAIN}"
-	reverse_proxy @orchestration localhost:5002
-
 	@coedit expression {host}.matches("^[a-zA-Z]+-[a-zA-Z]+-(server|app)\\.{$ROOT_DOMAIN}$")
+
 	route @coedit {
-		coedit_proxy stdio
+		coedit_proxy
+		reverse_proxy {
+			to {http.vars.shard.upstream}
+		}
 	}
 
 	header {
