@@ -8,11 +8,20 @@
 
 	route @coedit {
 		coedit_proxy
-		reverse_proxy {
-			to {http.vars.shard.upstream}
+		@not_found expression {http.vars.shard.upstream}.matches("not_found")
+
+		handle @not_found {
+			respond "invalid"
+		}
+
+		handle {
+			reverse_proxy {
+				to {http.vars.shard.upstream}
+			}
 		}
 	}
 
+	respond "invalid"
 	header {
 		Server "coedit"
 	}
