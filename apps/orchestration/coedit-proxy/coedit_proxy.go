@@ -1,14 +1,21 @@
 package coedit_proxy
 
 import (
-	"bytes"
+	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/caddyserver/caddy/v2"
+	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
 	"github.com/caddyserver/caddy/v2/caddyconfig/httpcaddyfile"
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
+	"github.com/redis/go-redis/v9"
+
+	"go.uber.org/zap"
 )
+
+var ctx = context.Background()
 
 func init() {
 	caddy.RegisterModule(Middleware{})
@@ -16,6 +23,12 @@ func init() {
 }
 
 type Middleware struct {
+	ENV struct {
+		ROOT_DOMAIN string
+		REDIS_URL   string
+	}
+	logger *zap.Logger
+	redis  *redis.Client
 }
 
 func (Middleware) CaddyModule() caddy.ModuleInfo {
@@ -26,20 +39,86 @@ func (Middleware) CaddyModule() caddy.ModuleInfo {
 }
 
 func (m Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyhttp.Handler) error {
-	fmt.Println(r.Host)
+	m.logger.Info("<- " + r.Host)
+	host := r.Host
+	port := -1
 
-	var proxyURL bytes.Buffer
-	if r.Host == "abc-abc-app.localhost" {
-		proxyURL.WriteString("127.0.0.1:5002")
-	} else {
-		proxyURL.WriteString("not_found")
+	if !strings.HasSuffix(host, "-app."+m.ENV.ROOT_DOMAIN) && !strings.HasSuffix(host, "-server."+m.ENV.ROOT_DOMAIN) {
+		caddyhttp.SetVar(r.Context(), "shard.upstream", "not_found")
+		return next.ServeHTTP(w, r)
 	}
 
-	caddyhttp.SetVar(r.Context(), "shard.upstream", proxyURL)
-	return next.ServeHTTP(w, r)
+	if strings.HasSuffix(host, "-server."+m.ENV.ROOT_DOMAIN) {
+		port = 8000
+	}
+
+	host = strings.Split(host, ".")[0]
+
+	if strings.HasSuffix(host, "-app") {
+		host = strings.ReplaceAll(host, "-app", "")
+	}
+
+	if strings.HasSuffix(host, "-server") {
+		host = strings.ReplaceAll(host, "-server", "")
+	}
+
+	if strings.Count(host, "-") != 1 {
+		caddyhttp.SetVar(r.Context(), "shard.upstream", "not_found")
+		return next.ServeHTTP(w, r)
+	}
+
+	ip, err := m.redis.Get(ctx, "CONTAINER_IP-"+host).Result()
+	if err != nil {
+		m.logger.Error(err.Error())
+		caddyhttp.SetVar(r.Context(), "shard.upstream", "not_found")
+		return next.ServeHTTP(w, r)
+	} else {
+		if port == -1 {
+			caddyhttp.SetVar(r.Context(), "shard.upstream", "not_found")
+			return next.ServeHTTP(w, r)
+		}
+
+		url := ip + fmt.Sprintf(":%v", port)
+		m.logger.Info("-> " + url)
+		caddyhttp.SetVar(r.Context(), "shard.upstream", url)
+		return next.ServeHTTP(w, r)
+	}
+}
+
+func (m *Middleware) Provision(c caddy.Context) error {
+	m.logger = c.Logger()
+
+	opt, err := redis.ParseURL(m.ENV.REDIS_URL)
+	if err != nil {
+		return err
+	}
+
+	m.redis = redis.NewClient(opt)
+	err = m.redis.Ping(ctx).Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Middleware) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
+	d.Next()
+
+	if !d.NextArg() {
+		return fmt.Errorf("Missing env: ROOT_DOMAIN")
+	}
+	m.ENV.ROOT_DOMAIN = d.Val()
+
+	if !d.NextArg() {
+		return fmt.Errorf("Missing env: REDIS_URL")
+	}
+	m.ENV.REDIS_URL = d.Val()
+	return nil
 }
 
 func parseCaddyfile(h httpcaddyfile.Helper) (caddyhttp.MiddlewareHandler, error) {
 	var m Middleware
-	return m, nil
+	err := m.UnmarshalCaddyfile(h.Dispenser)
+	return m, err
 }
