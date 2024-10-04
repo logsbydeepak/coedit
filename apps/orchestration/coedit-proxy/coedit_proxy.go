@@ -5,17 +5,22 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/caddyserver/caddy/v2"
 	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
 	"github.com/caddyserver/caddy/v2/caddyconfig/httpcaddyfile"
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
+	"github.com/jellydator/ttlcache/v3"
 	"github.com/redis/go-redis/v9"
 
 	"go.uber.org/zap"
 )
 
 var ctx = context.Background()
+var cache = ttlcache.New[string, string](
+	ttlcache.WithTTL[string, string](30 * time.Minute),
+)
 
 func init() {
 	caddy.RegisterModule(Middleware{})
@@ -67,12 +72,22 @@ func (m Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddy
 		return next.ServeHTTP(w, r)
 	}
 
+	if result := cache.Get(host); result != nil {
+		m.logger.Info("CACHE HIT")
+		m.logger.Info("-> " + result.Value())
+		caddyhttp.SetVar(r.Context(), "shard.upstream", result.Value())
+		return next.ServeHTTP(w, r)
+	}
+
+	m.logger.Info("CACHE MISS")
 	ip, err := m.redis.Get(ctx, "CONTAINER_IP-"+host).Result()
+
 	if err != nil {
 		m.logger.Error(err.Error())
 		caddyhttp.SetVar(r.Context(), "shard.upstream", "not_found")
 		return next.ServeHTTP(w, r)
 	} else {
+		port = 5002
 		if port == -1 {
 			caddyhttp.SetVar(r.Context(), "shard.upstream", "not_found")
 			return next.ServeHTTP(w, r)
@@ -81,6 +96,7 @@ func (m Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddy
 		url := ip + fmt.Sprintf(":%v", port)
 		m.logger.Info("-> " + url)
 		caddyhttp.SetVar(r.Context(), "shard.upstream", url)
+		cache.Set(host, url, ttlcache.DefaultTTL)
 		return next.ServeHTTP(w, r)
 	}
 }
@@ -99,6 +115,7 @@ func (m *Middleware) Provision(c caddy.Context) error {
 		return err
 	}
 
+	go cache.Start()
 	return nil
 }
 
