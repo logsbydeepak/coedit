@@ -1,6 +1,6 @@
-module example.com/coedit_proxy
+module example.con/coedit_proxy
 
-go 1.22.2
+go 1.21.10
 
 require (
 	github.com/caddyserver/caddy/v2 v2.8.4

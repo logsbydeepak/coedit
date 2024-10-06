@@ -11,7 +11,7 @@
 		@not_found expression {http.vars.shard.upstream}.matches("not_found")
 
 		handle @not_found {
-			respond "invalid"
+			respond "not found" 404
 		}
 
 		handle {
@@ -21,7 +21,7 @@
 		}
 	}
 
-	respond "invalid"
+	respond "not found" 404
 	header {
 		Server "coedit"
 	}

@@ -10,3 +10,26 @@ format:
 	caddy fmt Caddyfile.dev --overwrite
 	go fmt ./...
 
+container-dev-build:
+	@echo "-> BUILD COEDIT DEV PROXY"
+	docker build -f dev.dockerfile --tag coedit-dev-proxy:latest .
+
+container-dev-start:
+	@echo "-> START COEDIT DEV PROXY"
+	docker run --name coedit-dev-proxy \
+		--rm \
+		-it \
+		-v ./../../.:/root/coedit \
+		-p 80:80 \
+		-w /root/coedit/ \
+		coedit-dev-proxy sh
+
+container-dev-attach:
+	@echo "-> ATTACH COEDIT DEV PROXY"
+	docker exec \
+		-it \
+		coedit-dev-proxy sh
+
+container-dev-stop:
+	@echo "-> STOP COEDIT DEV PROXY"
+	docker rm -f coedit-dev-proxy
