@@ -1,0 +1,29 @@
+{
+	auto_https off
+	order coedit_proxy before method
+}
+
+:80 {
+	@coedit expression {host}.matches("^[a-zA-Z]+-[a-zA-Z]+-(server|app)\\.{$ROOT_DOMAIN}$")
+
+	route @coedit {
+		coedit_proxy {$ROOT_DOMAIN} {$REDIS_URL}
+		@not_found expression {http.vars.shard.upstream}.matches("not_found")
+
+		handle @not_found {
+			respond "not found" 404
+		}
+
+		handle {
+			reverse_proxy {
+				to {http.vars.shard.upstream}
+			}
+		}
+	}
+
+	respond "not found" 404
+	header {
+		Server "coedit"
+	}
+}
+

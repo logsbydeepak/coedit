@@ -1,0 +1,16 @@
+FROM caddy:2.7.6-builder AS builder
+RUN xcaddy build
+RUN apk add --no-cache make
+
+WORKDIR /root/coedit
+COPY . .
+
+WORKDIR /root/coedit/apps/proxy/
+RUN make build
+
+FROM alpine:3.20.3 AS runner
+COPY --from=builder /root/coedit/apps/proxy/dist/ /root/coedit/
+COPY --from=builder /root/coedit/apps/proxy/Caddyfile /root/coedit/
+
+CMD ["/root/coedit/coedit-proxy", "run", "--config", "/root/coedit/Caddyfile"]
+

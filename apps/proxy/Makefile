@@ -12,7 +12,24 @@ format:
 
 container-dev-build:
 	@echo "-> BUILD COEDIT DEV PROXY"
-	docker build -f dev.dockerfile --tag coedit-dev-proxy:latest .
+	docker build -f ./dev.dockerfile --tag coedit-dev-proxy:latest ./../../
+
+container-prod-build:
+	@echo "-> BUILD COEDIT PROD PROXY"
+	docker build -f ./dockerfile --tag coedit-proxy:latest ./../../
+
+container-prod-start:
+	@echo "-> START COEDIT PROD PROXY"
+	docker run --name coedit-proxy \
+		--rm \
+		-p 80:80 \
+		-e ROOT_DOMAIN='localhost' \
+		-e REDIS_URL='' \
+		coedit-proxy
+
+container-prod-stop:
+	@echo "-> STOP COEDIT PROD PROXY"
+	docker rm -f coedit-dev-proxy
 
 container-dev-start:
 	@echo "-> START COEDIT DEV PROXY"
