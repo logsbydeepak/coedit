@@ -2,11 +2,11 @@ all: prod
 
 prod:
 	@echo "-> BUILDING PRODUCTION IMAGE"
-	docker build --tag coedit:latest .
+	docker build -f ./dockerfile --tag coedit:latest ./../../
 
 dev:
 	@echo "-> BUILDING DEV IMAGE"
-	docker build -f dev.dockerfile --tag coedit:dev .
+	docker build -f ./dev.dockerfile --tag coedit:dev ./../../
 
 dev-start:
 	@echo "-> DEV IMAGE START"
@@ -14,7 +14,7 @@ dev-start:
 		--rm \
 		--user root \
 		-it \
-		-v .:/root/coedit \
+		-v ./../../.:/root/coedit \
 		-v /root/coedit/node_modules/ \
 		-p 4000:8000 \
 		-p 3000:3000 \
