@@ -40,7 +40,6 @@ prod-start:
 		--add-host host.docker.internal:host-gateway \
 		-e USER_API="http://host.docker.internal:5000" \
 		-e CORS_ORIGIN='http://localhost:5001' \
-		-e ROOT_DOMAIN='.container.localhost'
 		coedit:latest /root/coedit/coedit-container-process
 
 prod-stop:

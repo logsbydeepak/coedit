@@ -11,7 +11,10 @@
     "fix": "run-s lint:fix"
   },
   "dependencies": {
+    "@coedit/container": "workspace:*",
+    "@coedit/r": "workspace:*",
     "@coedit/server": "workspace:app/server",
+    "@coedit/zschema": "workspace:*",
     "@hookform/resolvers": "^3.3.4",
     "@monaco-editor/react": "^4.6.0",
     "@radix-ui/react-dialog": "^1.0.5",
@@ -25,10 +28,11 @@
     "cva": "1.0.0-beta.1",
     "eslint-plugin-tailwindcss": "^3.15.1",
     "geist": "^1.3.0",
-    "hono": "^4.2.4",
+    "hono": "4.6.4",
     "input-otp": "^1.2.4",
     "jotai": "^2.7.2",
     "lucide-react": "^0.363.0",
+    "ms": "^2.1.3",
     "next": "14.1.4",
     "react": "^18",
     "react-aria-components": "^1.2.0",
@@ -42,11 +46,7 @@
     "shikiji-monaco": "^0.10.2",
     "sonner": "^1.4.41",
     "tailwind-merge": "^2.2.2",
-    "zustand": "^4.5.2",
-    "ms": "^2.1.3",
-    "@coedit/r": "workspace:*",
-    "@coedit/zschema": "workspace:*",
-    "@coedit/container": "workspace:*"
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "typescript": "^5.4.5",
