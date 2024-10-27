@@ -11,11 +11,11 @@ export const resend = (env: Pick<ENV, 'RESEND_API_KEY'>) => {
 }
 
 export const redis = (
-  env: Pick<ENV, 'APP_UPSTASH_REDIS_REST_URL' | 'APP_UPSTASH_REDIS_REST_TOKEN'>
+  env: Pick<ENV, 'UPSTASH_REDIS_REST_URL' | 'UPSTASH_REDIS_REST_TOKEN'>
 ) => {
   return new RedisCloudflare({
-    url: env.APP_UPSTASH_REDIS_REST_URL,
-    token: env.APP_UPSTASH_REDIS_REST_TOKEN,
+    url: env.UPSTASH_REDIS_REST_URL,
+    token: env.UPSTASH_REDIS_REST_TOKEN,
   })
 }
 

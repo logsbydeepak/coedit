@@ -13,8 +13,8 @@ export type ENV = {
   CORS_ORIGIN: string
   COOKIE_DOMAIN: string
 
-  APP_UPSTASH_REDIS_REST_URL: string
-  APP_UPSTASH_REDIS_REST_TOKEN: string
+  UPSTASH_REDIS_REST_URL: string
+  UPSTASH_REDIS_REST_TOKEN: string
 
   ORCHESTRATION_URL: string
   ORCHESTRATION_MODE: 'mock' | 'caddy'

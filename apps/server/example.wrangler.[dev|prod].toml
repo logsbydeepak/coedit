@@ -13,10 +13,12 @@ JWT_SECRET=""
 RESEND_API_KEY=""
 RESEND_FROM="team <abc@example.com>"
 
-APP_UPSTASH_REDIS_REST_TOKEN=""
-APP_UPSTASH_REDIS_REST_URL=""
+UPSTASH_REDIS_REST_TOKEN=""
+UPSTASH_REDIS_REST_URL=""
 
 RUNTIME="production" # production OR development
 
 COOKIE_DOMAIN="localhost"
 CORS_ORIGIN="http://localhost:5001"
+
+CONTAINER_MODE='caddy' # mock OR caddy
