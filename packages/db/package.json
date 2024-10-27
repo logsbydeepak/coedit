@@ -10,10 +10,10 @@
     "db:studio": "bun --env-file .env.local drizzle-kit studio"
   },
   "dependencies": {
-    "drizzle-orm": "^0.32.1",
-    "postgres": "^3.4.4"
+    "drizzle-orm": "^0.35.3",
+    "postgres": "^3.4.5"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.23.1"
+    "drizzle-kit": "^0.26.2"
   }
 }
