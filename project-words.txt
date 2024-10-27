@@ -28,6 +28,7 @@ jiti
 ianvs
 webgl
 miguelsolorio
+turbopack
 
 # dns
 NXDOMAIN
