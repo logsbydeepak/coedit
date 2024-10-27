@@ -15,14 +15,12 @@ const schema = z.object({
   name: zReqString,
 })
 
-export default function Page({
+export default async function Page({
   searchParams,
 }: {
-  searchParams: {
-    [key: string]: string
-  }
+  searchParams: Promise<{ [key: string]: string }>
 }) {
-  const parse = schema.safeParse(searchParams)
+  const parse = schema.safeParse(await searchParams)
   if (!parse.success) {
     redirect('/register')
   }
