@@ -7,7 +7,9 @@ import { apiClient } from './utils/hc-server'
 export async function middleware(req: NextRequest) {
   try {
     const url = req.url
-    const token = cookies().get('x-auth')?.value
+
+    const cookieStore = await cookies()
+    const token = cookieStore.get('x-auth')?.value
     const isAuth = await checkIsAuth(token)
 
     const { pathname } = req.nextUrl

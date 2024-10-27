@@ -10,8 +10,13 @@ export const metadata: Metadata = {
   title: 'Project',
 }
 
-export default function Layout({ children }: { children: React.ReactNode }) {
-  const token = cookies().get('x-auth')?.value
+export default async function Layout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const cookieStore = await cookies()
+  const token = cookieStore.get('x-auth')?.value
   if (!token) {
     redirect('/login')
   }

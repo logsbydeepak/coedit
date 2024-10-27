@@ -9,10 +9,14 @@ import { env } from '#/env'
 
 import { ResponseError } from './error'
 
+const TOKEN_KEY = 'x-auth'
+
 export const apiClient = hc<AppType>(env.NEXT_PUBLIC_API_URL, {
   fetch: async (input, requestInit, _, __) => {
     const headers = new Headers(requestInit?.headers)
-    headers.set('cookie', 'x-auth=' + cookies().get('x-auth')?.value)
+    const cookieStore = await cookies()
+    const token = cookieStore.get(TOKEN_KEY)?.value || ''
+    cookieStore.set(TOKEN_KEY, token)
 
     const newRequestInit: RequestInit = {
       ...requestInit,
