@@ -57,6 +57,10 @@ func (m Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddy
 		port = 8000
 	}
 
+	if strings.HasSuffix(host, "-app."+m.ENV.ROOT_DOMAIN) {
+		port = 3000
+	}
+
 	host = strings.Split(host, ".")[0]
 
 	if strings.HasSuffix(host, "-app") {
@@ -93,6 +97,7 @@ func (m Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddy
 			return next.ServeHTTP(w, r)
 		}
 
+		ip = strings.Split(ip, ":")[0]
 		url := ip + fmt.Sprintf(":%v", port)
 		m.logger.Info("-> " + url)
 		caddyhttp.SetVar(r.Context(), "shard.upstream", url)
