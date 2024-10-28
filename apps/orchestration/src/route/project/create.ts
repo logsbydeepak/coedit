@@ -9,16 +9,15 @@ import { zReqString } from '@coedit/zschema'
 import { env } from '#/env'
 import { h } from '#/utils/h'
 
+const zSchema = z.object({
+  userId: zReqString,
+  templateId: zReqString,
+  projectId: zReqString,
+})
+
 export const createProject = h().post(
   '/',
-  zValidator(
-    'json',
-    z.object({
-      userId: zReqString,
-      templateId: zReqString,
-      projectId: zReqString,
-    })
-  ),
+  zValidator('json', zSchema),
   async (c) => {
     const input = c.req.valid('json')
 

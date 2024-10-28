@@ -2,11 +2,13 @@ import fs from 'node:fs/promises'
 import path from 'path'
 import { zValidator } from '@hono/zod-validator'
 import Docker from 'dockerode'
+import { generate } from 'random-words'
 
 import { r } from '@coedit/r'
 import { z, zReqString } from '@coedit/zschema'
 
 import { env } from '#/env'
+import { redis } from '#/utils/config'
 import { h } from '#/utils/h'
 
 const NETWORK_NAME = 'coedit'
@@ -41,6 +43,7 @@ export const startProject = h().post(
     })
 
     const networks = await docker.listNetworks()
+
     const isNetworkExists = networks.some(
       (network) => network.Name === NETWORK_NAME
     )
@@ -49,21 +52,15 @@ export const startProject = h().post(
       const res = await docker.createNetwork({
         Name: NETWORK_NAME,
         Driver: 'bridge',
-        IPAM: {
-          Driver: 'default',
-          Config: [
-            {
-              Subnet: '172.18.0.0/16',
-            },
-          ],
-        },
       })
       if (!res) {
         return c.json(r('ERROR'))
       }
+
+      const ip = await res.inspect()
     }
 
-    const ip = generateIP()
+    const client = redis()
 
     const container = await docker.createContainer({
       Image: 'coedit',
@@ -72,16 +69,7 @@ export const startProject = h().post(
       HostConfig: {
         AutoRemove: true,
         Binds: [`${projectDir}:/root/coedit/workspace`],
-        NetworkMode: NETWORK_NAME,
-      },
-      NetworkingConfig: {
-        EndpointsConfig: {
-          [NETWORK_NAME]: {
-            IPAMConfig: {
-              IPv4Address: ip,
-            },
-          },
-        },
+        NetworkMode: 'none',
       },
     })
 
@@ -89,17 +77,72 @@ export const startProject = h().post(
       return c.json(r('ERROR'))
     }
 
+    // get container id
+    const containerId = container.id
+
+    const networkName = `coedit-${containerId}`
+    const network = await docker.createNetwork({
+      Name: networkName,
+      Driver: 'bridge',
+    })
+
+    if (!network) {
+      return c.json(r('ERROR'))
+    }
     const res = await container.start()
+
     if (!res) {
       return c.json(r('ERROR'))
     }
 
-    return c.json(r('OK'))
+    const inspectData = await container.inspect()
+    const ip = inspectData.NetworkSettings.Networks[networkName].IPAddress
+
+    const data = await docker.getNetwork(network.id).connect({
+      Container: containerId,
+    })
+    if (!data) {
+      return c.json(r('ERROR'))
+    }
+
+    const proxyNetwork = await docker.getNetwork(network.id).connect({
+      Container: env.DOCKER_SOCKET_PATH,
+    })
+    if (!proxyNetwork) {
+      return c.json(r('ERROR'))
+    }
+
+    const subdomain = await generateSubdomain(async () => {
+      return true
+    })
+
+    return c.json(
+      r('OK', {
+        api: `http://${subdomain}-server${env.ROOT_DOMAIN}`,
+        output: `http://${subdomain}-app${env.ROOT_DOMAIN}`,
+      })
+    )
   }
 )
 
-function generateIP() {
-  const subnet = '172.18.0.'
-  const ip = Math.floor(Math.random() * 254) + 1
-  return `${subnet}${ip}`
+async function generateSubdomain(
+  isExist: (subdomain: string) => Promise<boolean>
+) {
+  while (true) {
+    const subdomain = generate({
+      exactly: 1,
+      wordsPerString: 2,
+      separator: '-',
+    })[0].toLowerCase()
+
+    if (subdomain.includes('-app') || subdomain.includes('-server')) {
+      continue
+    }
+
+    const isExistSubdomain = await isExist(subdomain)
+
+    if (!isExistSubdomain) {
+      return subdomain
+    }
+  }
 }
