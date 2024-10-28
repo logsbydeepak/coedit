@@ -2,6 +2,7 @@ import fs from 'node:fs/promises'
 import path from 'path'
 import { zValidator } from '@hono/zod-validator'
 import Docker from 'dockerode'
+import ms from 'ms'
 import { generate } from 'random-words'
 
 import { r } from '@coedit/r'
@@ -11,7 +12,7 @@ import { env } from '#/env'
 import { redis } from '#/utils/config'
 import { h } from '#/utils/h'
 
-const NETWORK_NAME = 'coedit'
+const ORCHESTRATION_ID = 'sameple'
 
 export const startProject = h().post(
   '/start',
@@ -41,24 +42,6 @@ export const startProject = h().post(
     const docker = new Docker({
       socketPath: env.DOCKER_SOCKET_PATH,
     })
-
-    const networks = await docker.listNetworks()
-
-    const isNetworkExists = networks.some(
-      (network) => network.Name === NETWORK_NAME
-    )
-
-    if (!isNetworkExists) {
-      const res = await docker.createNetwork({
-        Name: NETWORK_NAME,
-        Driver: 'bridge',
-      })
-      if (!res) {
-        return c.json(r('ERROR'))
-      }
-
-      const ip = await res.inspect()
-    }
 
     const client = redis()
 
@@ -106,14 +89,22 @@ export const startProject = h().post(
     }
 
     const proxyNetwork = await docker.getNetwork(network.id).connect({
-      Container: env.DOCKER_SOCKET_PATH,
+      Container: 'coedit-proxy',
     })
     if (!proxyNetwork) {
       return c.json(r('ERROR'))
     }
 
-    const subdomain = await generateSubdomain(async () => {
+    const subdomain = await generateSubdomain(async (data) => {
+      const res = await redis().exists(`SUBDOMAIN-${data}`)
+      if (!res) {
+        return false
+      }
       return true
+    })
+
+    await redis().set(`CONTAINER_IP-${data}`, `${ip}:${ORCHESTRATION_ID}`, {
+      ex: ms('30 minutes'),
     })
 
     return c.json(
