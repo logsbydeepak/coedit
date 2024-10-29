@@ -6,12 +6,10 @@
   "scripts": {
     "db:gen": "drizzle-kit generate",
     "db:push": "bun --env-file .env.local drizzle-kit push",
-    "db:gen:push": "run-s db:gen db:push",
     "db:studio": "bun --env-file .env.local drizzle-kit studio"
   },
   "dependencies": {
-    "drizzle-orm": "^0.35.3",
-    "postgres": "^3.4.5"
+    "drizzle-orm": "^0.35.3"
   },
   "devDependencies": {
     "drizzle-kit": "^0.26.2"

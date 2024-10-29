@@ -1,37 +1,37 @@
-import { index, pgTable, timestamp, varchar } from 'drizzle-orm/pg-core'
+import * as t from 'drizzle-orm/pg-core'
 
-const id = (name = 'id') => varchar(name, { length: 26 }).notNull()
+const id = () => t.varchar({ length: 26 }).notNull()
 
-export const users = pgTable(
+export const users = t.pgTable(
   'users',
   {
     id: id(),
-    name: varchar('name', { length: 256 }).notNull(),
-    email: varchar('email', { length: 256 }).unique().notNull(),
+    name: t.varchar({ length: 256 }).notNull(),
+    email: t.varchar({ length: 256 }).unique().notNull(),
   },
   (table) => {
     return {
-      emailIdx: index('users_email_idx').on(table.email),
+      emailIdx: t.index().on(table.email),
     }
   }
 )
 
-export const templates = pgTable('templates', {
+export const templates = t.pgTable('templates', {
   id: id(),
-  name: varchar('name', { length: 256 }).notNull(),
+  name: t.varchar({ length: 256 }).notNull(),
 })
 
-export const projects = pgTable(
+export const projects = t.pgTable(
   'projects',
   {
     id: id(),
-    userId: varchar('user_id', { length: 26 }).notNull(),
-    name: varchar('name', { length: 256 }).notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
+    userId: t.varchar({ length: 26 }).notNull(),
+    name: t.varchar({ length: 256 }).notNull(),
+    createdAt: t.timestamp().defaultNow().notNull(),
   },
   (table) => {
     return {
-      userIdx: index('projects_user_id_idx').on(table.userId),
+      userIdx: t.index().on(table.userId),
     }
   }
 )
