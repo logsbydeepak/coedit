@@ -91,7 +91,6 @@ func (m Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddy
 		caddyhttp.SetVar(r.Context(), "shard.upstream", "not_found")
 		return next.ServeHTTP(w, r)
 	} else {
-		port = 5002
 		if port == -1 {
 			caddyhttp.SetVar(r.Context(), "shard.upstream", "not_found")
 			return next.ServeHTTP(w, r)
