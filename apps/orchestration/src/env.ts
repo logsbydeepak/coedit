@@ -7,6 +7,7 @@ const schema = z.object({
   UPSTASH_REDIS_REST_URL: zReqString.url(),
   UPSTASH_REDIS_REST_TOKEN: zReqString,
   PROXY_CONTAINER_ID: zReqString,
+  PUBLIC_IP: zReqString,
 })
 
 export const env = schema.parse(process.env)

@@ -12,8 +12,6 @@ import { env } from '#/env'
 import { redis } from '#/utils/config'
 import { h } from '#/utils/h'
 
-const ORCHESTRATION_ID = 'sameple'
-
 export const startProject = h().post(
   '/start',
   zValidator(
@@ -43,7 +41,7 @@ export const startProject = h().post(
       socketPath: env.DOCKER_SOCKET_PATH,
     })
 
-    const client = redis()
+    const redisClient = redis()
 
     const container = await docker.createContainer({
       Image: 'coedit',
@@ -52,7 +50,6 @@ export const startProject = h().post(
       HostConfig: {
         AutoRemove: true,
         Binds: [`${projectDir}:/root/coedit/workspace`],
-        NetworkMode: 'none',
       },
     })
 
@@ -60,13 +57,11 @@ export const startProject = h().post(
       return c.json(r('ERROR'))
     }
 
-    // get container id
     const containerId = container.id
 
     const networkName = `coedit-${containerId}`
     const network = await docker.createNetwork({
       Name: networkName,
-      Driver: 'bridge',
     })
 
     if (!network) {
@@ -79,7 +74,7 @@ export const startProject = h().post(
     }
 
     const inspectData = await container.inspect()
-    const ip = inspectData.NetworkSettings.Networks[networkName].IPAddress
+    const ip = inspectData.NetworkSettings.Networks.bridge.IPAddress
 
     const data = await docker.getNetwork(network.id).connect({
       Container: containerId,
@@ -89,23 +84,27 @@ export const startProject = h().post(
     }
 
     const proxyNetwork = await docker.getNetwork(network.id).connect({
-      Container: 'coedit-proxy',
+      Container: env.PROXY_CONTAINER_ID,
     })
     if (!proxyNetwork) {
       return c.json(r('ERROR'))
     }
 
     const subdomain = await generateSubdomain(async (data) => {
-      const res = await redis().exists(`SUBDOMAIN-${data}`)
+      const res = await redisClient.exists(`SUBDOMAIN-${data}`)
       if (!res) {
         return false
       }
       return true
     })
 
-    await redis().set(`CONTAINER_IP-${data}`, `${ip}:${ORCHESTRATION_ID}`, {
-      ex: ms('30 minutes'),
-    })
+    await redisClient.set(
+      `CONTAINER_IP-${subdomain}`,
+      `${ip}:${env.PUBLIC_IP}`,
+      {
+        ex: ms('30 minutes'),
+      }
+    )
 
     return c.json(
       r('OK', {
