@@ -78,8 +78,10 @@ func (m Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddy
 
 	if result := cache.Get(host); result != nil {
 		m.logger.Info("CACHE HIT")
-		m.logger.Info("-> " + result.Value())
-		caddyhttp.SetVar(r.Context(), "shard.upstream", result.Value())
+		ip := result.Value()
+		url := ip + fmt.Sprintf(":%v", port)
+		m.logger.Info("-> " + url)
+		caddyhttp.SetVar(r.Context(), "shard.upstream", url)
 		return next.ServeHTTP(w, r)
 	}
 
@@ -100,7 +102,7 @@ func (m Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddy
 		url := ip + fmt.Sprintf(":%v", port)
 		m.logger.Info("-> " + url)
 		caddyhttp.SetVar(r.Context(), "shard.upstream", url)
-		cache.Set(host, url, ttlcache.DefaultTTL)
+		cache.Set(host, ip, ttlcache.DefaultTTL)
 		return next.ServeHTTP(w, r)
 	}
 }
