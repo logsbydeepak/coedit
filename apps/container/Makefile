@@ -35,6 +35,7 @@ dev-stop:
 prod-start:
 	@echo "-> PROD IMAGE START"
 	docker run --name coedit-prod \
+		--rm \
 		-p 4000:80 \
 		-p 3000:3000 \
 		--add-host host.docker.internal:host-gateway \
