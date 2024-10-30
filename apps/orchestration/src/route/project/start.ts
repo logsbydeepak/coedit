@@ -47,9 +47,13 @@ export const startProject = h().post(
       Image: 'coedit',
       Cmd: ['/root/coedit/coedit-container-process'],
       Tty: false,
+      Env: [
+        'USER_API=http://host.docker.internal:5000',
+        'CORS_ORIGIN=http://localhost:5001',
+      ],
       HostConfig: {
         AutoRemove: true,
-        Binds: [`${projectDir}:/root/coedit/workspace`],
+        Binds: [`${projectDir}:/home/coedit/workspace`],
       },
     })
 
@@ -91,7 +95,7 @@ export const startProject = h().post(
     }
 
     const subdomain = await generateSubdomain(async (data) => {
-      const res = await redisClient.exists(`SUBDOMAIN-${data}`)
+      const res = await redisClient.exists(`CONTAINER_IP-${data}`)
       if (!res) {
         return false
       }
