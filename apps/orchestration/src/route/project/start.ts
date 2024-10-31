@@ -13,6 +13,10 @@ import { env } from '#/env'
 import { redis } from '#/utils/config'
 import { h } from '#/utils/h'
 
+const docker = new Docker({
+  socketPath: env.DOCKER_SOCKET_PATH,
+})
+
 export const startProject = h().post(
   '/start',
   zValidator(
@@ -38,10 +42,6 @@ export const startProject = h().post(
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
-    const docker = new Docker({
-      socketPath: env.DOCKER_SOCKET_PATH,
-    })
-
     const redisClient = redis()
 
     const networkName = `coedit-${genID()}`
@@ -57,10 +57,7 @@ export const startProject = h().post(
       Image: 'coedit',
       Cmd: ['/root/coedit/coedit-container-process'],
       Tty: false,
-      Env: [
-        'USER_API=http://host.docker.internal:5000',
-        'CORS_ORIGIN=http://localhost:5001',
-      ],
+      Env: [`USER_API=${env.USER_API}`, `CORS_ORIGIN=${env.CORS_ORIGIN}`],
       HostConfig: {
         AutoRemove: true,
         Binds: [`${projectDir}:/home/coedit/workspace`],
