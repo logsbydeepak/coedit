@@ -5,6 +5,7 @@ import Docker from 'dockerode'
 import ms from 'ms'
 import { generate } from 'random-words'
 
+import { genID } from '@coedit/id'
 import { r } from '@coedit/r'
 import { z, zReqString } from '@coedit/zschema'
 
@@ -43,6 +44,15 @@ export const startProject = h().post(
 
     const redisClient = redis()
 
+    const networkName = `coedit-${genID()}`
+    const network = await docker.createNetwork({
+      Name: networkName,
+    })
+
+    if (!network) {
+      return c.json(r('ERROR'))
+    }
+
     const container = await docker.createContainer({
       Image: 'coedit',
       Cmd: ['/root/coedit/coedit-container-process'],
@@ -54,6 +64,7 @@ export const startProject = h().post(
       HostConfig: {
         AutoRemove: true,
         Binds: [`${projectDir}:/home/coedit/workspace`],
+        NetworkMode: networkName,
       },
     })
 
@@ -61,16 +72,6 @@ export const startProject = h().post(
       return c.json(r('ERROR'))
     }
 
-    const containerId = container.id
-
-    const networkName = `coedit-${containerId}`
-    const network = await docker.createNetwork({
-      Name: networkName,
-    })
-
-    if (!network) {
-      return c.json(r('ERROR'))
-    }
     const res = await container.start()
 
     if (!res) {
@@ -78,14 +79,7 @@ export const startProject = h().post(
     }
 
     const inspectData = await container.inspect()
-    const ip = inspectData.NetworkSettings.Networks.bridge.IPAddress
-
-    const data = await docker.getNetwork(network.id).connect({
-      Container: containerId,
-    })
-    if (!data) {
-      return c.json(r('ERROR'))
-    }
+    const ip = inspectData.NetworkSettings.Networks[networkName].IPAddress
 
     const proxyNetwork = await docker.getNetwork(network.id).connect({
       Container: env.PROXY_CONTAINER_ID,
