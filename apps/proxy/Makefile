@@ -18,9 +18,6 @@ container-prod-build:
 	@echo "-> BUILD COEDIT PROD PROXY"
 	docker build -f ./dockerfile --tag coedit-proxy:latest ./../../
 
-container-dev-create-network:
-	docker network create coedit-dev-proxy-network
-
 container-prod-start:
 	@echo "-> START COEDIT PROD PROXY"
 	docker run --name coedit-proxy \
@@ -42,7 +39,6 @@ container-dev-start:
 		-v ./../../.:/root/coedit \
 		-p 80:80 \
 		-w /root/coedit/ \
-		--network coedit-dev-proxy-network \
 		coedit-dev-proxy sh
 
 container-dev-attach:
