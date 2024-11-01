@@ -2,10 +2,10 @@ import fs from 'node:fs/promises'
 import path from 'path'
 import { zValidator } from '@hono/zod-validator'
 import Docker from 'dockerode'
-import ms from 'ms'
 import { generate } from 'random-words'
 
 import { genID } from '@coedit/id'
+import { KVdns } from '@coedit/kv'
 import { r } from '@coedit/r'
 import { z, zReqString } from '@coedit/zschema'
 
@@ -41,8 +41,6 @@ export const startProject = h().post(
     if (!isValidProjectId) {
       return c.json(r('INVALID_PROJECT_ID'))
     }
-
-    const redisClient = redis()
 
     const networkName = `coedit-${genID()}`
     const network = await docker.createNetwork({
@@ -85,21 +83,23 @@ export const startProject = h().post(
       return c.json(r('ERROR'))
     }
 
+    const redisClient = redis()
     const subdomain = await generateSubdomain(async (data) => {
-      const res = await redisClient.exists(`CONTAINER_IP-${data}`)
+      const res = await KVdns(redisClient, data).exists()
       if (!res) {
         return false
       }
       return true
     })
 
-    await redisClient.set(
-      `CONTAINER_IP-${subdomain}`,
-      `${ip}:${env.PUBLIC_IP}`,
-      {
-        ex: ms('30 minutes'),
-      }
+    const redisSetRes = await KVdns(redisClient, subdomain).set(
+      ip,
+      env.PUBLIC_IP
     )
+
+    if (!redisSetRes) {
+      return c.json(r('ERROR'))
+    }
 
     return c.json(
       r('OK', {
