@@ -4,7 +4,6 @@ import { zValidator } from '@hono/zod-validator'
 import Docker from 'dockerode'
 import { generate } from 'random-words'
 
-import { genID } from '@coedit/id'
 import { KVdns } from '@coedit/kv'
 import { r } from '@coedit/r'
 import { z, zReqString } from '@coedit/zschema'
@@ -42,14 +41,7 @@ export const startProject = h().post(
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
-    const networkName = `coedit-${genID()}`
-    const network = await docker.createNetwork({
-      Name: networkName,
-    })
-
-    if (!network) {
-      return c.json(r('ERROR'))
-    }
+    const networkName = 'bridge'
 
     const container = await docker.createContainer({
       Image: 'coedit',
@@ -75,13 +67,6 @@ export const startProject = h().post(
 
     const inspectData = await container.inspect()
     const ip = inspectData.NetworkSettings.Networks[networkName].IPAddress
-
-    const proxyNetwork = await docker.getNetwork(network.id).connect({
-      Container: env.PROXY_CONTAINER_ID,
-    })
-    if (!proxyNetwork) {
-      return c.json(r('ERROR'))
-    }
 
     const redisClient = redis()
     const subdomain = await generateSubdomain(async (data) => {
