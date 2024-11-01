@@ -8,7 +8,7 @@ import { explorerRoute } from './route/explorer'
 import { terminalRoute } from './route/terminal'
 import { apiClient } from './utils/api-client'
 import { h } from './utils/h'
-import { emitStop, setActive } from './utils/lifecycle'
+import { setActive } from './utils/lifecycle'
 import { log } from './utils/log'
 
 const route = h()
@@ -29,7 +29,6 @@ export const app = h()
   )
   .use(secureHeaders())
   .use(async (c, next) => {
-    setActive()
     const url = new URL(c.req.url)
     let token: string | undefined | null = ''
     if (url.pathname === '/terminal') {
@@ -39,17 +38,19 @@ export const app = h()
     }
 
     if (!token) {
-      emitStop()
       throw new HTTPException(401, { res: errorResponse })
     }
 
     const isAuth = await auth(token)
     if (!isAuth) {
-      emitStop()
       throw new HTTPException(401, { res: errorResponse })
     }
 
     await next()
+  })
+  .use(async (_c, next) => {
+    setActive()
+    return await next()
   })
   .route('/', route)
 
