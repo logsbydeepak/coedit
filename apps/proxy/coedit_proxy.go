@@ -86,7 +86,8 @@ func (m Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddy
 	}
 
 	m.logger.Info("CACHE MISS")
-	ip, err := m.redis.Get(ctx, "CONTAINER_IP-"+host).Result()
+	key := "DNS-" + host
+	ip, err := m.redis.Get(ctx, key).Result()
 
 	if err != nil {
 		m.logger.Error(err.Error())
