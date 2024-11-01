@@ -77,7 +77,7 @@ const ipLookup = async ({
   const question = questions[0]
 
   try {
-    const ip = await KVdns(redisClient, subdomain).get()
+    const ip = await KVdns(redisClient, subdomain).getMachineIP()
     if (!ip) {
       throw new Error('IP not found')
     }
