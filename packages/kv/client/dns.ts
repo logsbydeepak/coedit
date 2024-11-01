@@ -12,8 +12,8 @@ class _KVdns {
     this.client = client
   }
 
-  async set(ip: string) {
-    const res = await this.client.set(this.key, ip, {
+  async set(containerIP: string, machineIP: string) {
+    const res = await this.client.set(this.key, `${containerIP}:${machineIP}`, {
       px: ms('7 days'),
     })
     if (res !== 'OK') {
@@ -27,9 +27,12 @@ class _KVdns {
     return res === 1
   }
 
-  async get() {
+  async getMachineIP() {
     const res = await this.client.get<string>(this.key)
-    return res
+    if (!res) {
+      return null
+    }
+    return res.split(':')[1]
   }
 }
 
