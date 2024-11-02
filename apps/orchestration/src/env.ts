@@ -10,6 +10,7 @@ const schema = z.object({
   PUBLIC_IP: zReqString,
   USER_API: zReqString.url(),
   CORS_ORIGIN: zReqString.url(),
+  ORCHESTRATION_SECRET: zReqString,
 })
 
 export const env = schema.parse(process.env)
