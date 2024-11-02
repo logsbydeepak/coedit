@@ -4,6 +4,16 @@
 }
 
 :80 {
+	@orchestration expression {host}.match("{$ORCHESTRATION_URL}")
+
+	route @orchestration {
+		handle {
+			reverse_proxy {
+				to host.docker.internal:5002
+			}
+		}
+	}
+
 	@coedit expression {host}.matches("^[a-zA-Z]+-[a-zA-Z]+-(server|app)\\.{$ROOT_DOMAIN}$")
 
 	route @coedit {

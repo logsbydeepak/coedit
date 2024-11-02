@@ -8,6 +8,7 @@ dev-start:
 
 format:
 	caddy fmt Caddyfile.dev --overwrite
+	caddy fmt Caddyfile --overwrite
 	go fmt ./...
 
 container-dev-build:
