@@ -19,18 +19,30 @@ export const redis = (
   })
 }
 
-export const orchestration = (env: Pick<ENV, 'ORCHESTRATION_URL'>) => {
+export const orchestration = (
+  env: Pick<ENV, 'ORCHESTRATION_URL', 'ORCHESTRATION_SECRET'>
+) => {
   return hc<AppType>(env.ORCHESTRATION_URL, {
-    fetch: (input, requestInit, Env, executionCtx) =>
-      fetch(input, {
+    fetch: async (input, requestInit, _Env, _executionCtx) => {
+      const headers = new Headers(requestInit?.headers)
+      headers.set(
+        'cookie',
+        `x-orchestration-secret=${env.ORCHESTRATION_SECRET}`
+      )
+
+      const newRequestInit: RequestInit = {
         ...requestInit,
-      }).then((res) => {
+        headers,
+      }
+
+      return fetch(input, newRequestInit).then((res) => {
         if (!res.ok) {
           throw new ResponseError(res.statusText, res)
         }
 
         return res
-      }),
+      })
+    },
   })
 }
 

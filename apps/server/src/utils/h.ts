@@ -18,6 +18,7 @@ export type ENV = {
 
   ORCHESTRATION_URL: string
   ORCHESTRATION_MODE: 'mock' | 'caddy'
+  ORCHESTRATION_SECRET: string
 }
 
 type Variables = {
