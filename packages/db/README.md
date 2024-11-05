@@ -9,8 +9,8 @@ Here the .env.local is only used for migration and will not be carried over if i
 ```bash
 # generate migration
 bun run db:gen
-# run migration
+# push changes
 bun run db:push
-# generate and run migration
-bun run db:gen:push
+# to see DB state in GUI
+bun run db:studio
 ```

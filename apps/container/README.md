@@ -22,12 +22,14 @@ Run this inside [dev container](/dev.dockerfile)
 
 #### Generate certificate
 
+Install [certbot](https://certbot.eff.org/instructions)
+
+```bash
+certbot certonly --manual -d '*.mydomain.com'
+```
+
 This will generate a wildcard certificate for `*.mydomain.com` 1 depth only.
 
 ✅ abc.mydomain.com
 
 ❌ abc.def.mydomain.com
-
-```bash
-certbot certonly --manual -d '*.mydomain.com'
-```
