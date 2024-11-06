@@ -4,7 +4,7 @@
 
 ### Development
 
-It is meant to be used inside [dev container](/dev.dockerfile) for development.
+It is meant to be used inside [dev container](./dev.dockerfile) for development.
 
 ```bash
 bun run dev
@@ -12,13 +12,13 @@ bun run dev
 
 ### Production
 
-Deploy with [dockerfile](/dockerfile)
+Deploy with [dockerfile](./dockerfile)
 
 ```bash
 bun run build
 ```
 
-Run this inside [dev container](/dev.dockerfile)
+Run this inside [dev container](./dev.dockerfile)
 
 #### Generate certificate
 
