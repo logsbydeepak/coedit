@@ -39,7 +39,7 @@ export const createProject = hAuth().post(
     const resData = await res.json()
 
     if (resData.code === 'INVALID_TEMPLATE_ID') {
-      return c.json('INVALID_TEMPLATE_ID')
+      return c.json(r('INVALID_TEMPLATE_ID'))
     }
 
     await db(c.env).insert(dbSchema.projects).values({

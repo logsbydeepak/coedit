@@ -4,7 +4,10 @@
   "version": "1.0.0",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "bun --watch src/index.ts | pino-pretty"
+    "dev": "bun --watch src/index.ts | pino-pretty",
+    "tsc:clean": "rm -rf tsc tsconfig.tsbuildinfo",
+    "tsc:build": "tsc --build",
+    "tsc": "run-s tsc:clean tsc:build"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.4.1",

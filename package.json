@@ -14,12 +14,15 @@
     "container:build": "bun run --cwd apps/container build",
     "ruspty:build": "bun run --cwd packages/ruspty build",
     "server:deploy": "bun run --cwd apps/server deploy",
+    "server:tsc": "bun run --cwd apps/server tsc",
     "unused": "knip",
     "check:repo": "sherif"
   },
   "license": "ISC",
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^4.3.1",
+    "@types/bun": "^1.2.16",
+    "bun": "^1.2.16",
     "cspell": "^8.15.4",
     "knip": "^5.34.1",
     "npm-run-all2": "^7.0.1",
@@ -33,5 +36,8 @@
   "trustedDependencies": [
     "es5-ext"
   ],
-  "packageManager": "bun@1.1.33"
+  "packageManager": "bun@1.1.33",
+  "dependencies": {
+    "typescript": "^5.8.3"
+  }
 }
