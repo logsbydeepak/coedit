@@ -20,7 +20,7 @@ export const redis = (
 }
 
 export const orchestration = (
-  env: Pick<ENV, 'ORCHESTRATION_URL', 'ORCHESTRATION_SECRET'>
+  env: Pick<ENV, 'ORCHESTRATION_URL' | 'ORCHESTRATION_SECRET'>
 ) => {
   return hc<AppType>(env.ORCHESTRATION_URL, {
     fetch: async (input, requestInit, _Env, _executionCtx) => {

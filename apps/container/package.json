@@ -29,7 +29,6 @@
     "pino-pretty": "^11.3.0"
   },
   "devDependencies": {
-    "@types/bun": "^1.1.12",
     "@types/ms": "^0.7.34"
   }
 }

@@ -11,12 +11,17 @@
     "composite": true,
     "declaration": true,
     "skipLibCheck": true,
-    "emitDeclarationOnly": false,
+    "emitDeclarationOnly": true,
     "outDir": "tsc",
     "rootDir": "src",
     "paths": {
       "#/*": ["./src/*"]
     }
   },
-  "exclude": ["drizzle.config.ts"]
+  "exclude": ["drizzle.config.ts"],
+  "references": [
+    {
+      "path": "../orchestration"
+    }
+  ]
 }

@@ -11,11 +11,12 @@
   },
   "dependencies": {
     "@hono/zod-validator": "^0.4.1",
-    "@types/dockerode": "^3.3.31",
     "dockerode": "^4.0.2",
     "hono": "4.6.7",
     "pino": "^9.5.0",
     "pino-pretty": "^11.3.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@types/dockerode": "^3.3.31"
+  }
 }
