@@ -72,3 +72,5 @@ caddyserver
 caddyconfig
 httpcaddyfile
 caddyhttp
+
+nothrow

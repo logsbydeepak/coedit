@@ -15,3 +15,4 @@ ignorePaths:
   - '/apps/orchestration/coedit-proxy/go.mod'
   - '/packages/ruspty'
   - '/apps/proxy'
+  - '/apps/templates/src/templates/**'

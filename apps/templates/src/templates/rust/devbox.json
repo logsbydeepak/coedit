@@ -1,0 +1,9 @@
+{
+  "packages": ["rustup@latest", "libiconv@latest"],
+  "shell": {
+    "init_hook": [
+      "export RUSTUP_HOME=~/.cargo/.rustup",
+      "rustup default stable"
+    ]
+  }
+}

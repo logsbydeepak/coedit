@@ -49,3 +49,6 @@ target
 *.dev.env
 apps/container/certificate/
 
+!apps/templates/src/templates
+!apps/templates/src/templates/**
+
