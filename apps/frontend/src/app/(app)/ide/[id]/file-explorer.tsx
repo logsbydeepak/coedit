@@ -160,14 +160,13 @@ function Explorer({
   )
 }
 
-const FileItem = React.forwardRef<
-  React.ElementRef<typeof ListBoxItem>,
-  React.ComponentPropsWithoutRef<typeof ListBoxItem> & { file: File }
->(({ file, ...props }, ref) => {
+function FileItem({
+  file,
+  ...props
+}: React.ComponentProps<typeof ListBoxItem> & { file: File }) {
   return (
     <ListBoxItem
       {...props}
-      ref={ref}
       textValue={file.path}
       className={cn(
         'flex items-center px-2 py-0.5 text-sm',
@@ -192,5 +191,5 @@ const FileItem = React.forwardRef<
       </p>
     </ListBoxItem>
   )
-})
+}
 FileItem.displayName = 'FileItem'

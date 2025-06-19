@@ -24,18 +24,18 @@ export const buttonStyle = cva({
 
 type ButtonStyleProps = VariantProps<typeof buttonStyle>
 
-export const Button = React.forwardRef<
-  HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement> &
-    ButtonStyleProps & { isLoading?: boolean }
->(({ children, intent, className, isLoading = false, ...props }, ref) => (
-  <button
-    {...props}
-    ref={ref}
-    className={cn(buttonStyle({ intent }), className)}
-  >
-    {children}
-    {isLoading && <LoaderIcon className="ml-2 size-4 animate-spin" />}
-  </button>
-))
-Button.displayName = 'Button'
+export function Button({
+  children,
+  intent,
+  className,
+  isLoading,
+  ...props
+}: React.ComponentProps<'button'> &
+  ButtonStyleProps & { isLoading?: boolean }) {
+  return (
+    <button className={cn(buttonStyle({ intent }), className)} {...props}>
+      {children}
+      {isLoading && <LoaderIcon className="ml-2 size-4 animate-spin" />}
+    </button>
+  )
+}
