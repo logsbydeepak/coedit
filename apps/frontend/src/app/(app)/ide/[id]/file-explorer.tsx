@@ -171,7 +171,7 @@ function FileItem({
       className={cn(
         'flex items-center px-2 py-0.5 text-sm',
         'w-full space-x-2 ring-inset',
-        'aria-[selected=true]:bg-sage-4 aria-[selected=true]:ring-1',
+        'aria-[selected=true]:bg-sage-4 aria-selected:ring-1',
         'overflow-hidden outline-none ring-sage-9 hover:cursor-pointer',
         'hover:bg-sage-4'
       )}
