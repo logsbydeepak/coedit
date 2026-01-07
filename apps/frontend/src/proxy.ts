@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ResponseError } from './utils/error'
 import { apiClient } from './utils/hc-server'
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   try {
     const url = req.url
 
