@@ -28,8 +28,8 @@ export function Status({
   isLoading = false,
 }: React.PropsWithChildren<{ isLoading?: boolean }>) {
   return (
-    <div className="flex items-center space-x-1 rounded-full bg-gray-5 px-3 py-1 font-mono text-xs">
-      {isLoading && <LoaderIcon className="size-3 animate-spin text-gray-11" />}
+    <div className="bg-gray-5 flex items-center space-x-1 rounded-full px-3 py-1 font-mono text-xs">
+      {isLoading && <LoaderIcon className="text-gray-11 size-3 animate-spin" />}
       <p>{children}</p>
     </div>
   )

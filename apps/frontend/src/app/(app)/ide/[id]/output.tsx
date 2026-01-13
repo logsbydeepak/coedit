@@ -42,7 +42,7 @@ export default function Output() {
 
       <div className="flex items-center space-x-2 text-sm">
         <button
-          className="flex h-6 w-full items-center justify-center space-x-2 text-gray-11 ring-inset hover:bg-sage-4 hover:text-gray-12 hover:ring-1 hover:ring-sage-9"
+          className="text-gray-11 hover:bg-sage-4 hover:text-gray-12 hover:ring-sage-9 flex h-6 w-full items-center justify-center space-x-2 ring-inset hover:ring-1"
           onClick={() => setIsRunning((prev) => !prev)}
         >
           <span className="size-3">
@@ -51,7 +51,7 @@ export default function Output() {
           <p>{isRunning ? 'closer' : 'preview'}</p>
         </button>
         <button
-          className="flex size-6 items-center justify-center text-gray-11 ring-inset hover:bg-sage-4 hover:text-gray-12 hover:ring-1 hover:ring-sage-9"
+          className="text-gray-11 hover:bg-sage-4 hover:text-gray-12 hover:ring-sage-9 flex size-6 items-center justify-center ring-inset hover:ring-1"
           onClick={() => window.open(containerURL().output)}
         >
           <ExternalLinkIcon className="size-3" />

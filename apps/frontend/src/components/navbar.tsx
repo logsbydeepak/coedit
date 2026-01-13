@@ -10,10 +10,10 @@ import { LogoIcon } from './icons/logo'
 
 export function Navbar() {
   return (
-    <nav className="fixed inset-x-0 z-20 border-b border-gray-4 bg-gray-2">
+    <nav className="border-gray-4 bg-gray-2 fixed inset-x-0 z-20 border-b">
       <div className="mx-auto flex h-14 w-full items-center justify-between space-x-4 px-5">
         <Link
-          className="flex cursor-pointer items-center justify-center space-x-1 text-sage-9"
+          className="text-sage-9 flex cursor-pointer items-center justify-center space-x-1"
           href="/"
         >
           <LogoIcon className="size-5" />
@@ -43,11 +43,11 @@ function User() {
   })
 
   if (isLoading) {
-    return <div className="size-9 animate-pulse rounded-full bg-gray-4" />
+    return <div className="bg-gray-4 size-9 animate-pulse rounded-full" />
   }
 
   if (!data?.name || isError) {
-    return <p className="font-mono text-xs font-medium text-red-11">error</p>
+    return <p className="text-red-11 font-mono text-xs font-medium">error</p>
   }
 
   return <Avatar name={data.name} className="size-9" />

@@ -42,14 +42,12 @@ ECS config
 - task definition name `coedit`
 
 - PORT and security group
-
   - 80
   - 443
 
 - Environment variables [@coedit/container](/apps/container)
 
 - Volumes
-
   - Configure at deployment
   - mount `/home/coedit/workspace`
 

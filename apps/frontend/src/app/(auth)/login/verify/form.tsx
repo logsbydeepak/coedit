@@ -126,7 +126,7 @@ export function Form({ email }: { email: string }) {
           </Button>
         </FormFieldset>
       </FormRoot>
-      <p className="rounded-md border border-dashed border-gray-6 bg-gray-3 px-4 py-2 text-center font-mono text-xs text-gray-10">
+      <p className="border-gray-6 bg-gray-3 text-gray-10 rounded-md border border-dashed px-4 py-2 text-center font-mono text-xs">
         check your email inbox and spam folder for the code
       </p>
     </>

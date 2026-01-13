@@ -19,7 +19,7 @@ function FormInput({ className, ...props }: React.ComponentProps<'input'>) {
   return (
     <input
       className={cn(
-        'w-full rounded-md border border-gray-4 bg-gray-1 px-3 py-1.5 placeholder:text-gray-9 focus:outline-sage-9',
+        'border-gray-4 bg-gray-1 placeholder:text-gray-9 focus:outline-sage-9 w-full rounded-md border px-3 py-1.5',
         className
       )}
       {...props}
@@ -45,7 +45,7 @@ function FormError({
       {children && (
         <p
           className={cn(
-            'inline-flex items-center rounded-full text-xs font-medium text-red-11',
+            'text-red-11 inline-flex items-center rounded-full text-xs font-medium',
             className
           )}
           {...props}

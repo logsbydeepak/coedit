@@ -123,7 +123,7 @@ export function Form() {
       <div className="text-center">
         <Link
           href="/login"
-          className="text-sm font-medium text-gray-11 hover:text-gray-12"
+          className="text-gray-11 hover:text-gray-12 text-sm font-medium"
         >
           Login?
         </Link>

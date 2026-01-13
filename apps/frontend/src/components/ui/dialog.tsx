@@ -12,7 +12,7 @@ function DialogRoot({
   return (
     <Dialog.Root {...props}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-30 bg-gray-1/50 backdrop-blur-sm" />
+        <Dialog.Overlay className="bg-gray-1/50 fixed inset-0 z-30 backdrop-blur-sm" />
         {children}
       </Dialog.Portal>
     </Dialog.Root>
@@ -27,8 +27,8 @@ function DialogContent({
   return (
     <Dialog.Content
       className={cn(
-        'fixed z-50 border border-gray-3 bg-gray-2 p-6',
-        'left-1/2 top-1/2 w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-lg drop-shadow-sm',
+        'border-gray-3 bg-gray-2 fixed z-50 border p-6',
+        'top-1/2 left-1/2 w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-lg drop-shadow-sm',
         className
       )}
       {...props}
@@ -45,7 +45,7 @@ function DialogTitle({
 }: React.ComponentProps<typeof Dialog.Title>) {
   return (
     <Dialog.Title
-      className={cn('text-lg font-medium text-gray-12', className)}
+      className={cn('text-gray-12 text-lg font-medium', className)}
       {...props}
     >
       {children}
@@ -61,7 +61,7 @@ function DialogDescription({
   return (
     <Dialog.Description
       className={cn(
-        'overflow-hidden text-ellipsis text-sm text-gray-11',
+        'text-gray-11 overflow-hidden text-sm text-ellipsis',
         className
       )}
       {...props}

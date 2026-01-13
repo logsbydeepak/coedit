@@ -19,11 +19,11 @@ export function Avatar({
   return (
     <div
       className={cn(
-        'group flex size-full select-none items-center justify-center rounded-full border border-gray-5 bg-gray-1 hover:border-gray-6 hover:bg-gray-2',
+        'group border-gray-5 bg-gray-1 hover:border-gray-6 hover:bg-gray-2 flex size-full items-center justify-center rounded-full border select-none',
         className
       )}
     >
-      <p className="text-[80%] font-medium tracking-wider text-gray-11 group-hover:text-gray-12">
+      <p className="text-gray-11 group-hover:text-gray-12 text-[80%] font-medium tracking-wider">
         {initials}
       </p>
     </div>

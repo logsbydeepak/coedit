@@ -88,7 +88,7 @@ function Init({
   return (
     <StatusContainer className="absolute flex-col space-y-6 pt-14">
       <Status isLoading={isLoading}>{message}</Status>
-      <p className="max-w-96 rounded-md border border-dashed border-gray-6 bg-gray-3 p-2 text-center font-mono text-xs text-gray-10">
+      <p className="border-gray-6 bg-gray-3 text-gray-10 max-w-96 rounded-md border border-dashed p-2 text-center font-mono text-xs">
         if facing any issue, try refreshing the page, initializing the project
         might take a while
       </p>
