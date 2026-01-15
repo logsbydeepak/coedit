@@ -1,6 +1,8 @@
 import { Redis } from '@upstash/redis'
 import ms from 'ms'
 
+import { r, tryCatch } from '@coedit/r'
+
 import { prefix } from '../prefix'
 
 class _KVdns {
@@ -28,11 +30,17 @@ class _KVdns {
   }
 
   async getMachineIP() {
-    const res = await this.client.get<string>(this.key)
-    if (!res) {
-      return null
+    const { data, error } = await tryCatch(this.client.get<string>(this.key))
+
+    if (error) {
+      return r('REDIS_ERROR', { error })
     }
-    return res.split(':')[1]
+
+    if (!data) {
+      return r('NOT_FOUND')
+    }
+
+    return r('OK', { data: data.split(':')[1] })
   }
 }
 
