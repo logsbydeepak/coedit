@@ -3,6 +3,8 @@ import dnsPacket from 'dns-packet'
 
 import '#/env'
 
+import { udp } from 'bun'
+
 import { genID } from '@coedit/id'
 import { KVdns } from '@coedit/kv'
 import { tryCatch } from '@coedit/r'
@@ -12,13 +14,42 @@ import { log } from '#/utils/log'
 import { getSubdomain, ResData, sendRes } from './utils'
 import { redis } from './utils/config'
 
-const server = dgram.createSocket('udp4')
 const redisClient = redis()
 
-async function handleOnMessage(msg: NonSharedBuffer, rinfo: dgram.RemoteInfo) {
+const server = await tryCatch(
+  Bun.udpSocket({
+    port: 53,
+
+    socket: {
+      data: handleData,
+      error: async function(socket, error) {
+        log.error(error, 'SERVER_ERROR')
+      },
+    },
+  })
+)
+
+if (server.error) {
+  log.error(server.error, 'SERVER_ERROR')
+}
+
+if (!server.data?.address) {
+  log.error(server.error, 'SERVER_ERROR')
+}
+
+const address = server.data?.address.address
+const port = server.data?.address.port
+log.info(`Listening on ${address}:${port}`)
+
+async function handleData(
+  socket: udp.Socket<'buffer'>,
+  buf: Buffer<ArrayBufferLike>,
+  port: number,
+  addr: string
+) {
   const reqID = genID()
 
-  const decode = tryCatch(() => dnsPacket.decode(msg))
+  const decode = tryCatch(() => dnsPacket.decode(buf))
 
   if (decode.error) {
     log.error({ reqID, error: decode.error }, 'DECODE_ERROR')
@@ -35,12 +66,13 @@ async function handleOnMessage(msg: NonSharedBuffer, rinfo: dgram.RemoteInfo) {
   const question = questions[0]
 
   const resData: ResData = {
+    socket,
     reqID,
-    server,
     questions,
     question,
     decode: decode.data,
-    rinfo,
+    port,
+    addr,
   }
 
   const reqInfo = {
@@ -84,16 +116,3 @@ async function handleOnMessage(msg: NonSharedBuffer, rinfo: dgram.RemoteInfo) {
   sendRes(resData, { type: 'success', data: ip.data })
   return
 }
-
-server.on('message', handleOnMessage)
-
-server.on('error', (err) => {
-  log.error(err, 'SERVER_ERROR')
-})
-
-server.on('listening', () => {
-  const address = server.address()
-  log.info(`Listening on ${address.address}:${address.port}`)
-})
-
-// server.bind(53)

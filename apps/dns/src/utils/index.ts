@@ -1,4 +1,4 @@
-import dgram from 'dgram'
+import { udp } from 'bun'
 import dnsPacket from 'dns-packet'
 
 import { r } from '@coedit/r'
@@ -22,16 +22,17 @@ export function getSubdomain(url: string) {
 }
 
 export type ResData = {
+  socket: udp.Socket<'buffer'>
   reqID: string
-  server: dgram.Socket
   questions: dnsPacket.Question[]
   question: dnsPacket.Question
   decode: dnsPacket.DecodedPacket
-  rinfo: dgram.RemoteInfo
+  port: number
+  addr: string
 }
 
 export function sendRes(
-  { server, questions, question, decode, rinfo, reqID }: ResData,
+  { socket, questions, question, decode, port, addr, reqID }: ResData,
   res: { type: 'success'; data: string } | { type: 'error' }
 ) {
   const NXDOMAIN = 0x03
@@ -54,11 +55,11 @@ export function sendRes(
     answers,
   })
 
-  server.send(response, rinfo.port, rinfo.address, (err) => {
-    if (err) {
-      log.error({ reqID, err }, 'Error sending response')
-    } else {
-      log.info({ reqID }, 'Response sent')
-    }
-  })
+  socket.send(response, port, addr)
+  log.info(
+    {
+      reqID,
+    },
+    'Response sent'
+  )
 }
