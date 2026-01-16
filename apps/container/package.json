@@ -22,7 +22,7 @@
     "@coedit/r": "workspace:*",
     "@coedit/server": "workspace:*",
     "@coedit/zschema": "workspace:*",
-    "hono": "4.6.7",
+    "hono": "4.11.4",
     "ms": "^2.1.3",
     "pino": "^9.5.0",
     "pino-pretty": "^11.3.0"

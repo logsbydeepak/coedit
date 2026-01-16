@@ -10,9 +10,9 @@
     "tsc": "run-s tsc:clean tsc:build"
   },
   "dependencies": {
-    "@hono/zod-validator": "^0.4.1",
+    "@hono/zod-validator": "^0.7.6",
     "dockerode": "^4.0.2",
-    "hono": "4.6.7",
+    "hono": "4.11.4",
     "pino": "^9.5.0",
     "pino-pretty": "^11.3.0"
   },

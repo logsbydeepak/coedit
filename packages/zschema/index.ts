@@ -1,10 +1,10 @@
-import { z } from 'zod'
+import * as z from 'zod'
 
-export { z } from 'zod'
+export { z }
 
 export const zNumber = z.number()
 export const zReqString = z.string().min(1, { message: 'required' })
-export const zEmail = zReqString.email()
+export const zEmail = z.email()
 
 export const zRegisterUser = z.object({
   email: zEmail,
