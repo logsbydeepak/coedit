@@ -243,6 +243,23 @@ function FileTab({ tab, onClose }: { tab: Tab; onClose: (path: Tab) => void }) {
   )
 }
 
+function debounce<T extends (...args: unknown[]) => void>(
+  func: T,
+  wait: number
+) {
+  let timeout: ReturnType<typeof setTimeout> | undefined
+
+  return (...args: Parameters<T>): void => {
+    if (timeout) {
+      clearTimeout(timeout)
+    }
+
+    timeout = setTimeout(() => {
+      func(...args)
+    }, wait)
+  }
+}
+
 function TextEditorWrapper({
   filePath,
   portalNode,
@@ -250,7 +267,7 @@ function TextEditorWrapper({
   monacoRef,
 }: {
   filePath: string
-  portalNode: HtmlPortalNode<Component<any>>
+  portalNode: HtmlPortalNode<Component>
   activeTab: string | null
   monacoRef: React.MutableRefObject<Monaco | null>
 }) {
@@ -293,15 +310,6 @@ function TextEditorWrapper({
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   })
-
-  let timeout: Timer
-  function debounce(func: Function, wait: number) {
-    return function (this: any, ...args: any[]) {
-      const context = this
-      clearTimeout(timeout)
-      timeout = setTimeout(() => func.apply(context, args), wait)
-    }
-  }
 
   const handleOnChange = (value: string | undefined) => {
     if (!value) return

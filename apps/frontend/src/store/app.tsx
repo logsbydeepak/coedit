@@ -29,10 +29,8 @@ export function AppProvider({
   children: React.ReactNode
   initialProps?: Partial<AppStore>
 }) {
-  const store = React.useRef(createAppStore(initialProps))
-  return (
-    <AppContext.Provider value={store.current}>{children}</AppContext.Provider>
-  )
+  const [store] = React.useState(() => createAppStore(initialProps))
+  return <AppContext.Provider value={store}>{children}</AppContext.Provider>
 }
 
 export function useAppStore<T>(selector: (state: AppStore) => T): T {
