@@ -5,14 +5,17 @@ import * as Resizable from 'react-resizable-panels'
 
 import { cn } from '#/utils/style'
 
+export { Panel as ResizablePanel } from 'react-resizable-panels'
+
 function ResizablePanelGroup({
   className,
   ...props
-}: React.ComponentProps<typeof Resizable.PanelGroup>) {
+}: React.ComponentProps<typeof Resizable.Group>) {
   return (
-    <Resizable.PanelGroup
+    <Resizable.Group
+      data-slot="resizable-panel-group"
       className={cn(
-        'flex size-full data-[panel-group-direction=vertical]:flex-col',
+        'flex h-full w-full data-[panel-group-direction=vertical]:flex-col',
         className
       )}
       {...props}
@@ -20,20 +23,18 @@ function ResizablePanelGroup({
   )
 }
 
-const ResizablePanel = Resizable.Panel
-
 function ResizableHandle({
   withHandle,
   className,
   ...props
-}: React.ComponentProps<typeof Resizable.PanelResizeHandle> & {
+}: React.ComponentProps<typeof Resizable.Separator> & {
   withHandle?: boolean
 }) {
   return (
-    <Resizable.PanelResizeHandle
+    <Resizable.Separator
       className={cn(
-        'bg-gray-4 focus-visible:ring-gray-4 relative flex w-px items-center justify-center after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 focus-visible:ring-1 focus-visible:ring-offset-1 focus-visible:outline-none data-[panel-group-direction=vertical]:h-px data-[panel-group-direction=vertical]:w-full data-[panel-group-direction=vertical]:after:left-0 data-[panel-group-direction=vertical]:after:h-1 data-[panel-group-direction=vertical]:after:w-full data-[panel-group-direction=vertical]:after:translate-x-0 data-[panel-group-direction=vertical]:after:-translate-y-1/2 [&[data-panel-group-direction=vertical]>div]:rotate-90',
-        'data-[resize-handle-state=drag]:bg-sage-11 data-[resize-handle-state=hover]:bg-sage-10',
+        'bg-gray-4 focus-visible:ring-sage-4 relative flex w-px items-center justify-center after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none aria-[orientation=horizontal]:h-px aria-[orientation=horizontal]:w-full data-[panel-group-direction=vertical]:h-px data-[panel-group-direction=vertical]:w-full data-[panel-group-direction=vertical]:after:left-0 data-[panel-group-direction=vertical]:after:h-1 data-[panel-group-direction=vertical]:after:w-full data-[panel-group-direction=vertical]:after:translate-x-0 data-[panel-group-direction=vertical]:after:-translate-y-1/2 [&[data-panel-group-direction=vertical]>div]:rotate-90',
+        'data-[separator="active"]:bg-sage-8 data-[separator="hover"]:bg-sage-7',
         className
       )}
       {...props}
@@ -43,8 +44,8 @@ function ResizableHandle({
           <GripVertical className="size-2.5" />
         </div>
       )}
-    </Resizable.PanelResizeHandle>
+    </Resizable.Separator>
   )
 }
 
-export { ResizablePanelGroup, ResizablePanel, ResizableHandle }
+export { ResizablePanelGroup, ResizableHandle }

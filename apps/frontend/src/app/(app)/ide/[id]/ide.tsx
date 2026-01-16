@@ -17,7 +17,7 @@ const Output = dynamic(() => import('./output'), { ssr: false })
 export function IDE() {
   return (
     <div className="absolute inset-0 pt-[57px]">
-      <ResizablePanelGroup direction="horizontal" className="min-h-full">
+      <ResizablePanelGroup orientation="horizontal" className="min-h-full">
         <ResizablePanel defaultSize={14} collapsible={true} minSize={10}>
           <FileExplorer />
         </ResizablePanel>
@@ -25,7 +25,7 @@ export function IDE() {
         <ResizableHandle />
 
         <ResizablePanel defaultSize={56} collapsible={true} minSize={20}>
-          <ResizablePanelGroup direction="vertical">
+          <ResizablePanelGroup orientation="vertical">
             <ResizablePanel defaultSize={74} collapsible={true} minSize={20}>
               <Editor />
             </ResizablePanel>
