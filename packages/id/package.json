@@ -4,6 +4,6 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
-    "nanoid": "^5.0.7"
+    "nanoid": "^5.1.6"
   }
 }
