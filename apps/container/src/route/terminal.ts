@@ -1,4 +1,3 @@
-import { Pty } from '@replit/ruspty'
 import { WSContext } from 'hono/ws'
 
 import { genID } from '@coedit/id'
@@ -11,7 +10,7 @@ import { upgradeWebSocket } from '#/utils/ws'
 const terminal = h().get(
   '/',
   upgradeWebSocket(() => {
-    const termGroup = new Map<string, Pty>()
+    const termGroup = new Map<string, Bun.Subprocess>()
 
     return {
       onMessage: (rawData, ws) => {
@@ -50,10 +49,7 @@ const terminal = h().get(
             const id = data.data.id
             const term = termGroup.get(id)
             if (!term) return
-            term.resize({
-              cols: data.data.cols,
-              rows: data.data.rows,
-            })
+            term.terminal?.resize(data.data.cols, data.data.rows)
             break
           }
 
@@ -61,7 +57,7 @@ const terminal = h().get(
             const id = data.data.id
             const term = termGroup.get(id)
             if (!term) return
-            Bun.write(term.fd(), data.data.data)
+            term.terminal?.write(data.data.data)
             break
           }
         }
@@ -100,33 +96,39 @@ function createTerm({
   const USER = 'coedit'
   const WORKSPACE = `/home/${USER}/workspace`
 
-  const pty = new Pty({
-    command: 'su',
-    args: [
+  const pty = Bun.spawn(
+    [
+      'su',
       USER,
       '--login',
       '--pty',
       '-c',
-      `cd ${WORKSPACE}; devbox init && devbox shell`,
+      `cd ${WORKSPACE}; [ -f devbox.json ] || devbox init && exec devbox shell`,
     ],
-    envs: {
-      TERM: 'xterm-256color',
-    },
-    onExit,
-    onData: (error, data) => {
-      if (error) return
-      ws.send(sendData({ event: 'term', data: { id, data: data.toString() } }))
-    },
-  })
+    {
+      terminal: {
+        cols: 80,
+        rows: 24,
+        data(_terminal, data) {
+          if (!data) return
+          ws.send(
+            sendData({ event: 'term', data: { id, data: data.toString() } })
+          )
+        },
+      },
+      env: {
+        TERM: 'xterm-256color',
+      },
+      onExit,
+    }
+  )
 
   return pty
 }
 
-function killTerm(term: Pty) {
+function killTerm(term: Bun.Subprocess) {
   try {
-    const pid = term.pid
-    term.close()
-    process.kill(pid)
+    term.terminal?.close()
   } catch (error) {
     log.error('error while killing term')
   }
