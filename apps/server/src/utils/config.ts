@@ -4,7 +4,7 @@ import { Resend } from 'resend'
 import { RedisCloudflare } from '@coedit/kv'
 import { AppType } from '@coedit/orchestration'
 
-import { ENV } from './h'
+import { ENV } from './env'
 
 export const resend = (env: Pick<ENV, 'RESEND_API_KEY'>) => {
   return new Resend(env.RESEND_API_KEY)

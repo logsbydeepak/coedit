@@ -8,7 +8,7 @@ import { r } from '@coedit/r'
 
 import { resend } from '#/utils/config'
 
-import { ENV } from './h'
+import { ENV } from './env'
 
 const MAX_AGE = ms('30 days') / 1000
 

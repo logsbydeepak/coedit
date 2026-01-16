@@ -1,3 +1,4 @@
+import { Env } from 'hono'
 import { cors } from 'hono/cors'
 import { secureHeaders } from 'hono/secure-headers'
 
@@ -5,7 +6,8 @@ import { authRoute } from './route/auth'
 import { projectRoute } from './route/project'
 import { templateRoute } from './route/template'
 import { userRoute } from './route/user'
-import { ENV, h } from './utils/h'
+import { env } from './utils/env'
+import { h } from './utils/h'
 
 const app = h()
   .use(secureHeaders())
@@ -23,5 +25,5 @@ const app = h()
 export type AppType = typeof app
 
 export default {
-  fetch: async (request: Request, env: ENV) => await app.fetch(request, env),
+  fetch: async (request: Request, _env: Env) => await app.fetch(request, env),
 }

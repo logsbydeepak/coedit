@@ -3,23 +3,7 @@ import { getCookie } from 'hono/cookie'
 import { HTTPException } from 'hono/http-exception'
 
 import { checkIsAuth } from './auth'
-
-export type ENV = {
-  RESEND_API_KEY: string
-  RESEND_FROM: string
-  DB_URL: string
-  JWT_SECRET: string
-  RUNTIME: 'deployment' | 'production'
-  CORS_ORIGIN: string
-  COOKIE_DOMAIN: string
-
-  UPSTASH_REDIS_REST_URL: string
-  UPSTASH_REDIS_REST_TOKEN: string
-
-  ORCHESTRATION_URL: string
-  ORCHESTRATION_MODE: 'mock' | 'caddy'
-  ORCHESTRATION_SECRET: string
-}
+import { ENV } from './env'
 
 type Variables = {
   'x-userId': string
