@@ -5,4 +5,14 @@ const schema = z.object({
   CORS_ORIGIN: zReqString.url(),
 })
 
-export const env = schema.parse(process.env)
+const parseEnv = schema.safeParse(process.env)
+
+if (parseEnv.error) {
+  const error = z.prettifyError(parseEnv.error)
+  console.log(error)
+  throw new Error('Invalid environment variables')
+}
+
+export const env = parseEnv.data
+
+export type ENV = z.infer<typeof schema>

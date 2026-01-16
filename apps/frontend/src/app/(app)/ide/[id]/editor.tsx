@@ -243,19 +243,17 @@ function FileTab({ tab, onClose }: { tab: Tab; onClose: (path: Tab) => void }) {
   )
 }
 
-function debounce<T extends (...args: unknown[]) => void>(
-  func: T,
+export function debounce<Args extends readonly unknown[]>(
+  func: (...args: Args) => void | Promise<void>,
   wait: number
 ) {
   let timeout: ReturnType<typeof setTimeout> | undefined
 
-  return (...args: Parameters<T>): void => {
-    if (timeout) {
-      clearTimeout(timeout)
-    }
+  return (...args: Args): void => {
+    if (timeout) clearTimeout(timeout)
 
     timeout = setTimeout(() => {
-      func(...args)
+      void func(...args)
     }, wait)
   }
 }

@@ -3,12 +3,9 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "setup": "bun run setup.ts | pino-pretty",
     "script": "bun run src/script.ts | pino-pretty"
   },
-  "devDependencies": {
-    "@types/unzipper": "^0.10.11"
-  },
+  "devDependencies": {},
   "dependencies": {
     "pino": "^10.2.0",
     "pino-pretty": "^13.1.3"

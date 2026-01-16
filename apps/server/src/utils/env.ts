@@ -23,10 +23,8 @@ const schema = z.object({
 const parseEnv = schema.safeParse(_env)
 
 if (parseEnv.error) {
-  console.error(
-    'Environment variable validation failed:',
-    parseEnv.error.format()
-  )
+  const error = z.prettifyError(parseEnv.error)
+  console.log(error)
   throw new Error('Invalid environment variables')
 }
 

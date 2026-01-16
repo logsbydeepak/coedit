@@ -2,9 +2,14 @@ import * as z from 'zod'
 
 export { z }
 
+export const zURL = z
+  .url({ message: 'invalid url' })
+  .min(1, { message: 'required' })
 export const zNumber = z.number()
 export const zReqString = z.string().min(1, { message: 'required' })
-export const zEmail = z.email()
+export const zEmail = z
+  .email({ message: 'invalid email' })
+  .min(1, { message: 'required' })
 
 export const zRegisterUser = z.object({
   email: zEmail,
