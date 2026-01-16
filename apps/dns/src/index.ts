@@ -22,7 +22,7 @@ const server = await tryCatch(
 
     socket: {
       data: handleData,
-      error: async function(socket, error) {
+      error: async function (socket, error) {
         log.error(error, 'SERVER_ERROR')
       },
     },

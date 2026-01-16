@@ -1,3 +1,4 @@
+import { getCookie } from 'hono/cookie'
 import { HTTPException } from 'hono/http-exception'
 import { logger } from 'hono/logger'
 import { secureHeaders } from 'hono/secure-headers'
@@ -10,7 +11,7 @@ export const app = h()
   .use(logger())
   .use(secureHeaders())
   .use(async (c, next) => {
-    const clientOrchestrationSecret = c.req.header('x-orchestration-secret')
+    const clientOrchestrationSecret = getCookie(c, 'x-orchestration-secret')
 
     if (clientOrchestrationSecret !== env.ORCHESTRATION_SECRET) {
       throw new HTTPException(401)
