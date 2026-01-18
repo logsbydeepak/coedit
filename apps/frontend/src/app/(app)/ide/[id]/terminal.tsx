@@ -3,12 +3,12 @@
 import '@xterm/xterm/css/xterm.css'
 
 import React from 'react'
-import * as Tabs from '@radix-ui/react-tabs'
 import { FitAddon } from '@xterm/addon-fit'
 import { WebglAddon } from '@xterm/addon-webgl'
 import { ITheme, Terminal } from '@xterm/xterm'
 import { PlusIcon, XIcon } from 'lucide-react'
 import ms from 'ms'
+import { Tabs } from 'radix-ui'
 import useWebSocket, { ReadyState } from 'react-use-websocket'
 import { toast } from 'sonner'
 

@@ -3,12 +3,12 @@
 import React, { Component } from 'react'
 import Image from 'next/image'
 import Editor, { Monaco } from '@monaco-editor/react'
-import * as Tabs from '@radix-ui/react-tabs'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAtom } from 'jotai'
 import { RefreshCcwIcon, XIcon } from 'lucide-react'
 import { editor } from 'monaco-editor'
 import ms from 'ms'
+import { Tabs } from 'radix-ui'
 import {
   createHtmlPortalNode,
   HtmlPortalNode,
@@ -108,7 +108,10 @@ export default function TextEditor() {
       setActiveTab(nextTab ? nextTab.path : null)
     }
 
-    monacoRef.current?.editor.getModels().forEach((model) => {
+    const models: editor.ITextModel[] =
+      monacoRef.current?.editor.getModels() ?? []
+
+    models.forEach((model) => {
       if (model.uri.path === path) {
         model.dispose()
       }
@@ -291,7 +294,10 @@ function TextEditorWrapper({
       }
       const result = await res.text()
 
-      monacoRef.current?.editor.getModels().forEach((model) => {
+      const models: editor.ITextModel[] =
+        monacoRef.current?.editor.getModels() ?? []
+
+      models.forEach((model) => {
         if (model.uri.path === filePath) {
           model.setValue(result)
         }

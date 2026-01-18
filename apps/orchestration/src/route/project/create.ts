@@ -1,10 +1,9 @@
 import fs from 'node:fs/promises'
 import path from 'path'
 import { zValidator } from '@hono/zod-validator'
-import { z } from 'zod'
 
 import { r } from '@coedit/r'
-import { zReqString } from '@coedit/zschema'
+import { z, zReqString } from '@coedit/zschema'
 
 import { env } from '#/env'
 import { h } from '#/utils/h'

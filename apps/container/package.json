@@ -22,6 +22,8 @@
     "@coedit/r": "workspace:*",
     "@coedit/server": "workspace:*",
     "@coedit/zschema": "workspace:*",
+    "@hono/zod-validator": "^0.7.6",
+    "@types/node": "^25.0.9",
     "hono": "4.11.4",
     "ms": "^2.1.3",
     "pino": "^10.2.0",
