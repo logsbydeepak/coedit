@@ -20,14 +20,14 @@ const schema = z.object({
   ORCHESTRATION_SECRET: zReqString,
 })
 
-const parseEnv = schema.safeParse(_env)
+// const parseEnv = schema.safeParse(_env)
 
-if (parseEnv.error) {
-  const error = z.flattenError(parseEnv.error)
-  console.log(error)
-  throw new Error('Invalid environment variables')
-}
-
-export const env = parseEnv.data
+// if (parseEnv.error) {
+//   const error = z.flattenError(parseEnv.error)
+//   console.log(error)
+//   throw new Error('Invalid environment variables')
+// }
+//
+// export const env = parseEnv.data
 
 export type ENV = z.infer<typeof schema>

@@ -6,7 +6,6 @@ import { authRoute } from './route/auth'
 import { projectRoute } from './route/project'
 import { templateRoute } from './route/template'
 import { userRoute } from './route/user'
-import { env } from './utils/env'
 import { h } from './utils/h'
 
 const app = h()
@@ -25,5 +24,5 @@ const app = h()
 export type AppType = typeof app
 
 export default {
-  fetch: async (request: Request, _env: Env) => await app.fetch(request, env),
+  fetch: async (request: Request, env: Env) => await app.fetch(request, env),
 }

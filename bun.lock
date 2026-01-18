@@ -39,6 +39,7 @@
       "name": "@coedit/dns",
       "version": "1.0.0",
       "dependencies": {
+        "@coedit/id": "workspace:*",
         "@coedit/kv": "workspace:*",
         "@coedit/r": "workspace:*",
         "@coedit/zschema": "workspace:*",

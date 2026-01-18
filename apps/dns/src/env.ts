@@ -14,6 +14,4 @@ if (parseEnv.error) {
   throw new Error('Invalid environment variables')
 }
 
-export const env = parseEnv.data
-
 export type ENV = z.infer<typeof schema>
