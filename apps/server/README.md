@@ -27,7 +27,7 @@ bun run deploy
 #### Generate JWT_SECRET env
 
 ```bash
-openssl rand -base64 32
+bun run gen:jwt-secret
 ```
 
 #### Expose localhost to the internet useful for testing in dev
