@@ -18,7 +18,7 @@
       "#/*": ["./src/*"]
     }
   },
-  "exclude": ["drizzle.config.ts"],
+  "exclude": ["drizzle.config.ts", "jwt-secret.ts"],
   "references": [
     {
       "path": "../orchestration"
