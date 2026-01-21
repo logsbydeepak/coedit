@@ -74,3 +74,4 @@ httpcaddyfile
 caddyhttp
 
 nothrow
+zstd
