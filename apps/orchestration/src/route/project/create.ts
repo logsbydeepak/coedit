@@ -1,12 +1,13 @@
-import fs from 'node:fs/promises'
-import path from 'path'
+import { CopyObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3'
 import { zValidator } from '@hono/zod-validator'
 
-import { r } from '@coedit/r'
+import { r, tryCatch } from '@coedit/r'
 import { z, zReqString } from '@coedit/zschema'
 
 import { env } from '#/env'
+import { s3Client } from '#/utils/config'
 import { h } from '#/utils/h'
+import { log } from '#/utils/log'
 
 const zSchema = z.object({
   userId: zReqString,
@@ -20,20 +21,32 @@ export const createProject = h().post(
   async (c) => {
     const input = c.req.valid('json')
 
-    const projectDir = path.join(
-      env.WORKDIR,
-      'projects',
-      input.userId,
-      input.projectId
-    )
-    const templatesDir = path.join(env.WORKDIR, 'templates', input.templateId)
-    const isTemplateValid = await fs.exists(templatesDir)
+    const s3 = s3Client()
+    const copySource = `/templates/${input.templateId}/`
+    const destinationKey = `projects/${input.userId}/${input.projectId}/`
 
-    if (!isTemplateValid) {
+    const headCommand = new HeadObjectCommand({
+      Bucket: env.S3_BUCKET,
+      Key: copySource,
+    })
+    const headResponse = await tryCatch(s3.send(headCommand))
+    if (headResponse.error) {
+      log.error({ error: headResponse.error }, 'Template does not exist in S3')
       return c.json(r('INVALID_TEMPLATE_ID'))
     }
 
-    await fs.cp(templatesDir, projectDir, { recursive: true })
+    const copyCommand = new CopyObjectCommand({
+      Bucket: env.S3_BUCKET,
+      CopySource: copySource,
+      Key: destinationKey,
+    })
+
+    const copyResponse = await tryCatch(s3.send(copyCommand))
+    if (copyResponse.error) {
+      log.error({ error: copyResponse.error }, 'Error copying template in S3')
+      return c.json(r('ERROR'))
+    }
+
     return c.json(r('OK'))
   }
 )

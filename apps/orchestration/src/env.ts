@@ -11,6 +11,10 @@ const schema = z.object({
   USER_API: zReqString.url(),
   CORS_ORIGIN: zReqString.url(),
   ORCHESTRATION_SECRET: zReqString,
+
+  S3_ACCESS_KEY_ID: zReqString,
+  S3_SECRET_ACCESS_KEY: zReqString,
+  S3_BUCKET: zReqString,
 })
 
 const parseEnv = schema.safeParse(process.env)
