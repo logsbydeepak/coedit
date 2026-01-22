@@ -18,6 +18,10 @@ const schema = z.object({
   ORCHESTRATION_URL: zReqString.url(),
   ORCHESTRATION_MODE: z.enum(['mock', 'caddy']),
   ORCHESTRATION_SECRET: zReqString,
+
+  S3_BUCKET: zReqString,
+  S3_ACCESS_KEY_ID: zReqString,
+  S3_SECRET_ACCESS_KEY: zReqString,
 })
 
 // const parseEnv = schema.safeParse(_env)

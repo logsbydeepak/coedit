@@ -1,3 +1,4 @@
+import { S3Client } from '@aws-sdk/client-s3'
 import { hc } from 'hono/client'
 import { Resend } from 'resend'
 
@@ -42,6 +43,17 @@ export const orchestration = (
 
         return res
       })
+    },
+  })
+}
+
+export function s3Client(
+  env: Pick<ENV, 'S3_ACCESS_KEY_ID' | 'S3_SECRET_ACCESS_KEY'>
+) {
+  return new S3Client({
+    credentials: {
+      accessKeyId: env.S3_ACCESS_KEY_ID,
+      secretAccessKey: env.S3_SECRET_ACCESS_KEY,
     },
   })
 }
