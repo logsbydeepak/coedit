@@ -1,12 +1,14 @@
+import { DeleteObjectCommand } from '@aws-sdk/client-s3'
 import { zValidator } from '@hono/zod-validator'
 
 import { and, db, dbSchema, eq } from '@coedit/db'
 import { isValidID } from '@coedit/id'
-import { r } from '@coedit/r'
+import { r, tryCatch } from '@coedit/r'
 import { z, zReqString } from '@coedit/zschema'
 
-import { orchestration } from '#/utils/config'
+import { s3Client } from '#/utils/config'
 import { hAuth } from '#/utils/h'
+import { log } from '#/utils/log'
 
 export const deleteProject = hAuth().delete(
   '/:id',
@@ -40,16 +42,17 @@ export const deleteProject = hAuth().delete(
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
-    const orchestrationRes = await orchestration(c.env).project.$delete({
-      json: {
-        userId: userId,
-        projectId: input.id,
-      },
+    const s3 = s3Client(c.env)
+    const objectPath = `projects/${userId}/${input.id}/`
+    const deleteCommand = new DeleteObjectCommand({
+      Bucket: c.env.S3_BUCKET,
+      Key: objectPath,
     })
-    const orchestrationResData = await orchestrationRes.json()
 
-    if (orchestrationResData.code === 'INVALID_PROJECT_ID') {
-      return c.json(r('INVALID_PROJECT_ID'))
+    const deleteResponse = await tryCatch(s3.send(deleteCommand))
+    if (deleteResponse.error) {
+      log.error({ error: deleteResponse.error }, 'Error deleting project in S3')
+      return c.json(r('ERROR'))
     }
 
     return c.json(r('OK'))
