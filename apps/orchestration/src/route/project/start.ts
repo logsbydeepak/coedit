@@ -1,16 +1,16 @@
-import fs from 'node:fs/promises'
 import path from 'path'
 import { zValidator } from '@hono/zod-validator'
 import Docker from 'dockerode'
 import { generate } from 'random-words'
 
 import { KVdns } from '@coedit/kv'
-import { r } from '@coedit/r'
+import { r, tryCatch } from '@coedit/r'
 import { z, zReqString } from '@coedit/zschema'
 
 import { env } from '#/env'
-import { redis } from '#/utils/config'
+import { redis, s3Client } from '#/utils/config'
 import { h } from '#/utils/h'
+import { log } from '#/utils/log'
 
 const docker = new Docker({
   socketPath: env.DOCKER_SOCKET_PATH,
@@ -28,45 +28,85 @@ export const startProject = h().post(
   async (c) => {
     const input = c.req.valid('json')
 
-    const projectDir = path.join(
+    const projectFileCompletePath = path.join(
       env.WORKDIR,
       'projects',
       input.userId,
-      input.projectId
+      input.projectId + '.img.zst'
     )
 
-    const isValidProjectId = await fs.exists(projectDir)
+    const projectMountDir = path.join('projects', input.userId, input.projectId)
 
-    if (!isValidProjectId) {
-      return c.json(r('INVALID_PROJECT_ID'))
+    const s3 = s3Client()
+    const key = `projects/${input.projectId}.img.zst`
+
+    const s3File = s3.file(key)
+    const localFile = Bun.file(projectFileCompletePath)
+    const localWriter = localFile.writer()
+
+    const s3Stream = s3File.stream()
+
+    const handleChunk = new WritableStream({
+      write: async function (chunk) {
+        await localWriter.write(chunk)
+      },
+      close: async function () {
+        await localWriter.end()
+      },
+      abort: function (err) {},
+    })
+
+    const result = await tryCatch(s3Stream.pipeTo(handleChunk))
+
+    if (result.error) {
+      log.error({ error: result.error }, 'FAILED_TO_DOWNLOAD_PROJECT_IMAGE')
+      return c.json(r('ERROR'))
     }
 
     const networkName = 'bridge'
 
-    const container = await docker.createContainer({
-      Image: 'coedit',
-      Cmd: ['/root/coedit/coedit-container-process'],
-      Tty: false,
-      Env: [`USER_API=${env.USER_API}`, `CORS_ORIGIN=${env.CORS_ORIGIN}`],
-      HostConfig: {
-        AutoRemove: true,
-        Binds: [`${projectDir}:/home/coedit/workspace`],
-        NetworkMode: networkName,
-      },
-    })
+    const container = await tryCatch(
+      docker.createContainer({
+        Image: 'coedit',
+        Cmd: ['/root/coedit/coedit-container-process'],
+        Tty: false,
+        Env: [`USER_API=${env.USER_API}`, `CORS_ORIGIN=${env.CORS_ORIGIN}`],
+        HostConfig: {
+          AutoRemove: true,
+          Binds: [`${projectMountDir}:/home/coedit/workspace`],
+          NetworkMode: networkName,
+        },
+      })
+    )
 
-    if (!container) {
+    if (container.error) {
+      log.error({ error: container.error }, 'FAILED_TO_CREATE_CONTAINER')
       return c.json(r('ERROR'))
     }
 
-    const res = await container.start()
-
-    if (!res) {
+    if (!container.data) {
       return c.json(r('ERROR'))
     }
 
-    const inspectData = await container.inspect()
-    const ip = inspectData.NetworkSettings.Networks[networkName].IPAddress
+    const res = await container.data.start()
+
+    if (res.error) {
+      log.error({ error: res.error }, 'FAILED_TO_START_CONTAINER')
+      return c.json(r('ERROR'))
+    }
+
+    if (!res.date) {
+      return c.json(r('ERROR'))
+    }
+
+    const inspectData = await tryCatch(container.data.inspect())
+
+    if (inspectData.error) {
+      log.error({ error: inspectData.error }, 'FAILED_TO_INSPECT_CONTAINER')
+      return c.json(r('ERROR'))
+    }
+
+    const ip = inspectData.data.NetworkSettings.Networks[networkName].IPAddress
 
     const redisClient = redis()
     const subdomain = await generateSubdomain(async (data) => {
