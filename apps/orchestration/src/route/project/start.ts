@@ -1,3 +1,4 @@
+import fs from 'node:fs/promises'
 import path from 'path'
 import { zValidator } from '@hono/zod-validator'
 import Docker from 'dockerode'
@@ -34,8 +35,21 @@ export const startProject = h().post(
       input.userId,
       input.projectId + '.img.zst'
     )
-
     const projectMountDir = path.join('projects', input.userId, input.projectId)
+
+    const createDirResult = await tryCatch(
+      fs.mkdir(path.join(env.WORKDIR, projectMountDir), {
+        recursive: true,
+      })
+    )
+
+    if (createDirResult.error) {
+      log.error(
+        { error: createDirResult.error },
+        'FAILED_TO_CREATE_PROJECT_DIR'
+      )
+      return c.json(r('ERROR'))
+    }
 
     const s3 = s3Client()
     const key = `projects/${input.projectId}.img.zst`
@@ -60,6 +74,43 @@ export const startProject = h().post(
 
     if (result.error) {
       log.error({ error: result.error }, 'FAILED_TO_DOWNLOAD_PROJECT_IMAGE')
+      return c.json(r('ERROR'))
+    }
+
+    const proc = Bun.spawn({
+      cmd: ['zstd', '-d', '-q', projectFileCompletePath],
+      cwd: path.join(env.WORKDIR, 'projects', input.userId),
+    })
+
+    const exitCode = await proc.exited
+
+    if (exitCode !== 0) {
+      log.error({ exitCode }, 'FAILED_TO_DECOMPRESS_PROJECT_IMAGE')
+      return c.json(r('ERROR'))
+    }
+
+    const removeCompressed = await tryCatch(fs.unlink(projectFileCompletePath))
+    if (removeCompressed.error) {
+      log.error(
+        { error: removeCompressed.error },
+        'FAILED_TO_REMOVE_COMPRESSED_PROJECT_IMAGE'
+      )
+      return c.json(r('ERROR'))
+    }
+
+    const decompressedImgPath = path.join(
+      env.WORKDIR,
+      'projects',
+      input.userId,
+      input.projectId + '.img'
+    )
+
+    const mountImg = await tryCatch(
+      Bun.$`sudo mount -o loop ${decompressedImgPath} ${projectMountDir}`
+    )
+
+    if (mountImg.error) {
+      log.error({ error: mountImg.error }, 'FAILED_TO_MOUNT_PROJECT_IMAGE')
       return c.json(r('ERROR'))
     }
 
