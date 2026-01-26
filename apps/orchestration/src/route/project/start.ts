@@ -17,6 +17,14 @@ const docker = new Docker({
   socketPath: env.DOCKER_SOCKET_PATH,
 })
 
+type ProjectPath = {
+  s3Key: string
+  userDir: string
+  localCompressedFile: string
+  localDecompressedFile: string
+  mountDir: string
+}
+
 export const startProject = h().post(
   '/start',
   zValidator(
@@ -29,135 +37,67 @@ export const startProject = h().post(
   async (c) => {
     const input = c.req.valid('json')
 
-    const projectFileCompletePath = path.join(
-      env.WORKDIR,
-      'projects',
-      input.userId,
-      input.projectId + '.img.zst'
-    )
-    const projectMountDir = path.join('projects', input.userId, input.projectId)
+    const projectPath: ProjectPath = {
+      s3Key: `projects/${input.projectId}.img.zst`,
+      userDir: path.join(env.WORKDIR, 'projects', input.userId),
+      localCompressedFile: path.join(
+        env.WORKDIR,
+        'projects',
+        input.userId,
+        input.projectId + '.img.zst'
+      ),
+      localDecompressedFile: path.join(
+        env.WORKDIR,
+        'projects',
+        input.userId,
+        input.projectId + '.img'
+      ),
+      mountDir: path.join(
+        env.WORKDIR,
+        'projects',
+        input.userId,
+        input.projectId
+      ),
+    }
 
-    const createDirResult = await tryCatch(
-      fs.mkdir(path.join(env.WORKDIR, projectMountDir), {
-        recursive: true,
-      })
+    const ensureMountDir = await tryCatch(
+      fs.mkdir(path.join(projectPath.mountDir), { recursive: true })
     )
 
-    if (createDirResult.error) {
+    console.log(projectPath.mountDir)
+    if (ensureMountDir.error) {
       log.error(
-        { error: createDirResult.error },
-        'FAILED_TO_CREATE_PROJECT_DIR'
+        { error: ensureMountDir.error },
+        'FAILED_TO_CREATE_USER_PROJECTS_DIR'
       )
       return c.json(r('ERROR'))
     }
 
-    const s3 = s3Client()
-    const key = `projects/${input.projectId}.img.zst`
-
-    const s3File = s3.file(key)
-    const localFile = Bun.file(projectFileCompletePath)
-    const localWriter = localFile.writer()
-
-    const s3Stream = s3File.stream()
-
-    const handleChunk = new WritableStream({
-      write: async function (chunk) {
-        await localWriter.write(chunk)
-      },
-      close: async function () {
-        await localWriter.end()
-      },
-      abort: function (err) {},
-    })
-
-    const result = await tryCatch(s3Stream.pipeTo(handleChunk))
-
-    if (result.error) {
-      log.error({ error: result.error }, 'FAILED_TO_DOWNLOAD_PROJECT_IMAGE')
-      return c.json(r('ERROR'))
-    }
-
-    const proc = Bun.spawn({
-      cmd: ['zstd', '-d', '-q', projectFileCompletePath],
-      cwd: path.join(env.WORKDIR, 'projects', input.userId),
-    })
-
-    const exitCode = await proc.exited
-
-    if (exitCode !== 0) {
-      log.error({ exitCode }, 'FAILED_TO_DECOMPRESS_PROJECT_IMAGE')
-      return c.json(r('ERROR'))
-    }
-
-    const removeCompressed = await tryCatch(fs.unlink(projectFileCompletePath))
-    if (removeCompressed.error) {
+    const ensureS3File = await handleS3File(projectPath)
+    if (ensureS3File.code !== 'OK') {
       log.error(
-        { error: removeCompressed.error },
-        'FAILED_TO_REMOVE_COMPRESSED_PROJECT_IMAGE'
+        { error: ensureS3File },
+        'FAILED_TO_DOWNLOAD_PROJECT_FILE_FROM_S3'
       )
       return c.json(r('ERROR'))
     }
 
-    const decompressedImgPath = path.join(
-      env.WORKDIR,
-      'projects',
-      input.userId,
-      input.projectId + '.img'
-    )
-
-    const mountImg = await tryCatch(
-      Bun.$`sudo mount -o loop ${decompressedImgPath} ${projectMountDir}`
-    )
-
-    if (mountImg.error) {
-      log.error({ error: mountImg.error }, 'FAILED_TO_MOUNT_PROJECT_IMAGE')
+    const ensureDecompress = await handleCompressedFile(projectPath)
+    if (ensureDecompress.code !== 'OK') {
+      log.error(
+        { error: ensureDecompress },
+        'FAILED_TO_DECOMPRESS_PROJECT_FILE'
+      )
       return c.json(r('ERROR'))
     }
 
-    const networkName = 'bridge'
-
-    const container = await tryCatch(
-      docker.createContainer({
-        Image: 'coedit',
-        Cmd: ['/root/coedit/coedit-container-process'],
-        Tty: false,
-        Env: [`USER_API=${env.USER_API}`, `CORS_ORIGIN=${env.CORS_ORIGIN}`],
-        HostConfig: {
-          AutoRemove: true,
-          Binds: [`${projectMountDir}:/home/coedit/workspace`],
-          NetworkMode: networkName,
-        },
-      })
-    )
-
-    if (container.error) {
-      log.error({ error: container.error }, 'FAILED_TO_CREATE_CONTAINER')
+    const ensureContainer = await handleContainer(projectPath)
+    if (ensureContainer.code !== 'OK') {
+      log.error({ error: ensureContainer }, 'FAILED_TO_START_CONTAINER')
       return c.json(r('ERROR'))
     }
 
-    if (!container.data) {
-      return c.json(r('ERROR'))
-    }
-
-    const res = await container.data.start()
-
-    if (res.error) {
-      log.error({ error: res.error }, 'FAILED_TO_START_CONTAINER')
-      return c.json(r('ERROR'))
-    }
-
-    if (!res.date) {
-      return c.json(r('ERROR'))
-    }
-
-    const inspectData = await tryCatch(container.data.inspect())
-
-    if (inspectData.error) {
-      log.error({ error: inspectData.error }, 'FAILED_TO_INSPECT_CONTAINER')
-      return c.json(r('ERROR'))
-    }
-
-    const ip = inspectData.data.NetworkSettings.Networks[networkName].IPAddress
+    const ip = ensureContainer.ip
 
     const redisClient = redis()
     const subdomain = await generateSubdomain(async (data) => {
@@ -185,6 +125,130 @@ export const startProject = h().post(
     )
   }
 )
+
+async function handleS3File(projectPath: ProjectPath) {
+  const s3 = s3Client()
+
+  const s3File = s3.file(projectPath.s3Key)
+  const localFile = Bun.file(projectPath.localCompressedFile)
+
+  const localWriter = localFile.writer()
+
+  const s3Stream = s3File.stream()
+
+  const handleChunk = new WritableStream({
+    write: async function (chunk) {
+      await localWriter.write(chunk)
+    },
+    close: async function () {
+      await localWriter.end()
+    },
+    abort: function (err) {},
+  })
+
+  const result = await tryCatch(s3Stream.pipeTo(handleChunk))
+
+  if (result.error) {
+    return r('ERROR', {
+      code: 'S3_DOWNLOAD_FAILED',
+      error: result.error,
+    })
+  }
+
+  return r('OK')
+}
+
+async function handleCompressedFile(projectPath: ProjectPath) {
+  const proc = Bun.spawn({
+    cmd: ['zstd', '-d', '-q', projectPath.localCompressedFile],
+    cwd: projectPath.userDir,
+  })
+
+  const exitCode = await proc.exited
+
+  if (exitCode !== 0) {
+    return r('ERROR', {
+      code: 'DECOMPRESS_FAILED',
+    })
+  }
+
+  const removeCompressed = await tryCatch(
+    fs.unlink(projectPath.localCompressedFile)
+  )
+  if (removeCompressed.error) {
+    return r('ERROR', {
+      code: 'REMOVE_COMPRESSED_FAILED',
+      error: removeCompressed.error,
+    })
+  }
+
+  const mountImg = await tryCatch(
+    Bun.$`sudo mount -o loop ${projectPath.localDecompressedFile} ${projectPath.mountDir}`
+  )
+
+  if (mountImg.error) {
+    return r('ERROR', {
+      code: 'MOUNT_IMAGE_FAILED',
+      error: mountImg.error,
+    })
+  }
+
+  return r('OK')
+}
+
+async function handleContainer(projectPath: ProjectPath) {
+  const networkName = 'bridge'
+
+  const container = await tryCatch(
+    docker.createContainer({
+      Image: 'coedit',
+      Cmd: ['/root/coedit/coedit-container-process'],
+      Tty: false,
+      Env: [`USER_API=${env.USER_API}`, `CORS_ORIGIN=${env.CORS_ORIGIN}`],
+      HostConfig: {
+        AutoRemove: true,
+        Binds: [`${projectPath.mountDir}:/home/coedit/workspace`],
+        NetworkMode: networkName,
+      },
+    })
+  )
+
+  if (container.error) {
+    return r('CONTAINER_CREATE_FAILED', {
+      error: container.error,
+    })
+  }
+
+  if (!container.data) {
+    return r('CONTAINER_CREATE_NO_DATA')
+  }
+
+  const res = await container.data.start()
+
+  if (res.error) {
+    return r('CONTAINER_START_FAILED', {
+      error: res.error,
+    })
+  }
+
+  if (!res.date) {
+    return r('CONTAINER_START_NO_DATA')
+  }
+
+  const inspectData = await tryCatch(container.data.inspect())
+
+  if (inspectData.error) {
+    return r('CONTAINER_INSPECT_FAILED', {
+      error: inspectData.error,
+    })
+  }
+
+  const ip = inspectData.data.NetworkSettings.Networks[networkName].IPAddress
+
+  return r('OK', {
+    ip,
+  })
+}
 
 async function generateSubdomain(
   isExist: (subdomain: string) => Promise<boolean>
