@@ -1,4 +1,5 @@
 import { S3Client } from 'bun'
+import Docker from 'dockerode'
 
 import { Redis } from '@coedit/kv/redis'
 
@@ -19,3 +20,7 @@ export function s3Client() {
     bucket: env.S3_BUCKET,
   })
 }
+
+export const docker = new Docker({
+  socketPath: env.DOCKER_SOCKET_PATH,
+})

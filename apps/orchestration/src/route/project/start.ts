@@ -1,7 +1,6 @@
 import fs from 'node:fs/promises'
 import path from 'path'
 import { zValidator } from '@hono/zod-validator'
-import Docker from 'dockerode'
 import { generate } from 'random-words'
 
 import { KVdns } from '@coedit/kv'
@@ -9,13 +8,9 @@ import { r, tryCatch } from '@coedit/r'
 import { z, zReqString } from '@coedit/zschema'
 
 import { env } from '#/env'
-import { redis, s3Client } from '#/utils/config'
+import { docker, redis, s3Client } from '#/utils/config'
 import { h } from '#/utils/h'
 import { log } from '#/utils/log'
-
-const docker = new Docker({
-  socketPath: env.DOCKER_SOCKET_PATH,
-})
 
 type ProjectPath = {
   s3Key: string
@@ -23,6 +18,7 @@ type ProjectPath = {
   localCompressedFile: string
   localDecompressedFile: string
   mountDir: string
+  containerLabel: string
 }
 
 export const startProject = h().post(
@@ -58,6 +54,7 @@ export const startProject = h().post(
         input.userId,
         input.projectId
       ),
+      containerLabel: `${input.userId}:${input.projectId}`,
     }
 
     const ensureMountDir = await tryCatch(
@@ -205,6 +202,7 @@ async function handleContainer(projectPath: ProjectPath) {
       Cmd: ['/root/coedit/coedit-container-process'],
       Tty: false,
       Env: [`USER_API=${env.USER_API}`, `CORS_ORIGIN=${env.CORS_ORIGIN}`],
+      Labels: { identifier: projectPath.containerLabel },
       HostConfig: {
         AutoRemove: true,
         Binds: [`${projectPath.mountDir}:/home/coedit/workspace`],
