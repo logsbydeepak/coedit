@@ -9,17 +9,15 @@ export const users = t.pgTable(
     name: t.varchar({ length: 256 }).notNull(),
     email: t.varchar({ length: 256 }).unique().notNull(),
   },
-  (table) => {
-    return {
-      emailIdx: t.index().on(table.email),
-    }
-  }
+  (table) => [t.index('emailIdx').on(table.email)]
 )
 
 export const templates = t.pgTable('templates', {
   id: id(),
   name: t.varchar({ length: 256 }).notNull(),
 })
+
+export const statusEnum = t.pgEnum('status', ['RUNNING', 'IDLE', 'PROCESSING'])
 
 export const projects = t.pgTable(
   'projects',
@@ -28,10 +26,7 @@ export const projects = t.pgTable(
     userId: t.varchar({ length: 26 }).notNull(),
     name: t.varchar({ length: 256 }).notNull(),
     createdAt: t.timestamp().defaultNow().notNull(),
+    status: statusEnum().notNull(),
   },
-  (table) => {
-    return {
-      userIdx: t.index().on(table.userId),
-    }
-  }
+  (table) => [t.index('userIdx').on(table.userId)]
 )
