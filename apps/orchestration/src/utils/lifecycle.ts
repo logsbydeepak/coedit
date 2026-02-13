@@ -31,7 +31,7 @@ docker.getEvents(
       process.exit(1)
     }
 
-    stream.on('data', async function(chunk) {
+    stream.on('data', async function (chunk) {
       const event = await tryCatch(JSON.parse(chunk))
       const parsed = labelSchema.safeParse(event)
 
@@ -47,8 +47,6 @@ docker.getEvents(
         log.error({ error: parsed.error }, 'IDENTIFIER_NOT_FOUND')
         process.exit(1)
       }
-
-
     })
   }
 )

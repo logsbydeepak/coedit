@@ -75,3 +75,4 @@ caddyhttp
 
 nothrow
 zstd
+minioadmin

@@ -27,3 +27,20 @@ rm -rf .bun.lockb
 - `bun run fix` - run prettier, eslint, and cspell
 - `bun run unused` - find unused code
 - `bun run tsc` - run typescript compiler
+
+### MinIO
+
+start minio server
+
+```bash
+make start minio
+
+docker run -d \
+  -p 9000:9000 \
+  -p 9001:9001 \
+  --name minio \
+  -e MINIO_ROOT_USER=admin \
+  -e MINIO_ROOT_PASSWORD=password \
+  -v ./temp/minio:/data \
+  minio/minio server /data --console-address ":9001"
+```

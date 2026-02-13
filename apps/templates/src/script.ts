@@ -5,17 +5,18 @@ import { pino } from 'pino'
 import { db as _db, dbSchema } from '@coedit/db'
 import { genID } from '@coedit/id'
 import { tryCatch } from '@coedit/r'
-import { z } from '@coedit/zschema'
+import { z, zURL } from '@coedit/zschema'
 
 import templates from './templates/info.json'
 
 const log = pino()
 
 const schema = z.object({
-  DB_URL: z.string().url(),
+  DB_URL: zURL,
   S3_ACCESS_KEY_ID: z.string().min(1),
   S3_SECRET_ACCESS_KEY: z.string().min(1),
   S3_BUCKET: z.string().min(1),
+  S3_ENDPOINT: zURL.optional(),
 })
 
 async function main() {
@@ -153,6 +154,7 @@ async function main() {
     accessKeyId: env.S3_ACCESS_KEY_ID,
     secretAccessKey: env.S3_SECRET_ACCESS_KEY,
     bucket: env.S3_BUCKET,
+    endpoint: env.S3_ENDPOINT,
   })
 
   log.info('remove all templates from s3')
