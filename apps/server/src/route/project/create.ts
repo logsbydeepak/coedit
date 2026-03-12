@@ -61,6 +61,7 @@ export const createProject = hAuth().post(
       id: id,
       userId: userId,
       name: input.name,
+      status: 'IDLE',
     })
 
     return c.json(

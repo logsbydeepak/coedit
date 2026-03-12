@@ -55,9 +55,9 @@ export const startProject = hAuth().post(
     })
     const resData = await res.json()
 
-    if (resData.code === 'INVALID_PROJECT_ID') {
-      return c.json(r('INVALID_PROJECT_ID'))
-    }
+    // if (resData.code === 'INVALID_PROJECT_ID') {
+    //   return c.json(r('INVALID_PROJECT_ID'))
+    // }
 
     if (resData.code === 'ERROR') {
       throw new Error('Error while starting container')
