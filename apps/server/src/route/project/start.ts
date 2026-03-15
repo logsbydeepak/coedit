@@ -17,6 +17,8 @@ export const startProject = hAuth().post(
     })
   ),
   async (c) => {
+    return c.json(r('PROJECT_IS_NOT_IDLE'))
+
     const input = c.req.valid('param')
     const userId = c.get('x-userId')
 

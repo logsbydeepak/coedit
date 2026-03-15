@@ -22,6 +22,7 @@ import {
   InputOTPSlot,
 } from '#/components/ui/input-otp'
 import { apiClient } from '#/utils/hc-client'
+import { withMinDelay } from '#/utils/with-min-delay'
 
 type FromValues = z.infer<typeof zVerifyRegisterUser>
 
@@ -46,13 +47,15 @@ export function Form({ name, email }: { name: string; email: string }) {
   const onSubmit = async (data: FromValues) => {
     startTransition(async () => {
       try {
-        const res = await apiClient.auth.register.verify.$post({
-          json: {
-            code: data.code,
-            email: data.email,
-            name: data.name,
-          },
-        })
+        const res = await withMinDelay(
+          apiClient.auth.register.verify.$post({
+            json: {
+              code: data.code,
+              email: data.email,
+              name: data.name,
+            },
+          })
+        )
 
         const resData = await res.json()
 

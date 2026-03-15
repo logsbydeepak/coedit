@@ -7,6 +7,7 @@ import { useSetAtom } from 'jotai'
 import { toast } from 'sonner'
 
 import { apiClient } from '#/utils/hc-client'
+import { withMinDelay } from '#/utils/with-min-delay'
 
 import { Status, StatusContainer } from './components'
 import { IDE } from './ide'
@@ -33,11 +34,14 @@ function Init({
 
   const startQuery = useQuery({
     queryFn: async () => {
-      const res = await apiClient.project.start[':id'].$post({
-        param: {
-          id: params.id,
-        },
-      })
+      const res = await withMinDelay(
+        apiClient.project.start[':id'].$post({
+          param: {
+            id: params.id,
+          },
+        })
+      )
+
       const data = await res.json()
 
       if (data.code === 'PROJECT_IS_NOT_IDLE') {

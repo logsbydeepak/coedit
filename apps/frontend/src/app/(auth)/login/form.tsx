@@ -18,6 +18,7 @@ import {
   FormRoot,
 } from '#/components/ui/form'
 import { apiClient } from '#/utils/hc-client'
+import { withMinDelay } from '#/utils/with-min-delay'
 
 type FromValues = z.infer<typeof zLoginUser>
 
@@ -37,11 +38,13 @@ export function Form() {
   const onSubmit = async (data: FromValues) => {
     startTransition(async () => {
       try {
-        const res = await apiClient.auth.login.$post({
-          json: {
-            email: data.email,
-          },
-        })
+        const res = await withMinDelay(
+          apiClient.auth.login.$post({
+            json: {
+              email: data.email,
+            },
+          })
+        )
 
         const resData = await res.json()
         switch (resData.code) {
