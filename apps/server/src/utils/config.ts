@@ -48,13 +48,14 @@ export const orchestration = (
 }
 
 export function s3Client(
-  env: Pick<ENV, 'S3_ACCESS_KEY_ID' | 'S3_SECRET_ACCESS_KEY'>
+  env: Pick<ENV, 'S3_ACCESS_KEY_ID' | 'S3_SECRET_ACCESS_KEY' | 'S3_REGION'>
 ) {
   return new S3Client({
     credentials: {
       accessKeyId: env.S3_ACCESS_KEY_ID,
       secretAccessKey: env.S3_SECRET_ACCESS_KEY,
     },
+    region: env.S3_REGION,
   })
 }
 

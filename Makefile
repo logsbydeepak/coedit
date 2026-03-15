@@ -1,16 +1,11 @@
-start-minio:
-	@echo "-> START MINIO"
-	docker run -d \
-		-p 9000:9000 \
-		-p 9001:9001 \
-		--name minio \
-		-e MINIO_ROOT_USER=minioadmin \
-		-e MINIO_ROOT_PASSWORD=minioadmin \
-		-v ./temp/minio:/data \
-		minio/minio server /data --console-address ":9001"
+create-bucket:
+	@echo "-> CREATE BUCKET"
+	aws s3 mb s3://coedit-dev
 
-stop-minio:
-	@echo "-> STOP MINIO"
-	docker stop minio
-	docker rm minio
+delete-bucket:
+	@echo "-> DELETE BUCKET"
+	aws s3 rb s3://coedit-dev --force
 
+list-buckets:
+	@echo "-> LIST BUCKETS"
+	aws s3 ls
