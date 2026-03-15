@@ -22,6 +22,7 @@ import { FormError, FormInput, FormLabel, FormRoot } from '#/components/ui/form'
 import { useAppStore } from '#/store/app'
 import { apiClient } from '#/utils/hc-client'
 import { cn } from '#/utils/style'
+import { withMinDelay } from '#/utils/with-min-delay'
 
 export function NewProjectDialog() {
   const isOpen = useAppStore((s) => s.dialog.newProject)
@@ -77,12 +78,15 @@ function Content({
   const onSubmit = (data: FormValues) => {
     startTransition(async () => {
       try {
-        const res = await apiClient.project.$post({
-          json: {
-            name: data.name,
-            templateId: data.templateId,
-          },
-        })
+        const res = await withMinDelay(
+          apiClient.project.$post({
+            json: {
+              name: data.name,
+              templateId: data.templateId,
+            },
+          })
+        )
+
         const resData = await res.json()
         queryClient.invalidateQueries({ queryKey: ['projects'] })
         switch (resData.code) {
@@ -123,7 +127,7 @@ function Content({
 
       <FormRoot onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div className="space-y-2.5">
-          <FormLabel htmlFor="firstName">Name</FormLabel>
+          <FormLabel htmlFor="name">Name</FormLabel>
           <FormInput
             autoFocus
             id="name"

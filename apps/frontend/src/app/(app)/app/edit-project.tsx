@@ -133,7 +133,7 @@ function Content({
 
       <FormRoot onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div className="space-y-2.5">
-          <FormLabel htmlFor="firstName">Name</FormLabel>
+          <FormLabel htmlFor="name">Name</FormLabel>
           <FormInput
             autoFocus
             id="name"

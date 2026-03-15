@@ -29,7 +29,7 @@ function FormInput({ className, ...props }: React.ComponentProps<'input'>) {
 
 function FormLabel({ children, ...props }: React.ComponentProps<'label'>) {
   return (
-    <label {...props} className="text-sm">
+    <label {...props} className="block text-sm">
       {children}
     </label>
   )
