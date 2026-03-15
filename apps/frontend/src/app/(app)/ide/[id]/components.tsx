@@ -26,9 +26,15 @@ export function StatusContainer({
 export function Status({
   children,
   isLoading = false,
-}: React.PropsWithChildren<{ isLoading?: boolean }>) {
+  className,
+}: React.HtmlHTMLAttributes<HTMLDivElement> & { isLoading?: boolean }) {
   return (
-    <div className="bg-gray-5 flex items-center space-x-1 rounded-full px-3 py-1 font-mono text-xs">
+    <div
+      className={cn(
+        'bg-gray-5 flex items-center space-x-1 rounded-full px-3 py-1 font-mono text-xs',
+        className
+      )}
+    >
       {isLoading && <LoaderIcon className="text-gray-11 size-3 animate-spin" />}
       <p>{children}</p>
     </div>

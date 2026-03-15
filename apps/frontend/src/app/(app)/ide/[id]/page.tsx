@@ -1,9 +1,10 @@
 'use client'
 
 import React from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { useSetAtom } from 'jotai'
+import { toast } from 'sonner'
 
 import { apiClient } from '#/utils/hc-client'
 
@@ -28,6 +29,7 @@ function Init({
 }) {
   const params = useParams<{ id: string }>()
   const setContainerURL = useSetAtom(containerURLAtom)
+  const route = useRouter()
 
   const startQuery = useQuery({
     queryFn: async () => {
@@ -36,6 +38,13 @@ function Init({
           id: params.id,
         },
       })
+      const data = await res.json()
+
+      if (data.code === 'PROJECT_IS_NOT_IDLE') {
+        toast.error('Project is not IDLE')
+        route.push('/')
+      }
+
       return await res.json()
     },
     queryKey: ['start', params.id],

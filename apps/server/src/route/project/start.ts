@@ -47,6 +47,10 @@ export const startProject = hAuth().post(
       return c.json(r('INVALID_PROJECT_ID'))
     }
 
+    if (dbProject.status !== 'IDLE') {
+      return c.json(r('PROJECT_IS_NOT_IDLE'))
+    }
+
     const res = await orchestration(c.env).project.start.$post({
       json: {
         userId,
@@ -54,10 +58,6 @@ export const startProject = hAuth().post(
       },
     })
     const resData = await res.json()
-
-    // if (resData.code === 'INVALID_PROJECT_ID') {
-    //   return c.json(r('INVALID_PROJECT_ID'))
-    // }
 
     if (resData.code === 'ERROR') {
       throw new Error('Error while starting container')

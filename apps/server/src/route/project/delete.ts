@@ -36,10 +36,15 @@ export const deleteProject = hAuth().delete(
       )
       .returning({
         id: dbSchema.projects.id,
+        status: dbSchema.projects.status,
       })
 
     if (!res) {
       return c.json(r('INVALID_PROJECT_ID'))
+    }
+
+    if (res.status !== 'IDLE') {
+      return c.json(r('PROJECT_IS_NOT_IDLE'))
     }
 
     const s3 = s3Client(c.env)

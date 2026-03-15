@@ -43,7 +43,7 @@ export function Projects() {
   return (
     <Grid>
       {data.projects.map((project: Project) => (
-        <Project key={project.id} name={project.name} id={project.id} />
+        <Project key={project.id} {...project} />
       ))}
     </Grid>
   )
@@ -65,10 +65,9 @@ function Message({
   )
 }
 
-interface Project {
-  name: string
-  id: string
-}
+type Project = Awaited<
+  ReturnType<Awaited<ReturnType<typeof apiClient.project.$get>>['json']>
+>['projects'][0]
 
 function Project({ name, id }: Project) {
   const setDialog = useAppStore((s) => s.setDialog)
@@ -94,9 +93,11 @@ function Project({ name, id }: Project) {
 
   return (
     <ProjectContainer>
-      <p className="overflow-hidden p-4 text-center font-mono text-sm font-medium text-ellipsis">
-        {name}
-      </p>
+      <div className="flex h-full flex-col items-center justify-center space-y-1 p-4">
+        <p className="overflow-hidden text-center font-mono text-sm text-ellipsis">
+          {name}
+        </p>
+      </div>
 
       <div className="divide-gray-4 border-gray-4 flex justify-between divide-x border-t">
         {actions.map((a) => (
@@ -116,7 +117,7 @@ function ProjectContainer({
   return (
     <div
       className={cn(
-        'border-gray-4 flex h-24 w-full flex-col rounded-md border',
+        'border-gray-4 flex h-28 w-full flex-col justify-between rounded-md border',
         className
       )}
     >
