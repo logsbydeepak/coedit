@@ -5,7 +5,7 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "composite": true,
     "declaration": true,
     "skipLibCheck": true,

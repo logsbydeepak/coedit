@@ -1,4 +1,4 @@
-import { websocket } from '#/utils/ws'
+import { websocket } from 'hono/bun'
 
 import { app } from './route'
 import { handleStopEvent, startTimeout } from './utils/lifecycle'

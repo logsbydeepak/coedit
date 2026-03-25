@@ -1,3 +1,4 @@
+import { upgradeWebSocket } from 'hono/bun'
 import { WSContext } from 'hono/ws'
 
 import { genID } from '@coedit/id'
@@ -5,7 +6,6 @@ import { genID } from '@coedit/id'
 import { h } from '#/utils/h'
 import { setActive } from '#/utils/lifecycle'
 import { log } from '#/utils/log'
-import { upgradeWebSocket } from '#/utils/ws'
 
 const terminal = h().get(
   '/',
