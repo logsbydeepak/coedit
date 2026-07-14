@@ -11,14 +11,15 @@
     "composite": true,
     "declaration": true,
     "skipLibCheck": true,
-    "emitDeclarationOnly": true,
+    "emitDeclarationOnly": false,
     "outDir": "tsc",
     "rootDir": "src",
     "paths": {
       "#/*": ["./src/*"]
     }
   },
-  "exclude": ["drizzle.config.ts", "jwt-secret.ts"],
+  "include": ["src/**/*"],
+  "exclude": ["drizzle.config.ts"],
   "references": [
     {
       "path": "../orchestration"

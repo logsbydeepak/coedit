@@ -3,12 +3,12 @@
 import '@xterm/xterm/css/xterm.css'
 
 import React from 'react'
+import * as Tabs from '@radix-ui/react-tabs'
 import { FitAddon } from '@xterm/addon-fit'
 import { WebglAddon } from '@xterm/addon-webgl'
 import { ITheme, Terminal } from '@xterm/xterm'
 import { PlusIcon, XIcon } from 'lucide-react'
 import ms from 'ms'
-import { Tabs } from 'radix-ui'
 import useWebSocket, { ReadyState } from 'react-use-websocket'
 import { toast } from 'sonner'
 
@@ -168,7 +168,7 @@ function TermGroup({ socket }: { socket: Socket }) {
 
         <button
           onClick={addTab}
-          className="border-gray-4 text-gray-11 hover:text-gray-12 flex size-7 items-center justify-center border-l"
+          className="hover:text-gray-12 border-gray-4 text-gray-11 flex size-7 items-center justify-center border-l"
         >
           <PlusIcon className="size-3" />
         </button>
@@ -225,14 +225,14 @@ function TermTab({
     >
       <Tabs.Trigger
         value={tab.id}
-        className="text-gray-11 hover:text-gray-12 aria-[selected=true]:text-gray-12 pl-4"
+        className="hover:text-gray-12 aria-[selected=true]:text-gray-12 text-gray-11 pl-4"
       >
         <p className="flex items-center space-x-1">
           <span className="font-mono">{idx + 1}:</span>
           <span>{tab.name}</span>
         </p>
       </Tabs.Trigger>
-      <button className="text-gray-11 hover:text-gray-12 flex size-7 items-center justify-center">
+      <button className="hover:text-gray-12 text-gray-11 flex size-7 items-center justify-center">
         <XIcon
           className="hidden size-3 group-hover:block"
           onClick={() => removeTab(tab.id)}

@@ -28,7 +28,10 @@ export const startProject = h().post(
     z.object({
       projectId: zReqString,
       userId: zReqString,
-    })
+    }),
+    (result, c) => {
+      if (!result.success) return c.json(r('VALIDATION_ERROR'), 400)
+    }
   ),
   async (c) => {
     const input = c.req.valid('json')

@@ -1,0 +1,9 @@
+{
+  "files": [],
+  "references": [
+    { "path": "apps/server" },
+    { "path": "apps/container" },
+    { "path": "apps/orchestration" },
+    { "path": "apps/dns" }
+  ]
+}

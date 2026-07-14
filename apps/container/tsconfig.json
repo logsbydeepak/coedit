@@ -9,14 +9,15 @@
     "composite": true,
     "declaration": true,
     "skipLibCheck": true,
-    "emitDeclarationOnly": true,
+    "emitDeclarationOnly": false,
+    "types": ["bun"],
     "outDir": "tsc",
     "rootDir": "src",
     "paths": {
       "#/*": ["./src/*"]
-    },
-    "types": ["bun"]
+    }
   },
+  "include": ["src/**/*"],
   "references": [
     {
       "path": "../server"

@@ -22,15 +22,15 @@
     "@coedit/r": "workspace:*",
     "@coedit/server": "workspace:*",
     "@coedit/zschema": "workspace:*",
-    "@hono/zod-validator": "^0.7.6",
-    "@types/node": "^25.5.0",
-    "hono": "4.12.8",
+    "@hono/zod-validator": "^0.8.0",
+    "hono": "4.12.30",
     "ms": "^2.1.3",
     "pino": "^10.3.1",
-    "pino-pretty": "^13.1.3"
+    "pino-pretty": "^13.1.3",
+    "typescript": "^7.0.2"
   },
   "devDependencies": {
-    "@types/bun": "^1.3.11",
+    "@types/bun": "^1.3.14",
     "@types/ms": "^2.1.0"
   }
 }

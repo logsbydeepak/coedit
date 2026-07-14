@@ -16,7 +16,10 @@ export const deleteProject = hAuth().delete(
     'param',
     z.object({
       id: zReqString,
-    })
+    }),
+    (result, c) => {
+      if (!result.success) return c.json(r('VALIDATION_ERROR'), 400)
+    }
   ),
   async (c) => {
     const input = c.req.valid('param')

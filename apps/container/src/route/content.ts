@@ -32,7 +32,10 @@ const update = h().post(
     'query',
     z.object({
       path: z.string(),
-    })
+    }),
+    (result, c) => {
+      if (!result.success) return c.json(r('INVALID_PATH'), 400)
+    }
   ),
   async (c) => {
     const input = c.req.valid('query')

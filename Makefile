@@ -9,3 +9,8 @@ delete-bucket:
 list-buckets:
 	@echo "-> LIST BUCKETS"
 	aws s3 ls
+
+clean:
+	find . -type d -name "tsc" -prune -exec rm -rf {} +
+	find . -type d -name "node_modules" -prune -exec rm -rf {} +
+	find . -type f -name "tsconfig.tsbuildinfo" -delete

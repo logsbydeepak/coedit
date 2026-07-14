@@ -1,11 +1,6 @@
-import path from 'path'
+// import "./src/env";
 import type { NextConfig } from 'next'
 
-const nextConfig: NextConfig = {
-  turbopack: {
-    root: path.join(__dirname, '../..'),
-  },
-  /* config options here */
-}
+const nextConfig: NextConfig = {}
 
 export default nextConfig

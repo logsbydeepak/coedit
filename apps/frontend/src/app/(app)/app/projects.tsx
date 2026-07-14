@@ -43,7 +43,7 @@ export function Projects() {
   return (
     <Grid>
       {data.projects.map((project: Project) => (
-        <Project key={project.id} {...project} />
+        <Project key={project.id} name={project.name} id={project.id} />
       ))}
     </Grid>
   )
@@ -65,9 +65,10 @@ function Message({
   )
 }
 
-type Project = Awaited<
-  ReturnType<Awaited<ReturnType<typeof apiClient.project.$get>>['json']>
->['projects'][0]
+interface Project {
+  name: string
+  id: string
+}
 
 function Project({ name, id }: Project) {
   const setDialog = useAppStore((s) => s.setDialog)
@@ -93,11 +94,9 @@ function Project({ name, id }: Project) {
 
   return (
     <ProjectContainer>
-      <div className="flex h-full flex-col items-center justify-center space-y-1 p-4">
-        <p className="overflow-hidden text-center font-mono text-sm text-ellipsis">
-          {name}
-        </p>
-      </div>
+      <p className="overflow-hidden p-4 text-center font-mono text-sm font-medium text-ellipsis">
+        {name}
+      </p>
 
       <div className="divide-gray-4 border-gray-4 flex justify-between divide-x border-t">
         {actions.map((a) => (
@@ -117,7 +116,7 @@ function ProjectContainer({
   return (
     <div
       className={cn(
-        'border-gray-4 flex h-28 w-full flex-col justify-between rounded-md border',
+        'border-gray-4 flex h-24 w-full flex-col rounded-md border',
         className
       )}
     >
@@ -139,7 +138,7 @@ function ActionButton({
   return (
     <button
       {...props}
-      className="text-gray-11 hover:bg-gray-3 hover:text-gray-12 flex size-6 h-10 w-full items-center justify-center"
+      className="hover:text-gray-12 text-gray-11 hover:bg-gray-3 flex size-6 h-10 w-full items-center justify-center"
     >
       {children}
     </button>

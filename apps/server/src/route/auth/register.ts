@@ -17,7 +17,9 @@ import { h } from '#/utils/h'
 
 export const register = h().post(
   '/',
-  zValidator('json', zRegisterUser),
+  zValidator('json', zRegisterUser, (result, c) => {
+    if (!result.success) return c.json(r('VALIDATION_ERROR'), 400)
+  }),
   async (c) => {
     const input = c.req.valid('json')
 
@@ -54,7 +56,9 @@ export const register = h().post(
 
 export const registerVerify = h().post(
   '/',
-  zValidator('json', zVerifyRegisterUser),
+  zValidator('json', zVerifyRegisterUser, (result, c) => {
+    if (!result.success) return c.json(r('VALIDATION_ERROR'), 400)
+  }),
   async (c) => {
     const input = c.req.valid('json')
 

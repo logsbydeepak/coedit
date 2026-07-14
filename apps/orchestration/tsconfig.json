@@ -11,9 +11,11 @@
     "skipLibCheck": true,
     "emitDeclarationOnly": true,
     "outDir": "tsc",
+    "types": ["bun"],
     "rootDir": "src",
     "paths": {
       "#/*": ["./src/*"]
     }
-  }
+  },
+  "include": ["src/**/*"]
 }

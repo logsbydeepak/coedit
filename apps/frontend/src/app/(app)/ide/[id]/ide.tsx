@@ -18,21 +18,21 @@ export function IDE() {
   return (
     <div className="absolute inset-0 pt-[57px]">
       <ResizablePanelGroup orientation="horizontal" className="min-h-full">
-        <ResizablePanel defaultSize={14} collapsible={true} minSize={10}>
+        <ResizablePanel defaultSize="14%" collapsible={true} minSize="10%">
           <FileExplorer />
         </ResizablePanel>
 
         <ResizableHandle />
 
-        <ResizablePanel defaultSize={56} collapsible={true} minSize={20}>
+        <ResizablePanel defaultSize="56%" collapsible={true} minSize="20%">
           <ResizablePanelGroup orientation="vertical">
-            <ResizablePanel defaultSize={74} collapsible={true} minSize={20}>
+            <ResizablePanel defaultSize="74%" collapsible={true} minSize="20%">
               <Editor />
             </ResizablePanel>
 
             <ResizableHandle />
 
-            <ResizablePanel defaultSize={26} collapsible={true} minSize={10}>
+            <ResizablePanel defaultSize="26%" collapsible={true} minSize="10%">
               <Terminal />
             </ResizablePanel>
           </ResizablePanelGroup>
@@ -40,7 +40,7 @@ export function IDE() {
 
         <ResizableHandle />
 
-        <ResizablePanel defaultSize={30} collapsible={true} minSize={10}>
+        <ResizablePanel defaultSize="30%" collapsible={true} minSize="10%">
           <Output />
         </ResizablePanel>
       </ResizablePanelGroup>

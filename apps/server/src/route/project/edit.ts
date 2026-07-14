@@ -13,13 +13,19 @@ export const editProject = hAuth().post(
     'param',
     z.object({
       id: zReqString,
-    })
+    }),
+    (result, c) => {
+      if (!result.success) return c.json(r('VALIDATION_ERROR'), 400)
+    }
   ),
   zValidator(
     'json',
     z.object({
       name: zReqString,
-    })
+    }),
+    (result, c) => {
+      if (!result.success) return c.json(r('VALIDATION_ERROR'), 400)
+    }
   ),
   async (c) => {
     const projectId = c.req.valid('param').id

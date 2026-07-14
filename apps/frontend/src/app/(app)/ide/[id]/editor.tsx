@@ -3,12 +3,12 @@
 import React, { Component } from 'react'
 import Image from 'next/image'
 import Editor, { Monaco } from '@monaco-editor/react'
+import * as Tabs from '@radix-ui/react-tabs'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAtom } from 'jotai'
 import { RefreshCcwIcon, XIcon } from 'lucide-react'
 import { editor } from 'monaco-editor'
 import ms from 'ms'
-import { Tabs } from 'radix-ui'
 import {
   createHtmlPortalNode,
   HtmlPortalNode,
@@ -108,14 +108,13 @@ export default function TextEditor() {
       setActiveTab(nextTab ? nextTab.path : null)
     }
 
-    const models: editor.ITextModel[] =
-      monacoRef.current?.editor.getModels() ?? []
-
-    models.forEach((model) => {
-      if (model.uri.path === path) {
-        model.dispose()
-      }
-    })
+    monacoRef.current?.editor
+      .getModels()
+      .forEach((model: editor.ITextModel) => {
+        if (model.uri.path === path) {
+          model.dispose()
+        }
+      })
 
     setTabs((prev) => prev.filter((tab) => tab.path !== path))
     queryClient.removeQueries({
@@ -221,7 +220,7 @@ function FileTab({ tab, onClose }: { tab: Tab; onClose: (path: Tab) => void }) {
     >
       <Tabs.Trigger
         value={tab.path}
-        className="text-gray-11 hover:text-gray-12 aria-[selected=true]:text-gray-12 flex size-full items-center space-x-1 overflow-hidden pl-2 text-ellipsis"
+        className="hover:text-gray-12 aria-[selected=true]:text-gray-12 text-gray-11 flex size-full items-center space-x-1 overflow-hidden pl-2 text-ellipsis"
       >
         <Image
           src={getExtensionIcon({
@@ -237,28 +236,13 @@ function FileTab({ tab, onClose }: { tab: Tab; onClose: (path: Tab) => void }) {
         </p>
       </Tabs.Trigger>
       <button
-        className="text-gray-11 hover:text-gray-12 flex size-7 shrink-0 items-center justify-center"
+        className="hover:text-gray-12 text-gray-11 flex size-7 shrink-0 items-center justify-center"
         onClick={() => onClose(tab)}
       >
         <XIcon className="hidden size-3 group-hover:block" />
       </button>
     </div>
   )
-}
-
-export function debounce<Args extends readonly unknown[]>(
-  func: (...args: Args) => void | Promise<void>,
-  wait: number
-) {
-  let timeout: ReturnType<typeof setTimeout> | undefined
-
-  return (...args: Args): void => {
-    if (timeout) clearTimeout(timeout)
-
-    timeout = setTimeout(() => {
-      void func(...args)
-    }, wait)
-  }
 }
 
 function TextEditorWrapper({
@@ -268,7 +252,7 @@ function TextEditorWrapper({
   monacoRef,
 }: {
   filePath: string
-  portalNode: HtmlPortalNode<Component>
+  portalNode: HtmlPortalNode<Component<any>>
   activeTab: string | null
   monacoRef: React.MutableRefObject<Monaco | null>
 }) {
@@ -294,14 +278,13 @@ function TextEditorWrapper({
       }
       const result = await res.text()
 
-      const models: editor.ITextModel[] =
-        monacoRef.current?.editor.getModels() ?? []
-
-      models.forEach((model) => {
-        if (model.uri.path === filePath) {
-          model.setValue(result)
-        }
-      })
+      monacoRef.current?.editor
+        .getModels()
+        .forEach((model: editor.ITextModel) => {
+          if (model.uri.path === filePath) {
+            model.setValue(result)
+          }
+        })
 
       return r('OK', { content: result })
     },
@@ -314,6 +297,15 @@ function TextEditorWrapper({
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   })
+
+  let timeout: ReturnType<typeof setTimeout>
+  function debounce(func: Function, wait: number) {
+    return function (this: any, ...args: any[]) {
+      const context = this
+      clearTimeout(timeout)
+      timeout = setTimeout(() => func.apply(context, args), wait)
+    }
+  }
 
   const handleOnChange = (value: string | undefined) => {
     if (!value) return
@@ -407,7 +399,7 @@ function TextEditorWrapper({
             <div className="bg-gray-7 size-3 rounded-full group-data-[state=false]:hidden group-data-[state=true]:animate-pulse" />
           </div>
           <button
-            className="text-gray-11 hover:bg-sage-4 hover:text-gray-12 hover:ring-sage-9 flex size-6 items-center justify-center ring-inset hover:ring-1"
+            className="hover:text-gray-12 text-gray-11 hover:bg-sage-4 hover:ring-sage-9 flex size-6 items-center justify-center ring-inset hover:ring-1"
             onClick={() => refetch()}
           >
             <RefreshCcwIcon className="size-3" />

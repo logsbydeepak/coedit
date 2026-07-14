@@ -76,14 +76,14 @@ export default function FileExplorer() {
         </div>
 
         <button
-          className="text-gray-11 hover:bg-sage-4 hover:text-gray-12 hover:ring-sage-9 flex size-6 shrink-0 items-center justify-center ring-inset hover:ring-1"
+          className="hover:text-gray-12 text-gray-11 hover:bg-sage-4 hover:ring-sage-9 flex size-6 shrink-0 items-center justify-center ring-inset hover:ring-1"
           onClick={() => setCurrentPath('/')}
         >
           <SlashIcon className="size-3" />
         </button>
 
         <button
-          className="text-gray-11 hover:bg-sage-4 hover:text-gray-12 hover:ring-sage-9 flex size-6 shrink-0 items-center justify-center ring-inset hover:ring-1"
+          className="hover:text-gray-12 text-gray-11 hover:bg-sage-4 hover:ring-sage-9 flex size-6 shrink-0 items-center justify-center ring-inset hover:ring-1"
           onClick={handleOnRefresh}
         >
           <RefreshCcwIcon className="size-3" />
@@ -160,18 +160,19 @@ function Explorer({
   )
 }
 
-function FileItem({
-  file,
-  ...props
-}: React.ComponentProps<typeof ListBoxItem> & { file: File }) {
+const FileItem = React.forwardRef<
+  React.ElementRef<typeof ListBoxItem>,
+  React.ComponentPropsWithoutRef<typeof ListBoxItem> & { file: File }
+>(({ file, ...props }, ref) => {
   return (
     <ListBoxItem
       {...props}
+      ref={ref}
       textValue={file.path}
       className={cn(
         'flex items-center px-2 py-0.5 text-sm',
         'w-full space-x-2 ring-inset',
-        'aria-[selected=true]:bg-sage-4 aria-selected:ring-1',
+        'aria-[selected=true]:bg-sage-4 aria-[selected=true]:ring-1',
         'ring-sage-9 overflow-hidden outline-none hover:cursor-pointer',
         'hover:bg-sage-4'
       )}
@@ -191,5 +192,5 @@ function FileItem({
       </p>
     </ListBoxItem>
   )
-}
+})
 FileItem.displayName = 'FileItem'

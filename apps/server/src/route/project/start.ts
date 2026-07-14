@@ -14,7 +14,10 @@ export const startProject = hAuth().post(
     'param',
     z.object({
       id: zReqString,
-    })
+    }),
+    (result, c) => {
+      if (!result.success) return c.json(r('VALIDATION_ERROR'), 400)
+    }
   ),
   async (c) => {
     const input = c.req.valid('param')
@@ -59,7 +62,7 @@ export const startProject = hAuth().post(
     })
     const resData = await res.json()
 
-    if (resData.code === 'ERROR') {
+    if (resData.code !== 'OK') {
       throw new Error('Error while starting container')
     }
 

@@ -12,7 +12,10 @@ const get = h().get(
     'query',
     z.object({
       path: zReqString,
-    })
+    }),
+    (result, c) => {
+      if (!result.success) return c.json(r('ERROR'), 400)
+    }
   ),
   async (c) => {
     const input = c.req.valid('query')

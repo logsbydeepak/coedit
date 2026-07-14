@@ -1,17 +1,22 @@
-import nextVitals from 'eslint-config-next/core-web-vitals'
-import nextTs from 'eslint-config-next/typescript'
-import { defineConfig, globalIgnores } from 'eslint/config'
+import nextCoreWebVitals from 'eslint-config-next/core-web-vitals'
+import nextTypescript from 'eslint-config-next/typescript'
+import tailwindcss from 'eslint-plugin-tailwindcss'
 
-const eslintConfig = defineConfig([
-  ...nextVitals,
-  ...nextTs,
-  globalIgnores(['.next/**', 'out/**', 'build/**', 'next-env.d.ts']),
+const config = [
+  ...nextCoreWebVitals,
+  ...nextTypescript,
+  tailwindcss.configs.recommended,
   {
-    rules: {
-      '@typescript-eslint/no-unused-vars': 'off',
-      'no-unused-vars': 'off',
+    settings: {
+      tailwindcss: {
+        cssConfigPath: './src/app/globals.css',
+        functions: ['cn', 'tw', 'cva'],
+      },
     },
   },
-])
+  {
+    ignores: ['.next/**', 'node_modules/**', 'next-env.d.ts'],
+  },
+]
 
-export default eslintConfig
+export default config

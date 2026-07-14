@@ -23,7 +23,7 @@ export function Avatar({
         className
       )}
     >
-      <p className="text-gray-11 group-hover:text-gray-12 text-[80%] font-medium tracking-wider">
+      <p className="group-hover:text-gray-12 text-gray-11 text-[80%] font-medium tracking-wider">
         {initials}
       </p>
     </div>

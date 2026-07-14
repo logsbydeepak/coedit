@@ -5,8 +5,8 @@
   "main": "src/index.ts",
   "dependencies": {
     "@coedit/r": "workspace:*",
-    "@upstash/redis": "^1.37.0",
-    "ms": "^2.1.3"
+    "ms": "^2.1.3",
+    "@upstash/redis": "^1.38.0"
   },
   "devDependencies": {
     "@types/ms": "^2.1.0"

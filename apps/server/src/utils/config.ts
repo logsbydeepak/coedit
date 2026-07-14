@@ -36,13 +36,14 @@ export const orchestration = (
         headers,
       }
 
-      return fetch(input, newRequestInit).then((res) => {
-        if (!res.ok) {
-          throw new ResponseError(res.statusText, res)
-        }
+      const res = await fetch(input, newRequestInit)
 
-        return res
-      })
+      if (!res.ok) {
+        const body = await res.text()
+        throw new ResponseError(res.status, res.statusText, body)
+      }
+
+      return res
     },
   })
 }
@@ -60,10 +61,12 @@ export function s3Client(
 }
 
 export class ResponseError extends Error {
-  response: Response
-  constructor(message: string, res: Response) {
-    super()
-    this.message = message
-    this.response = res
+  status: number
+  body: string
+
+  constructor(status: number, statusText: string, body: string) {
+    super(`Orchestration request failed: ${status} ${statusText} — ${body}`)
+    this.status = status
+    this.body = body
   }
 }
