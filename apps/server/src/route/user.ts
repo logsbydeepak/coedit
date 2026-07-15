@@ -4,21 +4,10 @@ import { r } from '@coedit/r'
 import { h, hAuth } from '#/utils/h'
 
 const user = hAuth().get('/', async (c) => {
-  const userId = c.get('x-userId')
-
-  const [user] = await db(c.env)
-    .select()
-    .from(dbSchema.users)
-    .where(eq(dbSchema.users.id, userId))
-
-  if (!user) {
-    throw new Error('User not found')
-  }
-
   return c.json(
     r('OK', {
-      email: user.email,
-      name: user.name,
+      email: c.get('user').email,
+      name: c.get('user').name,
     })
   )
 })
@@ -26,7 +15,7 @@ const user = hAuth().get('/', async (c) => {
 const isAuth = hAuth().get('/', async (c) => {
   return c.json(
     r('OK', {
-      id: c.get('x-userId'),
+      id: c.get('user').id,
     })
   )
 })

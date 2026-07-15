@@ -2,16 +2,6 @@ import * as t from 'drizzle-orm/pg-core'
 
 const id = () => t.varchar({ length: 26 }).notNull()
 
-export const users = t.pgTable(
-  'users',
-  {
-    id: id(),
-    name: t.varchar({ length: 256 }).notNull(),
-    email: t.varchar({ length: 256 }).unique().notNull(),
-  },
-  (table) => [t.index('emailIdx').on(table.email)]
-)
-
 export const templates = t.pgTable('templates', {
   id: id(),
   name: t.varchar({ length: 256 }).notNull(),

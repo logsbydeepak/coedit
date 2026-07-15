@@ -27,6 +27,7 @@
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/addon-webgl": "^0.19.0",
     "@xterm/xterm": "^6.0.0",
+    "better-auth": "^1.6.23",
     "cva": "^1.0.0-beta.4",
     "eslint-plugin-tailwindcss": "^4.2.0",
     "geist": "^1.7.2",

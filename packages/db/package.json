@@ -6,9 +6,11 @@
   "scripts": {
     "db:gen": "drizzle-kit generate",
     "db:push": "bun --env-file .env.local drizzle-kit push",
-    "db:studio": "bun --env-file .env.local drizzle-kit studio"
+    "db:studio": "bun --env-file .env.local drizzle-kit studio",
+    "db:auth": "bun x auth@latest generate"
   },
   "dependencies": {
+    "better-auth": "^1.6.23",
     "drizzle-orm": "^0.45.2",
     "postgres": "^3.4.9"
   },

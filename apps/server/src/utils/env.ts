@@ -3,11 +3,12 @@ import { env as _env } from 'cloudflare:workers'
 import { z, zReqString } from '@coedit/zschema'
 
 const schema = z.object({
-  RESEND_API_KEY: zReqString,
-  RESEND_FROM: zReqString,
+  BETTER_AUTH_URL: zReqString,
+  BETTER_AUTH_SECRET: zReqString,
+  GOOGLE_CLIENT_ID: zReqString,
+  GOOGLE_CLIENT_SECRET: zReqString,
 
   DB_URL: zReqString.url(),
-  JWT_SECRET: zReqString,
   RUNTIME: z.enum(['development', 'production']),
   CORS_ORIGIN: zReqString.url(),
   COOKIE_DOMAIN: zReqString,
@@ -24,15 +25,5 @@ const schema = z.object({
   S3_ACCESS_KEY_ID: zReqString,
   S3_REGION: zReqString,
 })
-
-// const parseEnv = schema.safeParse(_env)
-
-// if (parseEnv.error) {
-//   const error = z.flattenError(parseEnv.error)
-//   console.log(error)
-//   throw new Error('Invalid environment variables')
-// }
-//
-// export const env = parseEnv.data
 
 export type ENV = z.infer<typeof schema>

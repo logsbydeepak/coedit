@@ -2,10 +2,10 @@ import { Env } from 'hono'
 import { cors } from 'hono/cors'
 import { secureHeaders } from 'hono/secure-headers'
 
-import { authRoute } from './route/auth'
 import { projectRoute } from './route/project'
 import { templateRoute } from './route/template'
 import { userRoute } from './route/user'
+import { authClient } from './utils/auth'
 import { h } from './utils/h'
 
 const app = h()
@@ -16,8 +16,8 @@ const app = h()
       credentials: true,
     })
   )
+  .on(['POST', 'GET'], '/auth/*', (c) => authClient(c.env).handler(c.req.raw))
   .route('/user', userRoute)
-  .route('/auth', authRoute)
   .route('/project', projectRoute)
   .route('/template', templateRoute)
 

@@ -1,15 +1,15 @@
-import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
+import { hc } from 'hono/client'
 
-import { ResponseError } from './utils/error'
-import { apiClient } from './utils/hc-server'
+import type { AppType } from '@coedit/server'
+
+import { env } from '#/env'
 
 export async function proxy(req: NextRequest) {
   try {
     const url = req.url
 
-    const cookieStore = await cookies()
-    const token = cookieStore.get('x-auth')?.value
+    const token = req.cookies.get('x-auth')?.value
     const isAuth = await checkIsAuth(token)
 
     const { pathname } = req.nextUrl
@@ -73,17 +73,23 @@ export const config = {
 }
 
 async function checkIsAuth(token?: string) {
+  // `cookies()` from `next/headers` is not available inside Proxy, so we build
+  // an `hc` client that forwards the token from the incoming request instead of
+  // relying on `apiClient` (which reads cookies via `next/headers`).
+  if (!token) return false
+
   try {
-    if (!token) return false
-    const res = await apiClient.user.isAuth.$get()
+    const client = hc<AppType>(env.NEXT_PUBLIC_API_URL, {
+      headers: { cookie: `x-auth=${token}` },
+    })
+
+    const res = await client.user.isAuth.$get()
+    console.log({ res })
+    if (!res.ok) return false
+
     const resData = await res.json()
-    return resData.code === 'OK' ? true : false
-  } catch (error) {
-    if (error instanceof ResponseError) {
-      if (error.response.status === 401) {
-        return false
-      }
-    }
-    throw new Error('Something went wrong.')
+    return resData.code === 'OK'
+  } catch {
+    return false
   }
 }
