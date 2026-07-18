@@ -416,7 +416,7 @@ async function setDns(
   rollbacks: Rollback[],
   logger: Logger
 ) {
-  const set = await tryCatch(KVdns(redis(), subdomain).set(ip, env.PUBLIC_IP))
+  const set = await tryCatch(KVdns(redis(), subdomain).set(ip, env.MACHINE_IP))
   if (set.error || !set.data) {
     return r('DNS_SET_FAILED', { error: set.error, subdomain })
   }

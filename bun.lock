@@ -171,6 +171,11 @@
         "unzipper": "^0.12.5",
       },
       "devDependencies": {
+        "@coedit/db": "workspace:*",
+        "@coedit/id": "workspace:*",
+        "@coedit/kv": "workspace:*",
+        "@coedit/r": "workspace:*",
+        "@coedit/zschema": "workspace:*",
         "@types/bun": "^1.3.14",
       },
     },

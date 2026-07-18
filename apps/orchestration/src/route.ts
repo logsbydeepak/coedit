@@ -13,7 +13,7 @@ export const app = h()
   .use(async (c, next) => {
     const clientOrchestrationSecret = getCookie(c, 'x-orchestration-secret')
 
-    if (clientOrchestrationSecret !== env.ORCHESTRATION_SECRET) {
+    if (clientOrchestrationSecret !== env.MACHINE_SECRET) {
       throw new HTTPException(401)
     }
 

@@ -29,15 +29,12 @@ export const redis = (
 }
 
 export const orchestration = (
-  env: Pick<ENV, 'ORCHESTRATION_URL' | 'ORCHESTRATION_SECRET'>
+  env: Pick<ENV, 'ORCHESTRATION_URL' | 'MACHINE_SECRET'>
 ) => {
   return hc<AppType>(env.ORCHESTRATION_URL, {
     fetch: async (input, requestInit, _Env, _executionCtx) => {
       const headers = new Headers(requestInit?.headers)
-      headers.set(
-        'cookie',
-        `x-orchestration-secret=${env.ORCHESTRATION_SECRET}`
-      )
+      headers.set('cookie', `x-orchestration-secret=${env.MACHINE_SECRET}`)
 
       const newRequestInit: RequestInit = {
         ...requestInit,
