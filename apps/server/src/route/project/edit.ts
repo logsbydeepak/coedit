@@ -5,7 +5,7 @@ import { isValidID } from '@coedit/id'
 import { r } from '@coedit/r'
 import { z, zReqString } from '@coedit/zschema'
 
-import { hAuth } from '#/utils/h'
+import { hAuth, validationHook } from '#/utils/h'
 
 export const editProject = hAuth().post(
   '/:id',
@@ -14,18 +14,14 @@ export const editProject = hAuth().post(
     z.object({
       id: zReqString,
     }),
-    (result, c) => {
-      if (!result.success) return c.json(r('VALIDATION_ERROR'), 400)
-    }
+    validationHook
   ),
   zValidator(
     'json',
     z.object({
       name: zReqString,
     }),
-    (result, c) => {
-      if (!result.success) return c.json(r('VALIDATION_ERROR'), 400)
-    }
+    validationHook
   ),
   async (c) => {
     const projectId = c.req.valid('param').id

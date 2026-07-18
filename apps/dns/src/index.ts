@@ -9,6 +9,7 @@ import { genID } from '@coedit/id'
 import { KVdns } from '@coedit/kv'
 import { tryCatch } from '@coedit/r'
 
+import { env } from '#/env'
 import { log } from '#/utils/log'
 
 import { getSubdomain, ResData, sendRes } from './utils'
@@ -18,7 +19,7 @@ const redisClient = redis()
 
 const server = await tryCatch(
   Bun.udpSocket({
-    port: 53,
+    port: 5300,
 
     socket: {
       data: handleData,

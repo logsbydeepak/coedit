@@ -4,6 +4,6 @@
   "version": "1.0.0",
   "main": "./index.ts",
   "dependencies": {
-    "zod": "4.2.1"
+    "zod": "4.4.3"
   }
 }

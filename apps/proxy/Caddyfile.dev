@@ -4,7 +4,7 @@
 }
 
 :80 {
-	@orchestration expression {host}.match("{$ORCHESTRATION_URL}")
+	@orchestration expression {host}.matches("{$ORCHESTRATION_URL}")
 
 	route @orchestration {
 		handle {

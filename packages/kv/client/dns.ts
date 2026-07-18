@@ -29,6 +29,11 @@ class _KVdns {
     return res === 1
   }
 
+  async remove() {
+    const res = await this.client.del(this.key)
+    return res === 1
+  }
+
   async getMachineIP() {
     const { data, error } = await tryCatch(this.client.get<string>(this.key))
 

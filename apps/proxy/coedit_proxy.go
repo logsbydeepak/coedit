@@ -17,7 +17,6 @@ import (
 	"go.uber.org/zap"
 )
 
-var ctx = context.Background()
 var cache = ttlcache.New[string, string](
 	ttlcache.WithTTL[string, string](30 * time.Minute),
 )
@@ -63,13 +62,8 @@ func (m Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddy
 
 	host = strings.Split(host, ".")[0]
 
-	if strings.HasSuffix(host, "-app") {
-		host = strings.ReplaceAll(host, "-app", "")
-	}
-
-	if strings.HasSuffix(host, "-server") {
-		host = strings.ReplaceAll(host, "-server", "")
-	}
+	host = strings.TrimSuffix(host, "-app")
+	host = strings.TrimSuffix(host, "-server")
 
 	if strings.Count(host, "-") != 1 {
 		caddyhttp.SetVar(r.Context(), "shard.upstream", "not_found")
@@ -87,25 +81,20 @@ func (m Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddy
 
 	m.logger.Info("CACHE MISS")
 	key := "DNS-" + host
-	ip, err := m.redis.Get(ctx, key).Result()
+	ip, err := m.redis.Get(r.Context(), key).Result()
 
 	if err != nil {
 		m.logger.Error(err.Error())
 		caddyhttp.SetVar(r.Context(), "shard.upstream", "not_found")
 		return next.ServeHTTP(w, r)
-	} else {
-		if port == -1 {
-			caddyhttp.SetVar(r.Context(), "shard.upstream", "not_found")
-			return next.ServeHTTP(w, r)
-		}
-
-		ip = strings.Split(ip, ":")[0]
-		url := ip + fmt.Sprintf(":%v", port)
-		m.logger.Info("-> " + url)
-		caddyhttp.SetVar(r.Context(), "shard.upstream", url)
-		cache.Set(host, ip, ttlcache.DefaultTTL)
-		return next.ServeHTTP(w, r)
 	}
+
+	ip = strings.Split(ip, ":")[0]
+	url := ip + fmt.Sprintf(":%v", port)
+	m.logger.Info("-> " + url)
+	caddyhttp.SetVar(r.Context(), "shard.upstream", url)
+	cache.Set(host, ip, ttlcache.DefaultTTL)
+	return next.ServeHTTP(w, r)
 }
 
 func (m *Middleware) Provision(c caddy.Context) error {
@@ -117,7 +106,10 @@ func (m *Middleware) Provision(c caddy.Context) error {
 	}
 
 	m.redis = redis.NewClient(opt)
-	err = m.redis.Ping(ctx).Err()
+
+	pingCtx, cancel := context.WithTimeout(c.Context, 5*time.Second)
+	defer cancel()
+	err = m.redis.Ping(pingCtx).Err()
 	if err != nil {
 		return err
 	}
@@ -126,16 +118,24 @@ func (m *Middleware) Provision(c caddy.Context) error {
 	return nil
 }
 
+func (m *Middleware) Cleanup() error {
+	cache.Stop()
+	if m.redis != nil {
+		return m.redis.Close()
+	}
+	return nil
+}
+
 func (m *Middleware) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 	d.Next()
 
 	if !d.NextArg() {
-		return fmt.Errorf("Missing env: ROOT_DOMAIN")
+		return fmt.Errorf("missing env: ROOT_DOMAIN")
 	}
 	m.ENV.ROOT_DOMAIN = d.Val()
 
 	if !d.NextArg() {
-		return fmt.Errorf("Missing env: REDIS_URL")
+		return fmt.Errorf("missing env: REDIS_URL")
 	}
 	m.ENV.REDIS_URL = d.Val()
 	return nil

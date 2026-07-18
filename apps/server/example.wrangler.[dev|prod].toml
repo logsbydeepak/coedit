@@ -8,11 +8,6 @@ port=5000
 [vars]
 DB_URL="" # neon db
 
-JWT_SECRET=""
-
-RESEND_API_KEY=""
-RESEND_FROM="team <abc@example.com>"
-
 UPSTASH_REDIS_REST_TOKEN=""
 UPSTASH_REDIS_REST_URL=""
 

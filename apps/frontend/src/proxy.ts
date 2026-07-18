@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { hc } from 'hono/client'
 
+import { tryCatch } from '@coedit/r'
 import type { AppType } from '@coedit/server'
 
 import { env } from '#/env'
@@ -73,23 +74,23 @@ export const config = {
 }
 
 async function checkIsAuth(token?: string) {
-  // `cookies()` from `next/headers` is not available inside Proxy, so we build
-  // an `hc` client that forwards the token from the incoming request instead of
-  // relying on `apiClient` (which reads cookies via `next/headers`).
   if (!token) return false
 
-  try {
-    const client = hc<AppType>(env.NEXT_PUBLIC_API_URL, {
-      headers: { cookie: `x-auth=${token}` },
-    })
+  const client = hc<AppType>(env.NEXT_PUBLIC_API_URL, {
+    headers: { cookie: `x-auth=${token}` },
+  })
 
-    const res = await client.user.isAuth.$get()
-    console.log({ res })
-    if (!res.ok) return false
-
-    const resData = await res.json()
-    return resData.code === 'OK'
-  } catch {
+  const res = await tryCatch(client.user.isAuth.$get())
+  if (res.error) {
     return false
   }
+
+  if (!res.data.ok) return false
+
+  const resData = await tryCatch(res.data.json())
+  if (resData.error) {
+    return false
+  }
+
+  return resData.data.code === 'OK'
 }

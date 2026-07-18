@@ -6,7 +6,7 @@ import { r } from '@coedit/r'
 import { z, zReqString } from '@coedit/zschema'
 
 import { orchestration } from '#/utils/config'
-import { hAuth } from '#/utils/h'
+import { hAuth, validationHook } from '#/utils/h'
 
 export const startProject = hAuth().post(
   '/start/:id',
@@ -15,9 +15,7 @@ export const startProject = hAuth().post(
     z.object({
       id: zReqString,
     }),
-    (result, c) => {
-      if (!result.success) return c.json(r('VALIDATION_ERROR'), 400)
-    }
+    validationHook
   ),
   async (c) => {
     const input = c.req.valid('param')

@@ -1,4 +1,3 @@
-import { DeleteObjectCommand } from '@aws-sdk/client-s3'
 import { zValidator } from '@hono/zod-validator'
 
 import { and, db, dbSchema, eq } from '@coedit/db'
@@ -6,8 +5,8 @@ import { isValidID } from '@coedit/id'
 import { r, tryCatch } from '@coedit/r'
 import { z, zReqString } from '@coedit/zschema'
 
-import { s3Client } from '#/utils/config'
-import { hAuth } from '#/utils/h'
+import { files } from '#/utils/config'
+import { hAuth, validationHook } from '#/utils/h'
 import { log } from '#/utils/log'
 
 export const deleteProject = hAuth().delete(
@@ -17,9 +16,7 @@ export const deleteProject = hAuth().delete(
     z.object({
       id: zReqString,
     }),
-    (result, c) => {
-      if (!result.success) return c.json(r('VALIDATION_ERROR'), 400)
-    }
+    validationHook
   ),
   async (c) => {
     const input = c.req.valid('param')
@@ -50,14 +47,10 @@ export const deleteProject = hAuth().delete(
       return c.json(r('PROJECT_IS_NOT_IDLE'))
     }
 
-    const s3 = s3Client(c.env)
-    const objectPath = `projects/${userId}/${input.id}/`
-    const deleteCommand = new DeleteObjectCommand({
-      Bucket: c.env.S3_BUCKET,
-      Key: objectPath,
-    })
+    const fs = files(c.env)
+    const objectKey = `projects/${userId}/${input.id}.img.zst`
 
-    const deleteResponse = await tryCatch(s3.send(deleteCommand))
+    const deleteResponse = await tryCatch(fs.delete(objectKey))
     if (deleteResponse.error) {
       log.error({ error: deleteResponse.error }, 'Error deleting project in S3')
       return c.json(r('ERROR'))

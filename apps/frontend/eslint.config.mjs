@@ -13,6 +13,18 @@ const config = [
         functions: ['cn', 'tw', 'cva'],
       },
     },
+    plugins: {
+      tailwindcss,
+    },
+    rules: {
+      '@typescript-eslint/no-unused-vars': 'off',
+      'tailwindcss/no-custom-classname': [
+        'warn',
+        {
+          whitelist: ['scrollbar', 'no-scrollbar', '(.*:)?text-gray-12'],
+        },
+      ],
+    },
   },
   {
     ignores: ['.next/**', 'node_modules/**', 'next-env.d.ts'],

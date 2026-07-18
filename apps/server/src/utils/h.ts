@@ -1,6 +1,9 @@
 import { Hono } from 'hono'
+import type { Context } from 'hono'
 import { getCookie } from 'hono/cookie'
 import { HTTPException } from 'hono/http-exception'
+
+import { r } from '@coedit/r'
 
 import { authClient } from './auth'
 import { ENV } from './env'
@@ -42,3 +45,7 @@ export const hAuth = () =>
 
     await next()
   })
+
+export const validationHook = (result: { success: boolean }, c: Context) => {
+  if (!result.success) return c.json(r('VALIDATION_ERROR'), 400)
+}

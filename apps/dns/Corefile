@@ -1,0 +1,11 @@
+coedit.test:53 {
+    log
+    errors
+    forward . 127.0.0.1:5300
+}
+
+.:53 {
+    log
+    errors
+    forward . 1.1.1.1 8.8.8.8
+}

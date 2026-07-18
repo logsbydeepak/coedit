@@ -8,15 +8,7 @@ export function r<CODE extends Uppercase<string>, RES extends object>(
   res: RES
 ): Prettify<{ code: CODE } & RES>
 export function r(code: string, res?: object) {
-  if (res) {
-    return { code: code, ...res }
-  }
-
-  if (code) {
-    return { code: code }
-  }
-
-  throw new Error('Something went wrong!')
+  return res ? { code, ...res } : { code }
 }
 
 type Success<T> = { data: T; error: null }
