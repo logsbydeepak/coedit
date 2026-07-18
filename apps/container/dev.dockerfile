@@ -3,7 +3,6 @@ RUN apt update
 RUN apt -y install bash binutils git xz-utils wget curl sudo unzip build-essential
 
 RUN curl -fsSL https://bun.sh/install | bash
-RUN curl -sSf https://sh.rustup.rs | bash -s -- -y
 ENV NEW_USER=coedit
 RUN adduser $NEW_USER
 RUN usermod -aG sudo $NEW_USER
@@ -29,4 +28,3 @@ RUN deluser $NEW_USER sudo
 
 USER $NEW_USER
 WORKDIR /home/coedit/workspace/
-

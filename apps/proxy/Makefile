@@ -1,6 +1,6 @@
 build:
 	@echo "-> BUILD coedit-proxy"
-	xcaddy build --output dist/coedit-proxy --with example.com/coedit-proxy=.
+	xcaddy build --output dist/coedit-proxy --with example.com/coedit_proxy=.
 
 dev-start:
 	@echo "-> DEV START coedit-proxy"

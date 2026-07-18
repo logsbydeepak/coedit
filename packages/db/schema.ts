@@ -13,7 +13,7 @@ export const projects = t.pgTable(
   'projects',
   {
     id: id(),
-    userId: t.varchar({ length: 26 }).notNull(),
+    userId: t.text().notNull(),
     name: t.varchar({ length: 256 }).notNull(),
     createdAt: t.timestamp().defaultNow().notNull(),
     status: statusEnum().notNull(),

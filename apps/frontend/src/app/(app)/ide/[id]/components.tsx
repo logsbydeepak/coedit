@@ -31,11 +31,11 @@ export function Status({
   return (
     <div
       className={cn(
-        'flex items-center space-x-1 rounded-full bg-gray-5 px-3 py-1 font-mono text-xs',
+        'bg-gray-5 flex items-center space-x-1 rounded-full px-3 py-1 font-mono text-xs',
         className
       )}
     >
-      {isLoading && <LoaderIcon className="size-3 animate-spin text-gray-11" />}
+      {isLoading && <LoaderIcon className="text-gray-11 size-3 animate-spin" />}
       <p>{children}</p>
     </div>
   )

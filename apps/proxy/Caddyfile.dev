@@ -4,7 +4,7 @@
 }
 
 :80 {
-	@orchestration expression {host}.matches("{$ORCHESTRATION_URL}")
+	@orchestration expression {host}.matches("^[a-zA-Z]+-orchestration\\.{$ROOT_DOMAIN}$")
 
 	route @orchestration {
 		handle {

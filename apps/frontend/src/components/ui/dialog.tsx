@@ -19,7 +19,7 @@ const DialogRoot = ({
 }: React.ComponentProps<typeof DialogRootPrimitive>) => (
   <DialogRootPrimitive {...props}>
     <DialogPortalPrimitive>
-      <DialogOverlayPrimitive className="fixed inset-0 z-30 bg-gray-1/50 backdrop-blur-sm" />
+      <DialogOverlayPrimitive className="bg-gray-1/50 fixed inset-0 z-30 backdrop-blur-sm" />
 
       {children}
     </DialogPortalPrimitive>
@@ -34,7 +34,7 @@ const DialogContent = React.forwardRef<
     {...props}
     ref={ref}
     className={cn(
-      'fixed z-50 border border-gray-3 bg-gray-2 p-6',
+      'border-gray-3 bg-gray-2 fixed z-50 border p-6',
       'top-1/2 left-1/2 w-105 -translate-1/2 rounded-lg drop-shadow-sm',
       className
     )}
@@ -66,7 +66,7 @@ const DialogDescription = React.forwardRef<
     {...props}
     ref={ref}
     className={cn(
-      'overflow-hidden text-sm text-ellipsis text-gray-11',
+      'text-gray-11 overflow-hidden text-sm text-ellipsis',
       className
     )}
   >

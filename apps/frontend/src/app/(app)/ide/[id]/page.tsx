@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { useSetAtom } from 'jotai'
@@ -14,31 +14,22 @@ import { IDE } from './ide'
 import { containerURLAtom } from './store'
 
 export default function Page() {
-  const [isReady, setIsReady] = React.useState(false)
+  const [isReady, setIsReady] = useState(false)
 
-  if (!isReady) {
-    return <Init setIsReady={setIsReady} />
-  }
-
-  return <IDE />
+  return isReady ? <IDE /> : <Init onReady={() => setIsReady(true)} />
 }
 
-function Init({
-  setIsReady,
-}: {
-  setIsReady: React.Dispatch<React.SetStateAction<boolean>>
-}) {
+function Init({ onReady }: { onReady: () => void }) {
   const params = useParams<{ id: string }>()
   const setContainerURL = useSetAtom(containerURLAtom)
-  const route = useRouter()
+  const router = useRouter()
 
   const startQuery = useQuery({
+    queryKey: ['start', params.id],
     queryFn: async () => {
       const res = await withMinDelay(
         apiClient.project.start[':id'].$post({
-          param: {
-            id: params.id,
-          },
+          param: { id: params.id },
         })
       )
 
@@ -46,12 +37,11 @@ function Init({
 
       if (data.code === 'PROJECT_IS_NOT_IDLE') {
         toast.error('Project is not IDLE')
-        route.push('/')
+        router.push('/')
       }
 
-      return await res.json()
+      return data
     },
-    queryKey: ['start', params.id],
     staleTime: 0,
     refetchOnMount: false,
     refetchOnReconnect: false,
@@ -59,49 +49,25 @@ function Init({
     refetchOnWindowFocus: false,
   })
 
-  const isError = React.useMemo(() => startQuery.isError, [startQuery.isError])
+  const { data, isLoading, isError } = startQuery
 
-  const message: string = React.useMemo(() => {
-    if (startQuery.isLoading) {
-      return 'loading'
+  const isNotFound = data?.code === 'INVALID_PROJECT_ID'
+
+  const message = isLoading ? 'loading' : isNotFound ? 'not found' : 'error'
+
+  const showLoading = !isError && !isNotFound
+
+  useEffect(() => {
+    if (data?.code === 'OK') {
+      setContainerURL({ api: data.api, output: data.output })
+      onReady()
     }
-
-    if (isError) {
-      return 'error'
-    }
-
-    if (startQuery.data?.code === 'INVALID_PROJECT_ID') {
-      return 'not found'
-    }
-
-    return 'error'
-  }, [startQuery.isLoading, isError, startQuery.data?.code])
-
-  const isLoading: boolean = React.useMemo(() => {
-    if (isError) return false
-
-    if (startQuery.data?.code === 'INVALID_PROJECT_ID') {
-      return false
-    }
-
-    return true
-  }, [isError, startQuery.data?.code])
-
-  React.useEffect(() => {
-    if (startQuery.data?.code === 'OK') {
-      setContainerURL({
-        api: startQuery.data.api,
-        output: startQuery.data.output,
-      })
-      setIsReady(true)
-      return
-    }
-  }, [setIsReady, setContainerURL, startQuery.data])
+  }, [data, setContainerURL, onReady])
 
   return (
     <StatusContainer className="absolute flex-col space-y-6 pt-14">
-      <Status isLoading={isLoading}>{message}</Status>
-      <p className="max-w-96 rounded-md border border-dashed border-gray-6 bg-gray-3 p-2 text-center font-mono text-xs text-gray-10">
+      <Status isLoading={showLoading}>{message}</Status>
+      <p className="border-gray-6 bg-gray-3 text-gray-10 max-w-96 rounded-md border border-dashed p-2 text-center font-mono text-xs">
         if facing any issue, try refreshing the page, initializing the project
         might take a while
       </p>

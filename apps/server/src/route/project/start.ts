@@ -22,6 +22,7 @@ export const startProject = hAuth().post(
     const userId = c.get('x-userId')
 
     if (c.env.ORCHESTRATION_MODE === 'mock') {
+      console.log('hi')
       return c.json(
         r('OK', {
           api: 'http://localhost:4000',
