@@ -5,16 +5,20 @@
   "main": "src/index.ts",
   "types": "tsc/index.d.ts",
   "scripts": {
-    "dev": "wrangler dev src/index.ts --test-scheduled --config wrangler.dev.toml",
-    "deploy": "wrangler deploy --minify src/index.ts --config wrangler.prod.toml",
+    "dev": "vite dev",
+    "build": "vite build --mode production",
+    "preview": "vite preview",
+    "deploy": "vite build --mode production && wrangler deploy -c dist/api_coedit/wrangler.json",
     "tsc:clean": "rm -rf tsc tsconfig.tsbuildinfo",
     "tsc:build": "tsc --build",
-    "tsc": "run-s tsc:clean tsc:build"
+    "tsc": "run-s tsc:clean tsc:build",
+    "vite": "vite"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1087.0",
     "@aws-sdk/s3-presigned-post": "^3.1090.0",
     "@aws-sdk/s3-request-presigner": "^3.1090.0",
+    "@cloudflare/vite-plugin": "^1.47.0",
     "@coedit/db": "workspace:*",
     "@coedit/id": "workspace:*",
     "@coedit/kv": "workspace:*",
@@ -32,7 +36,8 @@
     "pg": "^8.22.0",
     "pino": "^10.3.1",
     "postgres": "^3.4.9",
-    "random-words": "^2.0.1"
+    "random-words": "^2.0.1",
+    "vite": "^8.1.5"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260715.1",
