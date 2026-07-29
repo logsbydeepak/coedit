@@ -33,12 +33,9 @@ export const stopProject = h().post(
     const result = await teardownProject(input.userId, input.projectId, logger)
     const durationMs = Math.round(performance.now() - startedAt)
 
-    // Teardown is best-effort. If any stage failed we return 500 with the list
-    // of failed stages so the caller can retry, but partial progress still
-    // happened (nothing is left half-mounted silently).
     if (result.errors.length > 0) {
       logger.error({ result, durationMs }, 'PROJECT_STOP_PARTIAL')
-      return c.json(r('ERROR', { stages: result.errors }), 500)
+      return c.json(r('ERROR', { stages: result.errors }))
     }
 
     logger.info({ result, durationMs }, 'PROJECT_STOP_OK')

@@ -11,6 +11,7 @@ import { z, zReqString } from '@coedit/zschema'
 
 import { env } from '#/env'
 import { docker, files, redis } from '#/utils/config'
+import { setProjectStatus } from '#/utils/db'
 import { h, validationHook } from '#/utils/h'
 import { log } from '#/utils/log'
 
@@ -26,7 +27,6 @@ import {
 
 const MAX_SUBDOMAIN_ATTEMPTS = 50
 
-/** A best-effort undo action registered by a completed step. */
 type Rollback = () => Promise<unknown>
 
 export const startProject = h().post(
@@ -42,6 +42,7 @@ export const startProject = h().post(
   async (c) => {
     const input = c.req.valid('json')
     const projectPath = buildProjectPath(input.userId, input.projectId)
+    const identifier = projectPath.containerLabel
 
     // Request-scoped logger: every line carries userId/projectId so a single
     // project start can be traced end-to-end.
@@ -51,32 +52,47 @@ export const startProject = h().post(
       projectId: input.projectId,
     })
 
-    // Every successful step pushes its inverse here. On any failure we unwind
-    // in reverse so we never leak dirs, files, loop mounts, or containers.
-    const rollbacks: Rollback[] = []
+    // Mark the project as initiating immediately, then run the (slow) start
+    // pipeline in the background. The caller polls `/project/status` to learn
+    // when it flips to RUNNING and receive the urls.
+    setProjectStatus(identifier, 'INITIATING')
+    logger.info('PROJECT_START_INITIATING')
 
-    const startedAt = performance.now()
-    logger.info('PROJECT_START_BEGIN')
+    void runStart(projectPath, identifier, logger)
 
-    const result = await startPipeline(projectPath, rollbacks, logger)
-    const durationMs = Math.round(performance.now() - startedAt)
-
-    if (result.code !== 'OK') {
-      logger.error({ result, durationMs }, 'PROJECT_START_FAILED')
-      await runRollbacks(rollbacks, logger)
-      return c.json(r('ERROR'), statusFor(result.code))
-    }
-
-    logger.info({ subdomain: result.subdomain, durationMs }, 'PROJECT_START_OK')
-
-    return c.json(
-      r('OK', {
-        api: `http://${result.subdomain}-server${env.ROOT_DOMAIN}`,
-        output: `http://${result.subdomain}-app${env.ROOT_DOMAIN}`,
-      })
-    )
+    return c.json(r('OK'))
   }
 )
+
+/**
+ * Runs the full start pipeline and records the outcome in the status store:
+ * RUNNING (with the reserved subdomain) on success, ERROR on failure — after
+ * unwinding any partial work.
+ */
+async function runStart(
+  projectPath: ProjectPath,
+  identifier: string,
+  logger: Logger
+) {
+  // Every successful step pushes its inverse here. On any failure we unwind
+  // in reverse so we never leak dirs, files, loop mounts, or containers.
+  const rollbacks: Rollback[] = []
+
+  const startedAt = performance.now()
+
+  const result = await startPipeline(projectPath, rollbacks, logger)
+  const durationMs = Math.round(performance.now() - startedAt)
+
+  if (result.code !== 'OK') {
+    logger.error({ result, durationMs }, 'PROJECT_START_FAILED')
+    await runRollbacks(rollbacks, logger)
+    setProjectStatus(identifier, 'ERROR')
+    return
+  }
+
+  logger.info({ subdomain: result.subdomain, durationMs }, 'PROJECT_START_OK')
+  setProjectStatus(identifier, 'RUNNING', result.subdomain)
+}
 
 async function startPipeline(
   projectPath: ProjectPath,
@@ -142,13 +158,6 @@ async function step<T extends { code: string }>(
   }
 
   return result
-}
-
-/** Maps a step failure code to an HTTP status. */
-function statusFor(code: string): 404 | 409 | 500 {
-  if (code === 'S3_FILE_NOT_FOUND') return 404
-  if (code === 'ALREADY_RUNNING') return 409
-  return 500
 }
 
 async function runRollbacks(rollbacks: Rollback[], logger: Logger) {

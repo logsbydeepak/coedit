@@ -1,7 +1,7 @@
 'use client'
 
 import { useHydrateAtoms } from 'jotai/utils'
-import { LoaderIcon } from 'lucide-react'
+import { LoaderIcon, type LucideIcon } from 'lucide-react'
 
 import { cn } from '#/utils/style'
 
@@ -14,7 +14,7 @@ export function StatusContainer({
   return (
     <div
       className={cn(
-        'flex size-full items-center justify-center pt-14 text-center',
+        'flex size-full items-center justify-center px-5 py-14 pt-14',
         className
       )}
     >
@@ -26,8 +26,12 @@ export function StatusContainer({
 export function Status({
   children,
   isLoading = false,
+  Icon,
   className,
-}: React.HtmlHTMLAttributes<HTMLDivElement> & { isLoading?: boolean }) {
+}: React.HtmlHTMLAttributes<HTMLDivElement> & {
+  isLoading?: boolean
+  Icon?: LucideIcon
+}) {
   return (
     <div
       className={cn(
@@ -35,8 +39,12 @@ export function Status({
         className
       )}
     >
-      {isLoading && <LoaderIcon className="text-gray-11 size-3 animate-spin" />}
-      <p>{children}</p>
+      {isLoading ? (
+        <LoaderIcon className="text-gray-11 size-3 shrink-0 animate-spin" />
+      ) : (
+        Icon && <Icon className="size-3 shrink-0" />
+      )}
+      <p className="min-w-0 break-words">{children}</p>
     </div>
   )
 }

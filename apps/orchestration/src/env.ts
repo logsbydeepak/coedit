@@ -12,6 +12,7 @@ const schema = z.object({
 
   MACHINE_IP: zReqString,
   MACHINE_SECRET: zReqString,
+  MAX_CAPACITY: z.coerce.number().int().positive().default(1),
 
   S3_ACCESS_KEY_ID: zReqString,
   S3_SECRET_ACCESS_KEY: zReqString,

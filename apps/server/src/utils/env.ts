@@ -1,5 +1,3 @@
-import { env as _env } from 'cloudflare:workers'
-
 import { z, zReqString } from '@coedit/zschema'
 
 const schema = z.object({
@@ -27,3 +25,5 @@ const schema = z.object({
 })
 
 export type ENV = z.infer<typeof schema>
+
+export const ENV_KEYS = Object.keys(schema.shape) as (keyof ENV)[]

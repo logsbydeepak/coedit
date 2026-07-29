@@ -8,6 +8,7 @@ import { r, tryCatch } from '@coedit/r'
 
 import { env } from '#/env'
 import { docker, redis } from '#/utils/config'
+import { removeProjectStatus } from '#/utils/db'
 
 export const NETWORK_NAME = 'bridge'
 
@@ -133,6 +134,10 @@ export async function teardownProject(
     filesRemoved: false,
     errors: [],
   }
+
+  // Drop the managed status first so a concurrent /status poll doesn't report
+  // it as RUNNING while we're tearing it down.
+  removeProjectStatus(projectPath.containerLabel)
 
   const fail = (stage: string, error: unknown) => {
     logger.error({ error, stage }, 'TEARDOWN_STAGE_FAILED')

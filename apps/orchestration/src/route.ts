@@ -4,6 +4,7 @@ import { logger } from 'hono/logger'
 import { secureHeaders } from 'hono/secure-headers'
 
 import { env } from './env'
+import { capacityRoute } from './route/capacity'
 import { projectRoute } from './route/project'
 import { h } from './utils/h'
 
@@ -20,5 +21,6 @@ export const app = h()
     return await next()
   })
   .route('project', projectRoute)
+  .route('capacity', capacityRoute)
 
 export type AppType = typeof app

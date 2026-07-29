@@ -10,31 +10,8 @@ import { orchestration, redis } from '#/utils/config'
 import { hAuth, validationHook } from '#/utils/h'
 import { log } from '#/utils/log'
 
-async function selectInstance(node: ReturnType<typeof KVnode>) {
-  const ids = await node.list()
-
-  for (const id of ids) {
-    const instance = await node.get(id)
-    if (!instance) continue
-
-    const { data: res, error } = await tryCatch(
-      orchestration(instance).capacity.$get()
-    )
-    if (error || !res) continue
-
-    const capacity = await res.json()
-    if (capacity.code !== 'OK') continue
-
-    if (capacity.current_cnt < capacity.max_capacity) {
-      return instance
-    }
-  }
-
-  return null
-}
-
-export const startProject = hAuth().post(
-  '/start/:id',
+export const statusProject = hAuth().post(
+  '/status/:id',
   zValidator(
     'param',
     z.object({
@@ -47,7 +24,12 @@ export const startProject = hAuth().post(
     const userId = c.get('x-userId')
 
     if (c.env.ORCHESTRATION_MODE === 'mock') {
-      return c.json(r('INITIATING'))
+      return c.json(
+        r('RUNNING', {
+          api: 'http://localhost:4000',
+          output: 'http://localhost:3000',
+        })
+      )
     }
 
     if (!isValidID(input.id)) {
@@ -70,16 +52,20 @@ export const startProject = hAuth().post(
 
     const node = KVnode(redis(c.env))
 
-    const instance = await selectInstance(node)
+    const instanceId = await node.getProjectInstance(input.id)
 
-    if (!instance) {
-      return c.json(r('NO_INSTANCE_AVAILABLE'))
+    if (!instanceId) {
+      return c.json(r('NOT_RUNNING'))
     }
 
-    await node.setProjectInstance(input.id, instance.id)
+    const instance = await node.get(instanceId)
+
+    if (!instance) {
+      return c.json(r('NOT_RUNNING'))
+    }
 
     const { data: res, error } = await tryCatch(
-      orchestration(instance).project.start.$post({
+      orchestration(instance).project.status.$post({
         json: {
           userId,
           projectId: input.id,
@@ -89,15 +75,27 @@ export const startProject = hAuth().post(
 
     const resData = res ? await res.json() : null
 
-    if (error || !resData || resData.code !== 'OK') {
-      await node.removeProjectInstance(input.id)
+    if (error || !resData) {
       log.error(
-        { error, resData, projectId: input.id },
-        'Error while starting container'
+        { error, projectId: input.id },
+        'Error while fetching project status'
       )
       return c.json(r('ERROR'))
     }
 
-    return c.json(r('INITIATING'))
+    if (resData.code === 'RUNNING') {
+      return c.json(
+        r('RUNNING', {
+          api: resData.api,
+          output: resData.output,
+        })
+      )
+    }
+
+    if (resData.code === 'INITIATING') {
+      return c.json(r('INITIATING'))
+    }
+
+    return c.json(r('NOT_RUNNING'))
   }
 )

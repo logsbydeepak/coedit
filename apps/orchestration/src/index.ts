@@ -1,5 +1,6 @@
 import { app } from './route'
 import { teardownAllProjects } from './route/project/lifecycle'
+import { startCleanupCron } from './utils/cron'
 import { log } from './utils/log'
 
 const server = Bun.serve({
@@ -8,6 +9,9 @@ const server = Bun.serve({
 })
 
 log.info(`Server is running on ${server.port}`)
+
+// Periodically clean up idle/errored projects and the state they leave behind.
+const cleanupCron = startCleanupCron()
 
 let shuttingDown = false
 
@@ -19,8 +23,10 @@ async function shutdown(signal: string) {
   const logger = log.child({ proc: 'shutdown', signal })
   logger.info('SHUTDOWN_BEGIN')
 
-  // Stop accepting new requests, then tear down every project container so we
-  // don't leak containers, loop mounts, or DNS records on exit.
+  // Stop accepting new requests and the cleanup cron, then tear down every
+  // project container so we don't leak containers, loop mounts, or DNS records
+  // on exit.
+  clearInterval(cleanupCron)
   await server.stop(true)
   await teardownAllProjects(logger)
 

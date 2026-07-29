@@ -1,6 +1,5 @@
 import { Hono } from 'hono'
 import type { Context } from 'hono'
-import { getCookie } from 'hono/cookie'
 import { HTTPException } from 'hono/http-exception'
 
 import { r } from '@coedit/r'
@@ -27,8 +26,7 @@ export const h = () => hono()
 /** @alias */
 export const hAuth = () =>
   hono<Variables>().use(async (c, next) => {
-    const authToken = getCookie(c, 'x-auth')
-
+    console.log(c.env.CORS_ORIGIN)
     const client = authClient(c.env)
     const session = await client.api.getSession({ headers: c.req.raw.headers })
 

@@ -2,6 +2,7 @@
   "name": "@coedit/kv",
   "private": true,
   "version": "1.0.0",
+  "type": "module",
   "main": "src/index.ts",
   "dependencies": {
     "@coedit/r": "workspace:*",

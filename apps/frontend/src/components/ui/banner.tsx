@@ -1,0 +1,24 @@
+import React from 'react'
+import { ZapIcon, type LucideIcon } from 'lucide-react'
+
+import { cn } from '#/utils/style'
+
+export function Banner({
+  children,
+  className,
+  Icon = ZapIcon,
+  ...props
+}: React.ComponentProps<'div'> & { Icon?: LucideIcon }) {
+  return (
+    <div
+      className={cn(
+        'border-gray-6 bg-gray-3 text-gray-11 flex items-start gap-2 rounded-md border border-dashed p-3 text-xs',
+        className
+      )}
+      {...props}
+    >
+      <Icon className="text-gray-10 mt-0.5 size-4 shrink-0" />
+      <p className="leading-relaxed">{children}</p>
+    </div>
+  )
+}

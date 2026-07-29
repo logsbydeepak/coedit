@@ -1,17 +1,25 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { useSetAtom } from 'jotai'
-import { toast } from 'sonner'
+import {
+  CircleAlertIcon,
+  SearchXIcon,
+  ServerCrashIcon,
+  type LucideIcon,
+} from 'lucide-react'
 
+import { Banner } from '#/components/ui/banner'
 import { apiClient } from '#/utils/hc-client'
-import { withMinDelay } from '#/utils/with-min-delay'
+import { cn } from '#/utils/style'
 
 import { Status, StatusContainer } from './components'
 import { IDE } from './ide'
 import { containerURLAtom } from './store'
+
+const STATUS_POLL_INTERVAL_MS = 2000
 
 export default function Page() {
   const [isReady, setIsReady] = useState(false)
@@ -22,25 +30,17 @@ export default function Page() {
 function Init({ onReady }: { onReady: () => void }) {
   const params = useParams<{ id: string }>()
   const setContainerURL = useSetAtom(containerURLAtom)
-  const router = useRouter()
 
+  // 1. Kick off the start. This only *initiates* the project; the container is
+  // spun up in the background, so success here is `INITIATING`.
   const startQuery = useQuery({
     queryKey: ['start', params.id],
     queryFn: async () => {
-      const res = await withMinDelay(
-        apiClient.project.start[':id'].$post({
-          param: { id: params.id },
-        })
-      )
+      const res = await apiClient.project.start[':id'].$post({
+        param: { id: params.id },
+      })
 
-      const data = await res.json()
-
-      if (data.code === 'PROJECT_IS_NOT_IDLE') {
-        toast.error('Project is not IDLE')
-        router.push('/')
-      }
-
-      return data
+      return res.json()
     },
     staleTime: 0,
     refetchOnMount: false,
@@ -49,28 +49,97 @@ function Init({ onReady }: { onReady: () => void }) {
     refetchOnWindowFocus: false,
   })
 
-  const { data, isLoading, isError } = startQuery
+  const isInitiating = startQuery.data?.code === 'INITIATING'
 
-  const isNotFound = data?.code === 'INVALID_PROJECT_ID'
+  // 2. Once initiating, poll the status until the container reports RUNNING and
+  // hands back the urls (or a terminal failure).
+  const statusQuery = useQuery({
+    queryKey: ['status', params.id],
+    enabled: isInitiating,
+    queryFn: async () => {
+      const res = await apiClient.project.status[':id'].$post({
+        param: { id: params.id },
+      })
 
-  const message = isLoading ? 'loading' : isNotFound ? 'not found' : 'error'
-
-  const showLoading = !isError && !isNotFound
+      return res.json()
+    },
+    staleTime: 0,
+    refetchOnWindowFocus: false,
+    refetchInterval: (query) => {
+      // Stop polling on any terminal state.
+      const code = query.state.data?.code
+      if (
+        code === 'RUNNING' ||
+        code === 'NOT_RUNNING' ||
+        code === 'ERROR' ||
+        code === 'INVALID_PROJECT_ID'
+      ) {
+        return false
+      }
+      return STATUS_POLL_INTERVAL_MS
+    },
+  })
 
   useEffect(() => {
-    if (data?.code === 'OK') {
+    const data = statusQuery.data
+    if (data?.code === 'RUNNING') {
       setContainerURL({ api: data.api, output: data.output })
       onReady()
     }
-  }, [data, setContainerURL, onReady])
+  }, [statusQuery.data, setContainerURL, onReady])
+
+  const startData = startQuery.data
+  const statusData = statusQuery.data
+
+  const isNotFound =
+    startData?.code === 'INVALID_PROJECT_ID' ||
+    statusData?.code === 'INVALID_PROJECT_ID'
+
+  const noInstance = startData?.code === 'NO_INSTANCE_AVAILABLE'
+
+  const isError =
+    startQuery.isError ||
+    statusQuery.isError ||
+    startData?.code === 'ERROR' ||
+    statusData?.code === 'ERROR' ||
+    statusData?.code === 'NOT_RUNNING'
+
+  const isFailed = isNotFound || noInstance || isError
+
+  const message = isNotFound
+    ? 'project not found'
+    : noInstance
+      ? 'no capacity, retry later'
+      : isError
+        ? 'failed to start'
+        : 'starting'
+
+  const Icon: LucideIcon | undefined = isNotFound
+    ? SearchXIcon
+    : noInstance
+      ? ServerCrashIcon
+      : isError
+        ? CircleAlertIcon
+        : undefined
 
   return (
     <StatusContainer className="absolute flex-col space-y-6 pt-14">
-      <Status isLoading={showLoading}>{message}</Status>
-      <p className="border-gray-6 bg-gray-3 text-gray-10 max-w-96 rounded-md border border-dashed p-2 text-center font-mono text-xs">
-        if facing any issue, try refreshing the page, initializing the project
-        might take a while
-      </p>
+      <Status
+        isLoading={!isFailed}
+        Icon={Icon}
+        className={cn(
+          'max-w-[90vw] text-center sm:max-w-md',
+          isFailed && 'text-red-11'
+        )}
+      >
+        {message}
+      </Status>
+
+      <Banner className="max-w-[90vw] sm:max-w-96">
+        Note: this is a personal/portfolio project. To keep it running
+        affordably, idle environments are shut down automatically, so the first
+        launch can take a while. If it seems stuck, try refreshing.
+      </Banner>
     </StatusContainer>
   )
 }
