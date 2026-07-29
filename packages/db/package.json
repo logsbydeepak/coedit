@@ -2,6 +2,7 @@
   "name": "@coedit/db",
   "private": true,
   "version": "1.0.0",
+  "type": "module",
   "main": "src/index.ts",
   "scripts": {
     "db:gen": "drizzle-kit generate",

@@ -2,6 +2,7 @@
   "name": "@coedit/server",
   "private": true,
   "version": "1.0.0",
+  "type": "module",
   "main": "src/index.ts",
   "types": "tsc/index.d.ts",
   "scripts": {
