@@ -185,7 +185,7 @@ function Templates({
         {Array.from({ length: 2 }, (_, i) => (
           <div
             key={i}
-            className="bg-gray-4 h-[38px] animate-pulse rounded-md"
+            className="h-[38px] animate-pulse rounded-md bg-gray-4"
           />
         ))}
       </div>
@@ -212,10 +212,10 @@ function Templates({
           value={template.id}
           id={template.id}
           className={cn(
-            'border-gray-5 flex h-[38px] items-center justify-center rounded-md border px-4',
+            'flex h-[38px] items-center justify-center rounded-md border border-gray-5 px-4',
             'focus-visible:outline-2 focus-visible:outline-offset-[6px]',
             'focus-visible:outline-gray-5 data-[state=checked]:border-sage-9',
-            'data-[state=checked]:bg-sage-3 data-[state=checked]:ring-sage-9 data-[state=checked]:ring-1'
+            'data-[state=checked]:bg-sage-3 data-[state=checked]:ring-1 data-[state=checked]:ring-sage-9'
           )}
         >
           {template.name}
@@ -232,7 +232,7 @@ function Message({
   return (
     <p
       className={cn(
-        'text-gray-11 p-4 text-center font-mono text-sm font-medium',
+        'p-4 text-center font-mono text-sm font-medium text-gray-11',
         className
       )}
     >

@@ -162,7 +162,7 @@ export default function TextEditor() {
         value={activeTab || ''}
         onValueChange={(value) => setActiveTab(value)}
       >
-        <Tabs.List className="no-scrollbar border-gray-3 flex h-8 items-center overflow-x-scroll border-b">
+        <Tabs.List className="no-scrollbar flex h-8 items-center overflow-x-scroll border-b border-gray-3">
           {tabs.map((tab) => (
             <FileTab key={tab.path} tab={tab} onClose={handleCloseTab} />
           ))}
@@ -216,11 +216,11 @@ function FileTab({ tab, onClose }: { tab: Tab; onClose: (path: Tab) => void }) {
   return (
     <div
       key={tab.path}
-      className="group border-sage-9 hover:bg-gray-3 has-[>[aria-selected=true]]:bg-gray-4 flex h-full w-32 items-center justify-between has-[>[aria-selected=true]]:border-b-2"
+      className="group flex h-full w-32 items-center justify-between border-sage-9 hover:bg-gray-3 has-[>[aria-selected=true]]:border-b-2 has-[>[aria-selected=true]]:bg-gray-4"
     >
       <Tabs.Trigger
         value={tab.path}
-        className="hover:text-gray-12 aria-[selected=true]:text-gray-12 text-gray-11 flex size-full items-center space-x-1 overflow-hidden pl-2 text-ellipsis"
+        className="hover:text-gray-12 aria-[selected=true]:text-gray-12 flex size-full items-center space-x-1 overflow-hidden pl-2 text-ellipsis text-gray-11"
       >
         <Image
           src={getExtensionIcon({
@@ -236,7 +236,7 @@ function FileTab({ tab, onClose }: { tab: Tab; onClose: (path: Tab) => void }) {
         </p>
       </Tabs.Trigger>
       <button
-        className="hover:text-gray-12 text-gray-11 flex size-7 shrink-0 items-center justify-center"
+        className="hover:text-gray-12 flex size-7 shrink-0 items-center justify-center text-gray-11"
         onClick={() => onClose(tab)}
       >
         <XIcon className="hidden size-3 group-hover:block" />
@@ -390,7 +390,7 @@ function TextEditorWrapper({
   return (
     <>
       <div className="flex w-full items-center justify-between space-x-6 px-2 py-1">
-        <p className="text-gray-11 overflow-hidden text-xs text-nowrap text-ellipsis">
+        <p className="overflow-hidden text-xs text-nowrap text-ellipsis text-gray-11">
           {filePath}
         </p>
         <div className="flex shrink-0 items-center space-x-1">
@@ -398,10 +398,10 @@ function TextEditorWrapper({
             className="group flex size-6 items-center justify-center"
             data-state={isPending || isFetching}
           >
-            <div className="bg-gray-7 size-3 rounded-full group-data-[state=false]:hidden group-data-[state=true]:animate-pulse" />
+            <div className="size-3 rounded-full bg-gray-7 group-data-[state=false]:hidden group-data-[state=true]:animate-pulse" />
           </div>
           <button
-            className="hover:text-gray-12 text-gray-11 hover:bg-sage-4 hover:ring-sage-9 flex size-6 items-center justify-center ring-inset hover:ring-1"
+            className="hover:text-gray-12 flex size-6 items-center justify-center text-gray-11 ring-inset hover:bg-sage-4 hover:ring-1 hover:ring-sage-9"
             onClick={() => refetch()}
           >
             <RefreshCcwIcon className="size-3" />

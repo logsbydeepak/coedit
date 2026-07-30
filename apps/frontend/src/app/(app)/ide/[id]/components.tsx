@@ -35,12 +35,12 @@ export function Status({
   return (
     <div
       className={cn(
-        'bg-gray-5 flex items-center space-x-1 rounded-full px-3 py-1 font-mono text-xs',
+        'flex items-center space-x-1 rounded-full bg-gray-5 px-3 py-1 font-mono text-xs',
         className
       )}
     >
       {isLoading ? (
-        <LoaderIcon className="text-gray-11 size-3 shrink-0 animate-spin" />
+        <LoaderIcon className="size-3 shrink-0 animate-spin text-gray-11" />
       ) : (
         Icon && <Icon className="size-3 shrink-0" />
       )}
