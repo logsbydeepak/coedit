@@ -77,3 +77,9 @@ caddyhttp
 
 nothrow
 zstd
+
+workerd
+jsnext
+HSET
+HGETALL
+hgetall
