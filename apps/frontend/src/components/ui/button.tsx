@@ -34,8 +34,8 @@ export function Button({
   ButtonStyleProps & { isLoading?: boolean }) {
   return (
     <button className={cn(buttonStyle({ intent }), className)} {...props}>
+      {isLoading && <LoaderIcon className="mr-2 size-4 animate-spin" />}
       {children}
-      {isLoading && <LoaderIcon className="ml-2 size-4 animate-spin" />}
     </button>
   )
 }

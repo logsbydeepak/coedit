@@ -43,7 +43,7 @@ export default function Page() {
   return (
     <div className="absolute flex min-h-full w-full items-center justify-center">
       <div className="flex w-80 flex-col space-y-6 p-4">
-        <div className="flex items-center justify-center space-x-2 text-sage-9">
+        <div className="text-sage-9 flex items-center justify-center space-x-2">
           <LogoIcon className="size-6" />
           <p className="text-center font-mono text-xl font-medium text-white">
             coedit
@@ -58,9 +58,9 @@ export default function Page() {
             className="w-full font-mono"
             onClick={handleSignIn}
             isLoading={isSignInPending}
-            disabled={isSignUpPending}
+            disabled={isSignUpPending || isSignInPending}
           >
-            Sign in with Google
+            Sign in
           </Button>
 
           <Button
@@ -68,13 +68,13 @@ export default function Page() {
             className="w-full font-mono"
             onClick={handleSignUp}
             isLoading={isSignUpPending}
-            disabled={isSignInPending}
+            disabled={isSignInPending || isSignUpPending}
           >
-            Sign up with Google
+            Join
           </Button>
         </div>
 
-        <p className="text-center text-xs text-gray-11">
+        <p className="text-gray-11 text-center text-xs">
           Sign in if you already have an account, or sign up to create a new
           one.
         </p>
