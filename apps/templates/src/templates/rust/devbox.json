@@ -1,5 +1,5 @@
 {
-  "packages": ["rustup@latest", "libiconv@latest"],
+  "packages": ["rustup@latest", "libiconv@latest", "rust-analyzer@latest"],
   "shell": {
     "init_hook": [
       "export RUSTUP_HOME=~/.cargo/.rustup",

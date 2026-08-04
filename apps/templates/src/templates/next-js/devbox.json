@@ -3,7 +3,9 @@
     "nodejs@20.12.2",
     "bun@1.1.8",
     "nodePackages.yalc@latest",
-    "nodePackages.pm2@latest"
+    "nodePackages.pm2@latest",
+    "nodePackages.typescript-language-server@latest",
+    "nodePackages.typescript@latest"
   ],
   "env": {
     "DEVBOX_COREPACK_ENABLED": "true"
