@@ -83,3 +83,10 @@ jsnext
 HSET
 HGETALL
 hgetall
+
+gopls
+shellenv
+codingame
+lcwrapper
+cmdk
+

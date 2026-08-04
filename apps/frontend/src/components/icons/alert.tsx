@@ -115,12 +115,12 @@ export function Alert(
       <div className="*:flex *:items-center *:justify-center *:rounded-full *:p-0.5">
         {props.type === 'destructive' && (
           <div className="bg-red-11">
-            <ExclamationIcon className="text-red-1 size-2.5" />
+            <ExclamationIcon className="size-2.5 text-red-1" />
           </div>
         )}
         {props.type === 'success' && (
           <div className="bg-green-11">
-            <CheckIcon className="text-green-1 size-2.5" />
+            <CheckIcon className="size-2.5 text-green-1" />
           </div>
         )}
       </div>

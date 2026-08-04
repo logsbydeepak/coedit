@@ -56,7 +56,7 @@ function Message({
   return (
     <p
       className={cn(
-        'text-gray-11 p-10 text-center font-mono text-sm font-medium',
+        'p-10 text-center font-mono text-sm font-medium text-gray-11',
         className
       )}
     >
@@ -98,7 +98,7 @@ function Project({ name, id }: Project) {
         {name}
       </p>
 
-      <div className="divide-gray-4 border-gray-4 flex justify-between divide-x border-t">
+      <div className="flex justify-between divide-x divide-gray-4 border-t border-gray-4">
         {actions.map((a) => (
           <ActionButton key={a.name} onClick={a.onClick}>
             <a.Icon className="size-4" />
@@ -116,7 +116,7 @@ function ProjectContainer({
   return (
     <div
       className={cn(
-        'border-gray-4 flex h-24 w-full flex-col rounded-md border',
+        'flex h-24 w-full flex-col rounded-md border border-gray-4',
         className
       )}
     >
@@ -127,7 +127,7 @@ function ProjectContainer({
 
 function Loading() {
   return (
-    <ProjectContainer className="bg-gray-4 animate-pulse"></ProjectContainer>
+    <ProjectContainer className="animate-pulse bg-gray-4"></ProjectContainer>
   )
 }
 
@@ -138,7 +138,7 @@ function ActionButton({
   return (
     <button
       {...props}
-      className="hover:text-gray-12 text-gray-11 hover:bg-gray-3 flex size-6 h-10 w-full items-center justify-center"
+      className="flex size-6 h-10 w-full items-center justify-center text-gray-11 hover:bg-gray-3 hover:text-gray-12"
     >
       {children}
     </button>

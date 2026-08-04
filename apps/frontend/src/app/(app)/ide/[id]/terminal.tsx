@@ -159,7 +159,7 @@ function TermGroup({ socket }: { socket: Socket }) {
       value={activeTab || ''}
       onValueChange={(value) => setActiveTab(value)}
     >
-      <div className="border-gray-4 flex h-8 items-center justify-between border-b">
+      <div className="flex h-8 items-center justify-between border-b border-gray-4">
         <Tabs.List className="no-scrollbar flex items-center overflow-x-scroll">
           {tabs.map((tab, idx) => (
             <TermTab key={tab.id} tab={tab} idx={idx} removeTab={removeTab} />
@@ -168,7 +168,7 @@ function TermGroup({ socket }: { socket: Socket }) {
 
         <button
           onClick={addTab}
-          className="hover:text-gray-12 border-gray-4 text-gray-11 flex size-7 items-center justify-center border-l"
+          className="flex size-7 items-center justify-center border-l border-gray-4 text-gray-11 hover:text-gray-12"
         >
           <PlusIcon className="size-3" />
         </button>
@@ -221,18 +221,18 @@ function TermTab({
   return (
     <div
       key={tab.id}
-      className="group border-sage-9 hover:bg-gray-3 has-[>[aria-selected=true]]:bg-gray-4 flex h-full items-center has-[>[aria-selected=true]]:border-b-2"
+      className="group flex h-full items-center border-sage-9 hover:bg-gray-3 has-[>[aria-selected=true]]:border-b-2 has-[>[aria-selected=true]]:bg-gray-4"
     >
       <Tabs.Trigger
         value={tab.id}
-        className="hover:text-gray-12 aria-[selected=true]:text-gray-12 text-gray-11 pl-4"
+        className="pl-4 text-gray-11 hover:text-gray-12 aria-[selected=true]:text-gray-12"
       >
         <p className="flex items-center space-x-1">
           <span className="font-mono">{idx + 1}:</span>
           <span>{tab.name}</span>
         </p>
       </Tabs.Trigger>
-      <button className="hover:text-gray-12 text-gray-11 flex size-7 items-center justify-center">
+      <button className="flex size-7 items-center justify-center text-gray-11 hover:text-gray-12">
         <XIcon
           className="hidden size-3 group-hover:block"
           onClick={() => removeTab(tab.id)}

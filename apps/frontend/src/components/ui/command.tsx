@@ -20,12 +20,12 @@ const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
 >(({ className, ...props }, ref) => (
-  <div className="border-gray-3 flex items-center space-x-2 border-b px-3 py-2.5">
-    <SearchIcon aria-hidden className="text-gray-11 size-3.5 shrink-0" />
+  <div className="flex items-center space-x-2 border-b border-gray-3 px-3 py-2.5">
+    <SearchIcon aria-hidden className="size-3.5 shrink-0 text-gray-11" />
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
-        'text-gray-12 placeholder:text-gray-9 w-full bg-transparent text-sm outline-none',
+        'w-full bg-transparent text-sm text-gray-12 outline-none placeholder:text-gray-9',
         className
       )}
       {...props}
@@ -61,7 +61,7 @@ const CommandItem = React.forwardRef<
     className={cn(
       'flex items-center px-2 py-1.5 text-sm',
       'w-full space-x-2 rounded ring-inset',
-      'data-[selected=true]:bg-sage-4 data-[selected=true]:ring-sage-9 data-[selected=true]:ring-1',
+      'data-[selected=true]:bg-sage-4 data-[selected=true]:ring-1 data-[selected=true]:ring-sage-9',
       'overflow-hidden outline-none hover:cursor-pointer',
       className
     )}

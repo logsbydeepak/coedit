@@ -35,7 +35,8 @@ export const tinyFetch = async (
 }
 
 export const apiClient = hc<AppType>(containerURL().api, {
-  fetch: (input, requestInit, _, __) => tinyFetch(input, requestInit),
+  fetch: (input: RequestInfo | URL, requestInit?: RequestInit) =>
+    tinyFetch(input, requestInit),
 })
 
 export function getExtensionIcon({

@@ -146,7 +146,7 @@ export default function QuickOpen() {
                 <span className="min-w-0 shrink-0 overflow-hidden text-nowrap text-ellipsis">
                   {file.name}
                 </span>
-                <span className="text-gray-9 min-w-0 overflow-hidden text-xs text-nowrap text-ellipsis">
+                <span className="min-w-0 overflow-hidden text-xs text-nowrap text-ellipsis text-gray-9">
                   {file.path}
                 </span>
               </CommandItem>

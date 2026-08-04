@@ -5,7 +5,7 @@ import { LoaderIcon } from 'lucide-react'
 import { cn } from '#/utils/style'
 
 export const buttonStyle = cva({
-  base: 'text-gray-12 flex items-center justify-center space-x-1.5 rounded-md border border-transparent px-4 py-2.5 text-sm font-medium ring-offset-gray-1 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
+  base: 'flex items-center justify-center space-x-1.5 rounded-md border border-transparent px-4 py-2.5 text-sm font-medium text-gray-12 ring-offset-gray-1 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
   variants: {
     intent: {
       primary:
@@ -14,7 +14,7 @@ export const buttonStyle = cva({
         'border-gray-5 bg-gray-2 hover:border-gray-6 hover:bg-gray-3 focus-visible:ring-black disabled:border-gray-4 disabled:bg-gray-2 disabled:text-gray-10 dark:focus-visible:ring-gray-6',
       destructive: 'bg-red-6 focus-visible:ring-red-6',
       ghost:
-        'hover:text-gray-12 rounded-md px-1.5 py-1 text-xs font-medium text-gray-11 hover:bg-gray-3 focus-visible:ring-gray-6 focus-visible:ring-offset-0',
+        'rounded-md px-1.5 py-1 text-xs font-medium text-gray-11 hover:bg-gray-3 hover:text-gray-12 focus-visible:ring-gray-6 focus-visible:ring-offset-0',
     },
   },
   defaultVariants: {

@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 5001 --turbopack",
-    "build": "next build",
+    "dev": "bun run build:workers && next dev --port 5001 --turbopack",
+    "build": "bun run build:workers && next build",
+    "build:workers": "bun run scripts/build-workers.ts",
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -12,6 +13,9 @@
     "tsc": "tsc --noEmit"
   },
   "dependencies": {
+    "@codingame/monaco-vscode-api": "^25.1.2",
+    "@codingame/monaco-vscode-editor-service-override": "^25.1.2",
+    "@codingame/monaco-vscode-files-service-override": "^25.1.2",
     "@coedit/container": "workspace:*",
     "@coedit/r": "workspace:*",
     "@coedit/server": "workspace:app/server",
@@ -35,7 +39,8 @@
     "hono": "4.12.30",
     "jotai": "2.20.2",
     "lucide-react": "^1.24.0",
-    "monaco-editor": "^0.55.1",
+    "monaco-editor": "npm:@codingame/monaco-vscode-editor-api@^25.1.2",
+    "monaco-languageclient": "^10.7.0",
     "ms": "^2.1.3",
     "next": "^16.2.10",
     "pino": "^10.3.1",
@@ -52,10 +57,15 @@
     "shikiji-monaco": "^0.10.2",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.6.0",
+    "vscode": "npm:@codingame/monaco-vscode-extension-api@^25.1.2",
     "zustand": "^5.0.14"
+  },
+  "overrides": {
+    "monaco-editor": "npm:@codingame/monaco-vscode-editor-api@^25.1.2"
   },
   "devDependencies": {
     "typescript": "^5.9.3",
+    "@types/bun": "^1.3.14",
     "@types/ms": "^2.1.0",
     "@types/node": "^26.1.1",
     "@types/react": "^19.2.17",

@@ -28,6 +28,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# pre-bundled monaco-vscode-api / monaco-languageclient workers
+# (see apps/frontend/scripts/build-workers.ts)
+apps/frontend/public/workers/
+
 .cspellcache
 node-pty/
 dist/

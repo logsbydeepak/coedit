@@ -20,7 +20,7 @@ const DialogRoot = ({
 }: React.ComponentProps<typeof DialogRootPrimitive>) => (
   <DialogRootPrimitive {...props}>
     <DialogPortalPrimitive>
-      <DialogOverlayPrimitive className="bg-gray-1/50 fixed inset-0 z-30 backdrop-blur-sm" />
+      <DialogOverlayPrimitive className="fixed inset-0 z-30 bg-gray-1/50 backdrop-blur-sm" />
 
       {children}
     </DialogPortalPrimitive>
@@ -40,7 +40,7 @@ const DialogContent = React.forwardRef<
     {...props}
     ref={ref}
     className={cn(
-      'border-gray-3 bg-gray-2 fixed z-50 border p-6',
+      'fixed z-50 border border-gray-3 bg-gray-2 p-6',
       'top-1/2 left-1/2 w-105 -translate-1/2 rounded-lg drop-shadow-sm',
       className
     )}
@@ -51,7 +51,7 @@ const DialogContent = React.forwardRef<
       <DialogClosePrimitive
         aria-label="Close dialog"
         className={cn(
-          'hover:text-gray-12 text-gray-10 hover:bg-gray-4 focus-visible:ring-sage-9',
+          'text-gray-10 hover:bg-gray-4 hover:text-gray-12 focus-visible:ring-sage-9',
           'absolute top-3 right-3 flex size-6 items-center justify-center rounded-md',
           'outline-none focus-visible:ring-2'
         )}
@@ -70,7 +70,7 @@ const DialogTitle = React.forwardRef<
   <DialogTitlePrimitive
     {...props}
     ref={ref}
-    className={cn('text-gray-12 text-lg font-medium', className)}
+    className={cn('text-lg font-medium text-gray-12', className)}
   >
     {children}
   </DialogTitlePrimitive>
@@ -85,7 +85,7 @@ const DialogDescription = React.forwardRef<
     {...props}
     ref={ref}
     className={cn(
-      'text-gray-11 overflow-hidden text-sm text-ellipsis',
+      'overflow-hidden text-sm text-ellipsis text-gray-11',
       className
     )}
   >

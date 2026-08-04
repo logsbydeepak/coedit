@@ -17,6 +17,7 @@
   --color-gray-9: hsl(var(--gray-9));
   --color-gray-10: hsl(var(--gray-10));
   --color-gray-11: hsl(var(--gray-11));
+  --color-gray-12: hsl(var(--gray-12));
 
   --color-blue-1: hsl(var(--blue-1));
   --color-blue-2: hsl(var(--blue-2));
@@ -124,6 +125,7 @@
   --gray-9: 0 0% 43%;
   --gray-10: 0 0% 48%;
   --gray-11: 0 0% 71%;
+  --gray-12: 0 0% 93%;
 
   --blue-1: 215 42% 9%;
   --blue-2: 218 39% 11%;

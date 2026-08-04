@@ -21,7 +21,7 @@ export default function RootLayout({
         className={cn(
           GeistSans.variable,
           GeistMono.variable,
-          'text-gray-12 bg-gray-2 font-sans'
+          'bg-gray-2 font-sans text-gray-12'
         )}
       >
         {children}

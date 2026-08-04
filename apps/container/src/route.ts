@@ -5,6 +5,7 @@ import { secureHeaders } from 'hono/secure-headers'
 import { env } from './env'
 import { contentRoute } from './route/content'
 import { explorerRoute } from './route/explorer'
+import { lspRoute } from './route/lsp'
 import { terminalRoute } from './route/terminal'
 import { apiClient } from './utils/api-client'
 import { h } from './utils/h'
@@ -15,6 +16,7 @@ const route = h()
   .route('/explorer', explorerRoute)
   .route('/content', contentRoute)
   .route('/terminal', terminalRoute)
+  .route('/lsp', lspRoute)
 
 const errorResponse = new Response('Unauthorized', {
   status: 401,
@@ -31,7 +33,7 @@ export const app = h()
   .use(async (c, next) => {
     const url = new URL(c.req.url)
     let token: string | undefined | null = ''
-    if (url.pathname === '/terminal') {
+    if (url.pathname === '/terminal' || url.pathname.startsWith('/lsp/')) {
       token = url.searchParams.get('x-auth')
     } else {
       token = c.req.header('x-auth')
@@ -60,7 +62,7 @@ const auth = async (token: string) => {
     const resData = await res.json()
     return resData.code === 'OK'
   } catch (error) {
-    log.error('error while checking auth')
+    log.error(error, 'error while checking auth')
     return false
   }
 }

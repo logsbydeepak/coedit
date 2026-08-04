@@ -22,13 +22,17 @@ import { toast } from 'sonner'
 
 import { r } from '@coedit/r'
 
+import { cn } from '#/utils/style'
+
 import { Status, StatusContainer } from './components'
-import { editFileAtom } from './store'
+import { ensureLanguageClient, ensureVscodeApi } from './lsp'
+import { activeEditorRef, editFileAtom, toFileUri } from './store'
 import { apiClient, getExtensionIcon, tinyFetch } from './utils'
 
 type Tab = {
   name: string
   path: string
+  isDirty: boolean
 }
 
 const languageMap: Record<string, BundledLanguage | 'text'> = {
@@ -59,11 +63,38 @@ export default function TextEditor() {
   const queryClient = useQueryClient()
   const [filePath, setFilePath] = useAtom(editFileAtom)
 
-  const [activeTab, setActiveTab] = React.useState<string | null>('')
+  const [activeTab, setActiveTab] = React.useState<string | null>(null)
   const [tabs, setTabs] = React.useState<Tab[]>([])
 
-  const editorRef = React.useRef<editor.IStandaloneCodeEditor | null>(null)
   const monacoRef = React.useRef<Monaco | null>(null)
+  const tabRefs = React.useRef<Record<string, HTMLDivElement | null>>({})
+
+  React.useEffect(() => {
+    if (!activeTab) return
+    const el = tabRefs.current[activeTab]
+    const container = el?.parentElement
+    if (!el || !container) return
+
+    // Scroll only the tab strip — scrollIntoView can move the whole page.
+    const left = el.offsetLeft
+    const right = left + el.offsetWidth
+    const viewLeft = container.scrollLeft
+    const viewRight = viewLeft + container.clientWidth
+    if (left < viewLeft) {
+      container.scrollTo({ left, behavior: 'smooth' })
+    } else if (right > viewRight) {
+      container.scrollTo({
+        left: right - container.clientWidth,
+        behavior: 'smooth',
+      })
+    }
+  }, [activeTab])
+
+  const [isVscodeApiReady, setIsVscodeApiReady] = React.useState(false)
+
+  React.useEffect(() => {
+    ensureVscodeApi().then(() => setIsVscodeApiReady(true))
+  }, [])
 
   const portalNode = React.useMemo(
     () =>
@@ -74,71 +105,68 @@ export default function TextEditor() {
   )
 
   React.useEffect(() => {
-    if (!filePath) return setFilePath(null)
-    const findTab = tabs.find((tab) => tab.path === filePath.path)
-    if (findTab) {
-      setActiveTab(findTab.path)
+    if (!filePath) return
+
+    const existing = tabs.find((tab) => tab.path === filePath.path)
+    if (existing) {
+      setActiveTab(existing.path)
       setFilePath(null)
-    } else {
-      if (tabs.length >= 5) {
-        toast.error('max tabs reached')
-        setFilePath(null)
-        return
-      }
-      setTabs((prev) => [
-        ...prev,
-        {
-          name: filePath.name,
-          path: filePath.path,
-        },
-      ])
-      setActiveTab(filePath.path)
-      setFilePath(null)
+      return
     }
+
+    if (tabs.length >= 5) {
+      toast.error('max tabs reached')
+      setFilePath(null)
+      return
+    }
+
+    setTabs((prev) => [
+      ...prev,
+      {
+        name: filePath.name,
+        path: filePath.path,
+        isDirty: false,
+      },
+    ])
+    setActiveTab(filePath.path)
+    setFilePath(null)
   }, [filePath, tabs, setFilePath])
 
   const handleCloseTab = (tab: Tab) => {
     const { path } = tab
-    const index = tabs.findIndex((tab) => tab.path === path)
+    const index = tabs.findIndex((t) => t.path === path)
     if (index === -1) return
 
     if (activeTab === path) {
-      const nextIndex = index === 0 ? 1 : index - 1
-      const nextTab = tabs[nextIndex]
+      const nextTab = tabs[index === 0 ? 1 : index - 1]
       setActiveTab(nextTab ? nextTab.path : null)
     }
 
-    monacoRef.current?.editor
-      .getModels()
-      .forEach((model: editor.ITextModel) => {
-        if (model.uri.path === path) {
-          model.dispose()
-        }
-      })
-
-    setTabs((prev) => prev.filter((tab) => tab.path !== path))
-    queryClient.removeQueries({
-      queryKey: ['files', path],
-    })
+    // Keep the monaco model — disposing breaks go-to-definition refs.
+    delete tabRefs.current[path]
+    setTabs((prev) => prev.filter((t) => t.path !== path))
+    queryClient.removeQueries({ queryKey: ['files', path] })
   }
 
+  const handleDirtyChange = React.useCallback(
+    (path: string, isDirty: boolean) => {
+      setTabs((prev) =>
+        prev.map((tab) =>
+          tab.path === path && tab.isDirty !== isDirty
+            ? { ...tab, isDirty }
+            : tab
+        )
+      )
+    },
+    []
+  )
+
   async function handleEditorDidMount(
-    editor: editor.IStandaloneCodeEditor,
+    editorInstance: editor.IStandaloneCodeEditor,
     monaco: Monaco
   ) {
-    editorRef.current = editor
     monacoRef.current = monaco
-
-    monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
-      noSemanticValidation: true,
-      noSyntaxValidation: true,
-    })
-    monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
-      jsx: monaco.languages.typescript.JsxEmit.React,
-      allowNonTsExtensions: true,
-      allowJs: true,
-      target: monaco.languages.typescript.ScriptTarget.Latest,
-    })
+    activeEditorRef.current = editorInstance
 
     const langs: BundledLanguage[] = []
     Object.entries(languageMap).forEach(([_, lang]) => {
@@ -158,13 +186,20 @@ export default function TextEditor() {
   return (
     <>
       <Tabs.Root
-        className="size-full"
-        value={activeTab || ''}
+        className="flex size-full flex-col overflow-hidden"
+        value={activeTab ?? ''}
         onValueChange={(value) => setActiveTab(value)}
       >
-        <Tabs.List className="no-scrollbar flex h-8 items-center overflow-x-scroll border-b border-gray-3">
+        <Tabs.List className="no-scrollbar flex h-8 shrink-0 items-center overflow-x-scroll border-b border-gray-3">
           {tabs.map((tab) => (
-            <FileTab key={tab.path} tab={tab} onClose={handleCloseTab} />
+            <FileTab
+              key={tab.path}
+              tab={tab}
+              onClose={handleCloseTab}
+              ref={(el) => {
+                tabRefs.current[tab.path] = el
+              }}
+            />
           ))}
         </Tabs.List>
 
@@ -175,7 +210,7 @@ export default function TextEditor() {
         )}
 
         {tabs.length !== 0 && (
-          <div className="size-full">
+          <div className="min-h-0 flex-1">
             {tabs.map((tab) => (
               <Tabs.Content
                 key={tab.path}
@@ -188,6 +223,7 @@ export default function TextEditor() {
                   portalNode={portalNode}
                   activeTab={activeTab}
                   monacoRef={monacoRef}
+                  onDirtyChange={handleDirtyChange}
                 />
               </Tabs.Content>
             ))}
@@ -196,65 +232,113 @@ export default function TextEditor() {
       </Tabs.Root>
 
       <InPortal node={portalNode}>
-        <Editor
-          onMount={handleEditorDidMount}
-          options={{
-            fontSize: 13,
-            fontFamily: 'var(--font-geist-mono)',
-            minimap: {
-              enabled: false,
-            },
-            folding: false,
-          }}
-        />
+        {isVscodeApiReady && (
+          <Editor
+            onMount={handleEditorDidMount}
+            options={{
+              fontSize: 13,
+              fontFamily: 'var(--font-geist-mono)',
+              minimap: {
+                enabled: false,
+              },
+              folding: false,
+            }}
+          />
+        )}
       </InPortal>
     </>
   )
 }
 
-function FileTab({ tab, onClose }: { tab: Tab; onClose: (path: Tab) => void }) {
+const FileTab = React.forwardRef<
+  HTMLDivElement,
+  { tab: Tab; onClose: (tab: Tab) => void }
+>(function FileTab({ tab, onClose }, ref) {
   return (
     <div
-      key={tab.path}
-      className="group flex h-full w-32 items-center justify-between border-sage-9 hover:bg-gray-3 has-[>[aria-selected=true]]:border-b-2 has-[>[aria-selected=true]]:bg-gray-4"
+      ref={ref}
+      onAuxClick={(event) => {
+        // middle click closes the tab, like a browser tab
+        if (event.button === 1) onClose(tab)
+      }}
+      className={cn(
+        'group flex h-full w-36 shrink-0 items-center justify-between',
+        'border-b-2 border-b-transparent transition-colors duration-150',
+        'hover:bg-gray-3 has-[>[aria-selected=true]]:border-b-sage-9 has-[>[aria-selected=true]]:bg-gray-4'
+      )}
     >
       <Tabs.Trigger
         value={tab.path}
-        className="hover:text-gray-12 aria-[selected=true]:text-gray-12 flex size-full items-center space-x-1 overflow-hidden pl-2 text-ellipsis text-gray-11"
+        className="peer flex size-full min-w-0 items-center space-x-1.5 overflow-hidden pl-2.5 text-ellipsis text-gray-11 outline-none hover:text-gray-12 aria-selected:text-gray-12"
       >
         <Image
           src={getExtensionIcon({
             name: tab.name,
             isDirectory: false,
           })}
-          alt={tab.path}
+          alt=""
           width="14"
           height="14"
+          className="shrink-0"
         />
-        <p className="w-full overflow-hidden text-xs text-nowrap text-ellipsis">
+        <p className="min-w-0 flex-1 overflow-hidden text-xs text-nowrap text-ellipsis">
           {tab.name}
         </p>
       </Tabs.Trigger>
       <button
-        className="hover:text-gray-12 flex size-7 shrink-0 items-center justify-center text-gray-11"
-        onClick={() => onClose(tab)}
+        type="button"
+        aria-label={`Close ${tab.name}`}
+        className={cn(
+          'text-gray-11 hover:bg-sage-4 hover:text-gray-12',
+          'relative mr-1 flex size-6 shrink-0 focus-visible:ring-sage-9',
+          'items-center justify-center rounded outline-none ring-inset',
+          'transition-colors focus-visible:ring-1'
+        )}
+        onClick={(event) => {
+          event.stopPropagation()
+          onClose(tab)
+        }}
       >
-        <XIcon className="hidden size-3 group-hover:block" />
+        {tab.isDirty && (
+          <span
+            aria-hidden
+            className={cn(
+              'pointer-events-none absolute inset-0 flex items-center justify-center',
+              'scale-100 opacity-100 transition-[opacity,transform] duration-150',
+              'ease-[cubic-bezier(0.2,0,0,1)]',
+              'group-hover:scale-75 group-hover:opacity-0',
+              'peer-aria-[selected=true]:scale-75 peer-aria-[selected=true]:opacity-0'
+            )}
+          >
+            <span className="size-1.5 rounded-full bg-gray-12" />
+          </span>
+        )}
+        <XIcon
+          aria-hidden
+          className={cn(
+            'pointer-events-none size-3 scale-75 opacity-0',
+            'transition-[opacity,transform] duration-150 ease-[cubic-bezier(0.2,0,0,1)]',
+            'group-hover:scale-100 group-hover:opacity-100',
+            'peer-aria-[selected=true]:scale-100 peer-aria-[selected=true]:opacity-100'
+          )}
+        />
       </button>
     </div>
   )
-}
+})
 
 function TextEditorWrapper({
   filePath,
   portalNode,
   activeTab,
   monacoRef,
+  onDirtyChange,
 }: {
   filePath: string
   portalNode: HtmlPortalNode<Component<Record<string, unknown>>>
   activeTab: string | null
   monacoRef: React.MutableRefObject<Monaco | null>
+  onDirtyChange: (path: string, isDirty: boolean) => void
 }) {
   const [isPending, startTransition] = React.useTransition()
 
@@ -262,6 +346,11 @@ function TextEditorWrapper({
     () => validFileExtensions(filePath),
     [filePath]
   )
+
+  React.useEffect(() => {
+    if (!isValidFile) return
+    ensureLanguageClient(getLanguage(filePath))
+  }, [filePath, isValidFile])
 
   const { isLoading, isError, data, refetch, isFetching } = useQuery({
     queryFn: async () => {
@@ -278,14 +367,6 @@ function TextEditorWrapper({
       }
       const result = await res.text()
 
-      monacoRef.current?.editor
-        .getModels()
-        .forEach((model: editor.ITextModel) => {
-          if (model.uri.path === filePath) {
-            model.setValue(result)
-          }
-        })
-
       return r('OK', { content: result })
     },
     enabled: isValidFile,
@@ -298,21 +379,13 @@ function TextEditorWrapper({
     refetchOnReconnect: false,
   })
 
-  let timeout: ReturnType<typeof setTimeout>
-  function debounce<Args extends unknown[]>(
-    func: (...args: Args) => void,
-    wait: number
-  ) {
-    return (...args: Args) => {
-      clearTimeout(timeout)
-      timeout = setTimeout(() => func(...args), wait)
-    }
-  }
+  const saveTimeout = React.useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const handleOnChange = (value: string | undefined) => {
-    if (!value) return
+    onDirtyChange(filePath, true)
 
-    const debounced = debounce(async (value: string) => {
+    clearTimeout(saveTimeout.current)
+    saveTimeout.current = setTimeout(() => {
       startTransition(async () => {
         try {
           const res = await apiClient.content.$post(
@@ -323,7 +396,7 @@ function TextEditorWrapper({
             },
             {
               init: {
-                body: value,
+                body: value ?? '',
               },
             }
           )
@@ -337,6 +410,7 @@ function TextEditorWrapper({
           }
 
           if (resData.code !== 'OK') throw new Error('Failed to save file')
+          onDirtyChange(filePath, false)
         } catch (error) {
           toast.error('Failed to save file', {
             description: filePath,
@@ -344,21 +418,12 @@ function TextEditorWrapper({
         }
       })
     }, ms('1s'))
-    debounced(value)
   }
 
   if (!isValidFile) {
     return (
       <StatusContainer>
         <Status>not supported</Status>
-      </StatusContainer>
-    )
-  }
-
-  if (!filePath) {
-    return (
-      <StatusContainer>
-        <Status>no file selected</Status>
       </StatusContainer>
     )
   }
@@ -388,8 +453,8 @@ function TextEditorWrapper({
   }
 
   return (
-    <>
-      <div className="flex w-full items-center justify-between space-x-6 px-2 py-1">
+    <div className="flex size-full flex-col overflow-hidden">
+      <div className="flex w-full shrink-0 items-center justify-between space-x-6 px-2 py-1">
         <p className="overflow-hidden text-xs text-nowrap text-ellipsis text-gray-11">
           {filePath}
         </p>
@@ -401,7 +466,7 @@ function TextEditorWrapper({
             <div className="size-3 rounded-full bg-gray-7 group-data-[state=false]:hidden group-data-[state=true]:animate-pulse" />
           </div>
           <button
-            className="hover:text-gray-12 flex size-6 items-center justify-center text-gray-11 ring-inset hover:bg-sage-4 hover:ring-1 hover:ring-sage-9"
+            className="flex size-6 items-center justify-center text-gray-11 ring-inset hover:bg-sage-4 hover:text-gray-12 hover:ring-1 hover:ring-sage-9"
             onClick={() => refetch()}
           >
             <RefreshCcwIcon className="size-3" />
@@ -409,32 +474,27 @@ function TextEditorWrapper({
         </div>
       </div>
       {activeTab === filePath && (
-        <OutPortal
-          node={portalNode}
-          theme={theme.name}
-          defaultLanguage={getLanguage(filePath)}
-          path={filePath}
-          onChange={handleOnChange}
-          defaultValue={data.content}
-        />
+        <div className="min-h-0 flex-1">
+          <OutPortal
+            node={portalNode}
+            theme={theme.name}
+            defaultLanguage={getLanguage(filePath)}
+            path={toFileUri(filePath)}
+            onChange={handleOnChange}
+            defaultValue={data.content}
+          />
+        </div>
       )}
-    </>
+    </div>
   )
 }
 
 const getLanguage = (name: string) => {
-  const parts = name.split('.')
-  const ext = parts[parts.length - 1]
-  return languageMap[ext] || 'text'
+  const ext = name.split('.').pop()
+  return (ext && languageMap[ext]) || 'text'
 }
 
 const validFileExtensions = (name: string) => {
-  const newName = name.split('/').pop()
-  if (!newName) return false
-  const parts = newName.split('.')
-  const ext = parts[parts.length - 1]
-  const language = languageMap[ext]
-  if (language) return true
-
-  return false
+  const ext = name.split('/').pop()?.split('.').pop()
+  return Boolean(ext && languageMap[ext])
 }
