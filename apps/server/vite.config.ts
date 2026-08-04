@@ -56,7 +56,9 @@ export default defineConfig({
   },
   server: {
     port: 5002,
+    host: true,
     cors: false,
+    allowedHosts: ['host.docker.internal'],
   },
   plugins: [
     browserMainFields(),
