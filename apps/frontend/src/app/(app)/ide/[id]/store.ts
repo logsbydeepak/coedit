@@ -13,6 +13,9 @@ export const editFileAtom = atom<{
   name: string
 } | null>(null)
 
+// Controls the "Ctrl+P"/"Cmd+P" quick-open file search dialog.
+export const quickOpenAtom = atom(false)
+
 export const tokenAtom = atom('')
 
 export const getToken = () => store.get(tokenAtom)

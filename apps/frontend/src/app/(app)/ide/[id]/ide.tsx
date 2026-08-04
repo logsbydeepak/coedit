@@ -13,10 +13,13 @@ const Editor = dynamic(() => import('./editor'), { ssr: false })
 const Terminal = dynamic(() => import('./terminal'), { ssr: false })
 const FileExplorer = dynamic(() => import('./file-explorer'), { ssr: false })
 const Output = dynamic(() => import('./output'), { ssr: false })
+const QuickOpen = dynamic(() => import('./quick-open'), { ssr: false })
 
 export function IDE() {
   return (
     <div className="absolute inset-0 pt-[57px]">
+      <QuickOpen />
+
       <ResizablePanelGroup orientation="horizontal" className="min-h-full">
         <ResizablePanel defaultSize="14%" collapsible={true} minSize="10%">
           <FileExplorer />

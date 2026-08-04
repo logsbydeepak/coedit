@@ -3,7 +3,7 @@ import { zValidator } from '@hono/zod-validator'
 import { r } from '@coedit/r'
 import { z, zReqString } from '@coedit/zschema'
 
-import { getPathContent } from '#/utils/fs'
+import { getPathContent, searchFiles } from '#/utils/fs'
 import { h } from '#/utils/h'
 
 const get = h().get(
@@ -29,4 +29,27 @@ const get = h().get(
   }
 )
 
-export const explorerRoute = h().route('/', get)
+const search = h().get(
+  '/search',
+  zValidator(
+    'query',
+    z.object({
+      query: z.string().optional(),
+    }),
+    (result, c) => {
+      if (!result.success) return c.json(r('ERROR'), 400)
+    }
+  ),
+  async (c) => {
+    const input = c.req.valid('query')
+    const files = await searchFiles(input.query ?? '')
+
+    if (files.code === 'ERROR') {
+      return c.json(r('ERROR'))
+    }
+
+    return c.json(r('OK', { files: files.files }))
+  }
+)
+
+export const explorerRoute = h().route('/', get).route('/', search)
