@@ -59,7 +59,7 @@ export default function FileExplorer() {
           className={cn(
             'flex items-center space-x-1 py-1 pr-0.5 pl-2',
             'w-full ring-inset disabled:opacity-50',
-            'overflow-hidden hover:bg-sage-4 hover:ring-1 hover:ring-sage-9'
+            'hover:bg-sage-4 hover:ring-sage-9 overflow-hidden hover:ring-1'
           )}
         >
           <Undo2Icon className="size-3 shrink-0" />
@@ -72,18 +72,18 @@ export default function FileExplorer() {
           className="group flex size-6 items-center justify-center"
           data-state={isRefetching}
         >
-          <div className="size-2.5 rounded-full bg-gray-7 group-data-[state=false]:bg-transparent group-data-[state=true]:animate-pulse" />
+          <div className="bg-gray-7 size-2.5 rounded-full group-data-[state=false]:bg-transparent group-data-[state=true]:animate-pulse" />
         </div>
 
         <button
-          className="hover:text-gray-12 flex size-6 shrink-0 items-center justify-center text-gray-11 ring-inset hover:bg-sage-4 hover:ring-1 hover:ring-sage-9"
+          className="hover:text-gray-12 text-gray-11 hover:bg-sage-4 hover:ring-sage-9 flex size-6 shrink-0 items-center justify-center ring-inset hover:ring-1"
           onClick={() => setCurrentPath('/')}
         >
           <SlashIcon className="size-3" />
         </button>
 
         <button
-          className="hover:text-gray-12 flex size-6 shrink-0 items-center justify-center text-gray-11 ring-inset hover:bg-sage-4 hover:ring-1 hover:ring-sage-9"
+          className="hover:text-gray-12 text-gray-11 hover:bg-sage-4 hover:ring-sage-9 flex size-6 shrink-0 items-center justify-center ring-inset hover:ring-1"
           onClick={handleOnRefresh}
         >
           <RefreshCcwIcon className="size-3" />
@@ -173,7 +173,7 @@ const FileItem = React.forwardRef<
         'flex items-center px-2 py-0.5 text-sm',
         'w-full space-x-2 ring-inset',
         'aria-[selected=true]:bg-sage-4 aria-[selected=true]:ring-1',
-        'overflow-hidden ring-sage-9 outline-none hover:cursor-pointer',
+        'ring-sage-9 overflow-hidden outline-none hover:cursor-pointer',
         'hover:bg-sage-4'
       )}
     >

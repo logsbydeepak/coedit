@@ -12,7 +12,7 @@ export default function NotFound() {
     <div className="absolute flex min-h-full w-full items-center justify-center text-center">
       <div className="flex w-80 flex-col space-y-6 p-4">
         <div className="flex items-center justify-center space-x-2">
-          <div className="flex items-center justify-center space-x-2 text-sage-9">
+          <div className="text-sage-9 flex items-center justify-center space-x-2">
             <LogoIcon className="size-6" />
             <p className="text-center font-mono text-xl font-medium text-white">
               coedit

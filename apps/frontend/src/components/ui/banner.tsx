@@ -12,12 +12,12 @@ export function Banner({
   return (
     <div
       className={cn(
-        'flex items-start gap-2 rounded-md border border-dashed border-gray-6 bg-gray-3 p-3 text-xs text-gray-11',
+        'border-gray-6 bg-gray-3 text-gray-11 flex items-start gap-2 rounded-md border border-dashed p-3 text-xs',
         className
       )}
       {...props}
     >
-      <Icon className="mt-0.5 size-4 shrink-0 text-gray-10" />
+      <Icon className="text-gray-10 mt-0.5 size-4 shrink-0" />
       <p className="leading-relaxed">{children}</p>
     </div>
   )

@@ -17,10 +17,10 @@ const QuickOpen = dynamic(() => import('./quick-open'), { ssr: false })
 
 export function IDE() {
   return (
-    <div className="absolute inset-0 pt-[57px]">
+    <div className="absolute inset-0 overflow-hidden pt-[57px]">
       <QuickOpen />
 
-      <ResizablePanelGroup orientation="horizontal" className="min-h-full">
+      <ResizablePanelGroup orientation="horizontal" className="h-full">
         <ResizablePanel defaultSize="14%" collapsible={true} minSize="10%">
           <FileExplorer />
         </ResizablePanel>

@@ -14,6 +14,7 @@ import { Button } from '#/components/ui/button'
 import {
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogRoot,
   DialogTitle,
 } from '#/components/ui/dialog'
@@ -127,6 +128,9 @@ function Content({
       <Head title={`Edit ${project.name}`} />
       <div>
         <DialogTitle>Edit Project</DialogTitle>
+        <DialogDescription className="sr-only">
+          Update the name of {project.name}.
+        </DialogDescription>
       </div>
 
       <Alert align="center" {...alert} />
