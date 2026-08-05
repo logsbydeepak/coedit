@@ -53,9 +53,12 @@ export function Navbar() {
           </p>
         </Link>
 
-        <div className="flex items-center space-x-3">
-          <LayoutMenu />
-          <EnvironmentStatusIndicator />
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-1">
+            <LayoutMenu />
+            <EnvironmentStatusIndicator />
+          </div>
+
           <User />
         </div>
       </div>
@@ -151,7 +154,7 @@ function LayoutMenuItem({
       onSelect={(event) => event.preventDefault()}
       className={cn(
         'flex items-center space-x-2 rounded-sm px-2 py-1.5 text-sm text-gray-11',
-        'outline-none select-none data-[highlighted]:bg-gray-3 data-[highlighted]:text-gray-12',
+        'outline-none select-none data-highlighted:bg-gray-3 data-highlighted:text-gray-12',
         'hover:cursor-pointer'
       )}
     >
@@ -161,9 +164,6 @@ function LayoutMenuItem({
   )
 }
 
-// Separate from project status (owned by apps/orchestration, gates whether
-// the IDE mounts) - this tracks devbox + per-language LSP install state
-// inside an already-running container.
 function EnvironmentStatusIndicator() {
   const [ideActive] = useAtom(ideActiveAtom, { store })
   const { data } = useEnvironmentStatus(ideActive)
