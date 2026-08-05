@@ -4,6 +4,7 @@
     { "path": "apps/server" },
     { "path": "apps/container" },
     { "path": "apps/orchestration" },
-    { "path": "apps/dns" }
+    { "path": "apps/dns" },
+    { "path": "apps/frontend" }
   ]
 }

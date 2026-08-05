@@ -3,16 +3,13 @@ RUN apt update
 RUN apt -y install curl unzip git make build-essential bash
 
 RUN curl -fsSL https://bun.sh/install | bash
-RUN curl -sSf https://sh.rustup.rs | bash -s -- -y
 
 WORKDIR /root/coedit
 COPY . .
 
-ENV PATH="/root/.cargo/bin:${PATH}"
 ENV PATH="/root/.bun/bin:$PATH"
 
 RUN bun install
-RUN bun run ruspty:build
 RUN bun run container:build
 
 FROM ubuntu:22.04 AS runner
