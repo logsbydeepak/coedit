@@ -6,7 +6,7 @@ import Editor, { Monaco } from '@monaco-editor/react'
 import * as Tabs from '@radix-ui/react-tabs'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAtom } from 'jotai'
-import { RefreshCcwIcon, XIcon } from 'lucide-react'
+import { RefreshCcwIcon } from 'lucide-react'
 import { editor } from 'monaco-editor'
 import ms from 'ms'
 import {
@@ -22,11 +22,10 @@ import { toast } from 'sonner'
 
 import { r } from '@coedit/r'
 
-import { cn } from '#/utils/style'
-
 import { Status, StatusContainer } from './components'
 import { ensureLanguageClient, ensureVscodeApi } from './lsp'
 import { activeEditorRef, editFileAtom, toFileUri } from './store'
+import { TabItem } from './tab-item'
 import { useScrollActiveTabIntoView } from './use-tab-scroll'
 import { apiClient, getExtensionIcon, tinyFetch } from './utils'
 
@@ -228,75 +227,28 @@ const FileTab = React.forwardRef<
   { tab: Tab; onClose: (tab: Tab) => void }
 >(function FileTab({ tab, onClose }, ref) {
   return (
-    <div
+    <TabItem
       ref={ref}
-      onAuxClick={(event) => {
-        // middle click closes the tab, like a browser tab
-        if (event.button === 1) onClose(tab)
-      }}
-      className={cn(
-        'group flex h-full w-36 shrink-0 items-center justify-between',
-        'border-b-2 border-b-transparent transition-colors duration-150',
-        'hover:bg-gray-3 has-[>[aria-selected=true]]:border-b-sage-9 has-[>[aria-selected=true]]:bg-gray-4'
-      )}
+      value={tab.path}
+      onClose={() => onClose(tab)}
+      closeLabel={`Close ${tab.name}`}
+      isDirty={tab.isDirty}
+      className="w-36"
     >
-      <Tabs.Trigger
-        value={tab.path}
-        className="peer flex size-full min-w-0 items-center space-x-1.5 overflow-hidden pl-2.5 text-ellipsis text-gray-11 outline-none hover:text-gray-12 aria-selected:text-gray-12"
-      >
-        <Image
-          src={getExtensionIcon({
-            name: tab.name,
-            isDirectory: false,
-          })}
-          alt=""
-          width="14"
-          height="14"
-          className="shrink-0"
-        />
-        <p className="min-w-0 flex-1 overflow-hidden text-xs text-nowrap text-ellipsis">
-          {tab.name}
-        </p>
-      </Tabs.Trigger>
-      <button
-        type="button"
-        aria-label={`Close ${tab.name}`}
-        className={cn(
-          'text-gray-11 hover:bg-sage-4 hover:text-gray-12',
-          'relative mr-1 flex size-6 shrink-0 focus-visible:ring-sage-9',
-          'items-center justify-center rounded outline-none ring-inset',
-          'transition-colors focus-visible:ring-1'
-        )}
-        onClick={(event) => {
-          event.stopPropagation()
-          onClose(tab)
-        }}
-      >
-        {tab.isDirty && (
-          <span
-            aria-hidden
-            className={cn(
-              'pointer-events-none absolute inset-0 flex items-center justify-center',
-              'scale-100 opacity-100 transition-[opacity,transform] duration-150',
-              'ease-[cubic-bezier(0.2,0,0,1)]',
-              'group-hover:scale-75 group-hover:opacity-0',
-              'peer-aria-[selected=true]:scale-75 peer-aria-[selected=true]:opacity-0'
-            )}
-          >
-            <span className="size-1.5 rounded-full bg-gray-12" />
-          </span>
-        )}
-        <XIcon
-          aria-hidden
-          className={cn(
-            'pointer-events-none size-3 scale-75 opacity-0',
-            'transition-[opacity,transform] duration-150 ease-[cubic-bezier(0.2,0,0,1)]',
-            'group-hover:scale-100 group-hover:opacity-100',
-            'peer-aria-[selected=true]:scale-100 peer-aria-[selected=true]:opacity-100'
-          )}
-        />
-      </button>
-    </div>
+      <Image
+        src={getExtensionIcon({
+          name: tab.name,
+          isDirectory: false,
+        })}
+        alt=""
+        width="14"
+        height="14"
+        className="shrink-0"
+      />
+      <p className="min-w-0 flex-1 overflow-hidden text-xs text-nowrap text-ellipsis">
+        {tab.name}
+      </p>
+    </TabItem>
   )
 })
 
@@ -304,13 +256,11 @@ function TextEditorWrapper({
   filePath,
   portalNode,
   activeTab,
-  monacoRef,
   onDirtyChange,
 }: {
   filePath: string
   portalNode: HtmlPortalNode<Component<Record<string, unknown>>>
   activeTab: string | null
-  monacoRef: React.MutableRefObject<Monaco | null>
   onDirtyChange: (path: string, isDirty: boolean) => void
 }) {
   const [isPending, startTransition] = React.useTransition()

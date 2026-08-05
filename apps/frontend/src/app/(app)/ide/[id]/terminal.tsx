@@ -7,7 +7,7 @@ import * as Tabs from '@radix-ui/react-tabs'
 import { FitAddon } from '@xterm/addon-fit'
 import { WebglAddon } from '@xterm/addon-webgl'
 import { ITheme, Terminal } from '@xterm/xterm'
-import { PlusIcon, XIcon } from 'lucide-react'
+import { PlusIcon } from 'lucide-react'
 import ms from 'ms'
 import useWebSocket, { ReadyState } from 'react-use-websocket'
 
@@ -18,6 +18,7 @@ import type {
 
 import { Status, StatusContainer } from './components'
 import { getToken } from './store'
+import { TabItem } from './tab-item'
 import { useScrollActiveTabIntoView } from './use-tab-scroll'
 import { apiClient } from './utils'
 
@@ -221,26 +222,17 @@ const TermTab = React.forwardRef<
   }
 >(function TermTab({ tab, idx, removeTab }, ref) {
   return (
-    <div
+    <TabItem
       ref={ref}
-      className="group flex h-full items-center border-sage-9 hover:bg-gray-3 has-[>[aria-selected=true]]:border-b-2 has-[>[aria-selected=true]]:bg-gray-4"
+      value={tab.id}
+      onClose={() => removeTab(tab.id)}
+      closeLabel={`Close ${tab.name}`}
     >
-      <Tabs.Trigger
-        value={tab.id}
-        className="pl-4 text-gray-11 hover:text-gray-12 aria-[selected=true]:text-gray-12"
-      >
-        <p className="flex items-center space-x-1">
-          <span className="font-mono">{idx + 1}:</span>
-          <span>{tab.name}</span>
-        </p>
-      </Tabs.Trigger>
-      <button className="flex size-7 items-center justify-center text-gray-11 hover:text-gray-12">
-        <XIcon
-          className="hidden size-3 group-hover:block"
-          onClick={() => removeTab(tab.id)}
-        />
-      </button>
-    </div>
+      <span className="font-mono">{idx + 1}:</span>
+      <span className="min-w-0 flex-1 overflow-hidden text-nowrap text-ellipsis">
+        {tab.name}
+      </span>
+    </TabItem>
   )
 })
 

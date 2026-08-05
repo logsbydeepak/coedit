@@ -46,6 +46,12 @@ export const editFileAtom = atom<{
 
 export const quickOpenAtom = atom(false)
 
+export const ideActiveAtom = atom(false)
+
+export const sidebarVisibleAtom = atom(true)
+export const terminalVisibleAtom = atom(true)
+export const previewVisibleAtom = atom(true)
+
 export const tokenAtom = atom('')
 
 export const getToken = () => store.get(tokenAtom)

@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
-import { useSetAtom } from 'jotai'
+import { useAtom, useSetAtom } from 'jotai'
 import {
   CircleAlertIcon,
   SearchXIcon,
@@ -17,12 +17,16 @@ import { cn } from '#/utils/style'
 
 import { Status, StatusContainer } from './components'
 import { IDE } from './ide'
-import { containerURLAtom } from './store'
+import { containerURLAtom, ideActiveAtom } from './store'
 
 const STATUS_POLL_INTERVAL_MS = 2000
 
 export default function Page() {
-  const [isReady, setIsReady] = useState(false)
+  const [isReady, setIsReady] = useAtom(ideActiveAtom)
+
+  useEffect(() => {
+    return () => setIsReady(false)
+  }, [setIsReady])
 
   return isReady ? <IDE /> : <Init onReady={() => setIsReady(true)} />
 }
