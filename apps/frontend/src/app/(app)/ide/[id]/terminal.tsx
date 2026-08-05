@@ -7,6 +7,7 @@ import * as Tabs from '@radix-ui/react-tabs'
 import { FitAddon } from '@xterm/addon-fit'
 import { WebglAddon } from '@xterm/addon-webgl'
 import { ITheme, Terminal } from '@xterm/xterm'
+import { GeistMono } from 'geist/font/mono'
 import { PlusIcon } from 'lucide-react'
 import ms from 'ms'
 import useWebSocket, { ReadyState } from 'react-use-websocket'
@@ -263,8 +264,7 @@ function TermContent({
 
     const term = new Terminal({
       theme,
-      fontFamily:
-        "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+      fontFamily: GeistMono.style.fontFamily,
       fontWeight: '400',
       fontSize: 13,
       letterSpacing: 1,

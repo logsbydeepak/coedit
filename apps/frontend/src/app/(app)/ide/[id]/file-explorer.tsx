@@ -1,73 +1,185 @@
 'use client'
 
 import React from 'react'
-import Image from 'next/image'
+import { FileTree, useFileTree, useFileTreeSearch } from '@pierre/trees/react'
 import { useQuery } from '@tanstack/react-query'
 import { useSetAtom } from 'jotai'
-import { RefreshCcwIcon, SlashIcon, Undo2Icon } from 'lucide-react'
+import { EyeIcon, EyeOffIcon, RefreshCcwIcon } from 'lucide-react'
 import ms from 'ms'
-import { ListBox, ListBoxItem } from 'react-aria-components'
 
 import { cn } from '#/utils/style'
 
 import { Status, StatusContainer } from './components'
-import { editFileAtom } from './store'
-import { apiClient, getExtensionIcon } from './utils'
+import { basename, editFileAtom } from './store'
+import {
+  TREE_FILE_ICON_BY_EXTENSION,
+  TREE_FILE_ICON_BY_FILE_NAME,
+  TREE_FILE_ICON_DEFAULT,
+  TREE_FILE_ICON_SPRITE_SHEET,
+} from './tree-file-icons.generated'
+import { apiClient } from './utils'
 
-type File = {
-  name: string
-  path: string
-  isDirectory: boolean
-}
-
-const useExplorerQuery = (path: string) =>
+const useExplorerTreeQuery = () =>
   useQuery({
     queryFn: async () => {
-      const res = await apiClient.explorer.$get({
-        query: {
-          path,
-        },
-      })
+      const res = await apiClient.explorer.tree.$get()
       return await res.json()
     },
-    queryKey: ['file-explorer', path],
+    queryKey: ['file-explorer-tree'],
     refetchInterval: ms('4s'),
   })
 
-export default function FileExplorer() {
-  const [currentPath, setCurrentPath] = React.useState('/')
-  const disabled = React.useMemo(() => currentPath === '/', [currentPath])
+function toTreePath(path: string) {
+  return path.replace(/^\/+/, '')
+}
 
-  const { refetch, isRefetching } = useExplorerQuery(currentPath)
+function fromTreePath(path: string) {
+  const withoutTrailingSlash = path.endsWith('/') ? path.slice(0, -1) : path
+  return `/${withoutTrailingSlash}`
+}
+
+const DEFAULT_SEARCH_IGNORED_DIRECTORIES = new Set([
+  'node_modules',
+  '.git',
+  '.next',
+  '.turbo',
+  'dist',
+  'build',
+  'target',
+  '.cache',
+  'out',
+])
+
+function isDefaultIgnoredForSearch(treePath: string) {
+  return treePath
+    .split('/')
+    .filter(Boolean)
+    .some((segment) => DEFAULT_SEARCH_IGNORED_DIRECTORIES.has(segment))
+}
+
+function getExpandedDirectoryPaths(
+  model: ReturnType<typeof useFileTree>['model']
+) {
+  const count = model.getVisibleCount()
+  if (count === 0) return []
+
+  return model
+    .getVisibleRows(0, count - 1)
+    .filter((row) => row.kind === 'directory' && row.isExpanded)
+    .map((row) => row.path)
+}
+
+const treeStyle = {
+  width: '100%',
+  '--trees-bg-override': 'transparent',
+  '--trees-bg-muted-override': 'var(--color-sage-4)',
+  '--trees-fg-override': 'var(--color-gray-12)',
+  '--trees-fg-muted-override': 'var(--color-gray-11)',
+  '--trees-border-color-override': 'var(--color-gray-6)',
+  '--trees-selected-bg-override': 'var(--color-sage-4)',
+  '--trees-selected-fg-override': 'var(--color-gray-12)',
+  '--trees-selected-focused-border-color-override': 'var(--color-sage-9)',
+  '--trees-focus-ring-color-override': 'var(--color-sage-9)',
+  '--trees-search-bg-override': 'transparent',
+  '--trees-font-family-override': 'var(--font-sans)',
+  '--trees-border-radius-override': '0px',
+  '--trees-padding-inline-override': '6px',
+  '--trees-item-padding-x-override': '4px',
+  '--trees-item-margin-x-override': '0px',
+  '--trees-item-row-gap-override': '4px',
+  '--trees-level-gap-override': '6px',
+  '--trees-icon-width-override': '14px',
+} as React.CSSProperties
+
+const treeUnsafeCSS = `[data-file-tree-search-input] { width: 100%; }`
+
+const toolbarButtonClassName =
+  'flex size-6 shrink-0 items-center justify-center text-gray-11 ring-inset hover:bg-sage-4 hover:text-gray-12 hover:ring-1 hover:ring-sage-9'
+
+const treeIcons = {
+  set: 'none',
+  colored: false,
+  spriteSheet: TREE_FILE_ICON_SPRITE_SHEET,
+  byFileExtension: TREE_FILE_ICON_BY_EXTENSION,
+  byFileName: TREE_FILE_ICON_BY_FILE_NAME,
+  remap: {
+    'file-tree-icon-file': TREE_FILE_ICON_DEFAULT,
+    'file-tree-icon-chevron': {
+      name: 'file-tree-icon-chevron',
+      width: 10,
+      height: 10,
+    },
+  },
+} as const
+
+export default function FileExplorer() {
+  const setEditFile = useSetAtom(editFileAtom)
+  const { data, refetch, isRefetching, isLoading, isError } =
+    useExplorerTreeQuery()
+
+  const paths = React.useMemo(() => {
+    if (!data || data.code !== 'OK') return []
+    return data.paths.map(toTreePath)
+  }, [data])
+
+  const searchablePaths = React.useMemo(
+    () => paths.filter((path) => !isDefaultIgnoredForSearch(path)),
+    [paths]
+  )
+
+  const { model } = useFileTree({
+    paths,
+    density: 'compact',
+    itemHeight: 22,
+    icons: treeIcons,
+    initialExpansion: 'closed',
+    search: true,
+    unsafeCSS: treeUnsafeCSS,
+    onSelectionChange: (selectedPaths) => {
+      if (selectedPaths.length !== 1) return
+
+      const [selected] = selectedPaths
+      if (selected.endsWith('/')) return
+
+      const path = fromTreePath(selected)
+      setEditFile({ path, name: basename(path) })
+    },
+  })
+
+  const [searchIgnoredFiles, setSearchIgnoredFiles] = React.useState(false)
+
+  const { isOpen: isSearchOpen } = useFileTreeSearch(model)
+  const activePaths =
+    isSearchOpen && !searchIgnoredFiles ? searchablePaths : paths
+
+  const activePathsRef = React.useRef<readonly string[]>([])
+  React.useEffect(() => {
+    if (
+      activePathsRef.current.length === activePaths.length &&
+      activePathsRef.current.every((path, index) => path === activePaths[index])
+    ) {
+      return
+    }
+
+    activePathsRef.current = activePaths
+    model.resetPaths(activePaths, {
+      initialExpandedPaths: getExpandedDirectoryPaths(model),
+    })
+  }, [model, activePaths])
 
   function handleOnRefresh() {
     refetch()
   }
 
-  function handleOnBack() {
-    if (currentPath === '/') return
-    const path = currentPath.split('/').slice(0, -1).join('/')
-    setCurrentPath(path === '' ? '/' : path)
+  function handleOnToggleSearchIgnoredFiles() {
+    setSearchIgnoredFiles((current) => !current)
   }
 
-  return (
-    <div className="flex size-full flex-col space-y-2">
-      <div className="flex space-x-1">
-        <button
-          disabled={disabled}
-          onClick={handleOnBack}
-          className={cn(
-            'flex items-center space-x-1 py-1 pr-0.5 pl-2',
-            'w-full ring-inset disabled:opacity-50',
-            'overflow-hidden hover:bg-sage-4 hover:ring-1 hover:ring-sage-9'
-          )}
-        >
-          <Undo2Icon className="size-3 shrink-0" />
-          <p className="w-full overflow-hidden text-left text-xs text-nowrap text-ellipsis">
-            back
-          </p>
-        </button>
+  const isEmpty = !isLoading && !isError && paths.length === 0
 
+  return (
+    <div className="flex size-full flex-col">
+      <div className="flex items-center space-x-1 p-1">
         <div
           className="group flex size-6 items-center justify-center"
           data-state={isRefetching}
@@ -75,122 +187,48 @@ export default function FileExplorer() {
           <div className="size-2.5 rounded-full bg-gray-7 group-data-[state=false]:bg-transparent group-data-[state=true]:animate-pulse" />
         </div>
 
-        <button
-          className="flex size-6 shrink-0 items-center justify-center text-gray-11 ring-inset hover:bg-sage-4 hover:text-gray-12 hover:ring-1 hover:ring-sage-9"
-          onClick={() => setCurrentPath('/')}
-        >
-          <SlashIcon className="size-3" />
-        </button>
+        <div className="w-full" />
 
         <button
-          className="flex size-6 shrink-0 items-center justify-center text-gray-11 ring-inset hover:bg-sage-4 hover:text-gray-12 hover:ring-1 hover:ring-sage-9"
-          onClick={handleOnRefresh}
+          aria-pressed={searchIgnoredFiles}
+          title={
+            searchIgnoredFiles
+              ? 'Including node_modules, .git, dist, etc. in search — click to hide them again'
+              : 'Hiding node_modules, .git, dist, etc. from search — click to include them'
+          }
+          className={cn(
+            toolbarButtonClassName,
+            searchIgnoredFiles && 'bg-sage-4 text-gray-12'
+          )}
+          onClick={handleOnToggleSearchIgnoredFiles}
         >
+          {searchIgnoredFiles ? (
+            <EyeIcon className="size-3" />
+          ) : (
+            <EyeOffIcon className="size-3" />
+          )}
+        </button>
+
+        <button className={toolbarButtonClassName} onClick={handleOnRefresh}>
           <RefreshCcwIcon className="size-3" />
         </button>
       </div>
 
-      <Explorer
-        currentPath={currentPath}
-        onChangePath={(path) => setCurrentPath(path)}
-      />
-    </div>
-  )
-}
-
-function Explorer({
-  currentPath,
-  onChangePath,
-}: {
-  currentPath: string
-  onChangePath: (path: string) => void
-}) {
-  const setEditFile = useSetAtom(editFileAtom)
-
-  const { isLoading, data, isError } = useExplorerQuery(currentPath)
-
-  function handleOnSelect(item: File) {
-    if (item.isDirectory) {
-      onChangePath(item.path)
-    } else {
-      setEditFile({
-        path: item.path,
-        name: item.name,
-      })
-    }
-  }
-
-  if (isLoading) {
-    return (
-      <StatusContainer>
-        <Status isLoading>loading</Status>
-      </StatusContainer>
-    )
-  }
-
-  if (isError || !data || data.code === 'ERROR') {
-    return (
-      <StatusContainer>
-        <Status>error</Status>
-      </StatusContainer>
-    )
-  }
-
-  return (
-    <ListBox
-      items={data.files}
-      aria-label="file explorer"
-      selectionMode="multiple"
-      selectionBehavior="replace"
-      className="scrollbar size-full space-y-1 overflow-auto"
-      renderEmptyState={() => (
+      {isLoading ? (
+        <StatusContainer>
+          <Status isLoading>loading</Status>
+        </StatusContainer>
+      ) : isError || !data || data.code === 'ERROR' ? (
+        <StatusContainer>
+          <Status>error</Status>
+        </StatusContainer>
+      ) : isEmpty ? (
         <StatusContainer>
           <Status>empty</Status>
         </StatusContainer>
+      ) : (
+        <FileTree model={model} className="min-h-0 flex-1" style={treeStyle} />
       )}
-    >
-      {(item: File) => (
-        <FileItem
-          id={item.path}
-          file={item}
-          onAction={() => handleOnSelect(item)}
-        />
-      )}
-    </ListBox>
+    </div>
   )
 }
-
-const FileItem = React.forwardRef<
-  React.ElementRef<typeof ListBoxItem>,
-  React.ComponentPropsWithoutRef<typeof ListBoxItem> & { file: File }
->(({ file, ...props }, ref) => {
-  return (
-    <ListBoxItem
-      {...props}
-      ref={ref}
-      textValue={file.path}
-      className={cn(
-        'flex items-center px-2 py-0.5 text-sm',
-        'w-full space-x-2 ring-inset',
-        'aria-[selected=true]:bg-sage-4 aria-[selected=true]:ring-1',
-        'overflow-hidden ring-sage-9 outline-none hover:cursor-pointer',
-        'hover:bg-sage-4'
-      )}
-    >
-      <Image
-        src={getExtensionIcon({
-          name: file.name,
-          isDirectory: file.isDirectory,
-        })}
-        alt={file.name}
-        width="14"
-        height="14"
-      />
-
-      <p className="w-full overflow-hidden text-sm text-nowrap text-ellipsis">
-        {file.name}
-      </p>
-    </ListBoxItem>
-  )
-})
-FileItem.displayName = 'FileItem'

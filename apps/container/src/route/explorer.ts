@@ -3,7 +3,7 @@ import { zValidator } from '@hono/zod-validator'
 import { r } from '@coedit/r'
 import { z, zReqString } from '@coedit/zschema'
 
-import { getPathContent, searchFiles } from '#/utils/fs'
+import { getPathContent, listAllPaths, searchFiles } from '#/utils/fs'
 import { h } from '#/utils/h'
 
 const get = h().get(
@@ -52,4 +52,17 @@ const search = h().get(
   }
 )
 
-export const explorerRoute = h().route('/', get).route('/', search)
+const tree = h().get('/tree', async (c) => {
+  const result = await listAllPaths()
+
+  if (result.code === 'ERROR') {
+    return c.json(r('ERROR'))
+  }
+
+  return c.json(r('OK', { paths: result.paths }))
+})
+
+export const explorerRoute = h()
+  .route('/', get)
+  .route('/', search)
+  .route('/', tree)

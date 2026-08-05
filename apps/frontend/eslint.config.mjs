@@ -27,7 +27,13 @@ const config = [
     },
   },
   {
-    ignores: ['.next/**', 'node_modules/**', 'next-env.d.ts', 'public/**'],
+    ignores: [
+      '.next/**',
+      'node_modules/**',
+      'next-env.d.ts',
+      'public/**',
+      '**/tree-file-icons.generated.ts',
+    ],
   },
 ]
 

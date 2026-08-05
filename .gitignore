@@ -32,6 +32,10 @@ next-env.d.ts
 # (see apps/frontend/scripts/build-workers.ts)
 apps/frontend/public/workers/
 
+# generated @pierre/trees icon sprite sheet
+# (see apps/frontend/scripts/build-tree-icons.ts)
+apps/frontend/src/app/\(app\)/ide/\[id\]/tree-file-icons.generated.ts
+
 .cspellcache
 node-pty/
 dist/

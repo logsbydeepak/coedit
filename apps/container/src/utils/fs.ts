@@ -118,6 +118,55 @@ export async function searchFiles(query: string, dist: string = '/') {
   }
 }
 
+const TREE_MAX_ENTRIES = 200000
+
+export async function listAllPaths(dist: string = '/') {
+  try {
+    const rootPath = path.join(prefix, dist)
+    if (!rootPath.startsWith(prefix)) return r('ERROR')
+
+    const result: string[] = []
+
+    let visited = 0
+    const stack = [rootPath]
+
+    while (stack.length) {
+      if (visited >= TREE_MAX_ENTRIES) break
+
+      const currentDir = stack.pop() as string
+      let entries
+      try {
+        entries = await fs.readdir(currentDir, { withFileTypes: true })
+      } catch {
+        continue
+      }
+
+      for (const entry of entries) {
+        if (visited >= TREE_MAX_ENTRIES) break
+        visited += 1
+
+        const relativePath = path.join(
+          '/',
+          path.relative(prefix, currentDir),
+          entry.name
+        )
+
+        if (entry.isDirectory()) {
+          result.push(`${relativePath}/`)
+          stack.push(path.join(currentDir, entry.name))
+          continue
+        }
+
+        result.push(relativePath)
+      }
+    }
+
+    return r('OK', { paths: result })
+  } catch (error) {
+    return r('ERROR')
+  }
+}
+
 export async function writePathContent(dist: string, body: string) {
   try {
     const newPath = path.join(prefix, dist)
