@@ -10,7 +10,6 @@ import { ITheme, Terminal } from '@xterm/xterm'
 import { PlusIcon, XIcon } from 'lucide-react'
 import ms from 'ms'
 import useWebSocket, { ReadyState } from 'react-use-websocket'
-import { toast } from 'sonner'
 
 import type {
   TerminalSendData as TerminalGetData,
@@ -19,6 +18,7 @@ import type {
 
 import { Status, StatusContainer } from './components'
 import { getToken } from './store'
+import { useScrollActiveTabIntoView } from './use-tab-scroll'
 import { apiClient } from './utils'
 
 const theme: ITheme = {
@@ -94,12 +94,9 @@ function TermGroup({ socket }: { socket: Socket }) {
     }[]
   >([])
 
-  const addTab = () => {
-    if (tabs.length >= 5) {
-      toast.error('max tabs reached')
-      return
-    }
+  const { registerTabRef } = useScrollActiveTabIntoView(activeTab)
 
+  const addTab = () => {
     sendMessage(
       sendData({
         event: 'add',
@@ -162,7 +159,13 @@ function TermGroup({ socket }: { socket: Socket }) {
       <div className="flex h-8 items-center justify-between border-b border-gray-4">
         <Tabs.List className="no-scrollbar flex items-center overflow-x-scroll">
           {tabs.map((tab, idx) => (
-            <TermTab key={tab.id} tab={tab} idx={idx} removeTab={removeTab} />
+            <TermTab
+              key={tab.id}
+              tab={tab}
+              idx={idx}
+              removeTab={removeTab}
+              ref={registerTabRef(tab.id)}
+            />
           ))}
         </Tabs.List>
 
@@ -209,18 +212,17 @@ type Tab = {
   name: string
 }
 
-function TermTab({
-  tab,
-  idx,
-  removeTab,
-}: {
-  tab: Tab
-  idx: number
-  removeTab: (id: string) => void
-}) {
+const TermTab = React.forwardRef<
+  HTMLDivElement,
+  {
+    tab: Tab
+    idx: number
+    removeTab: (id: string) => void
+  }
+>(function TermTab({ tab, idx, removeTab }, ref) {
   return (
     <div
-      key={tab.id}
+      ref={ref}
       className="group flex h-full items-center border-sage-9 hover:bg-gray-3 has-[>[aria-selected=true]]:border-b-2 has-[>[aria-selected=true]]:bg-gray-4"
     >
       <Tabs.Trigger
@@ -240,7 +242,7 @@ function TermTab({
       </button>
     </div>
   )
-}
+})
 
 function TermContent({
   id,

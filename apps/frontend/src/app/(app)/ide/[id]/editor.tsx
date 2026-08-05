@@ -27,6 +27,7 @@ import { cn } from '#/utils/style'
 import { Status, StatusContainer } from './components'
 import { ensureLanguageClient, ensureVscodeApi } from './lsp'
 import { activeEditorRef, editFileAtom, toFileUri } from './store'
+import { useScrollActiveTabIntoView } from './use-tab-scroll'
 import { apiClient, getExtensionIcon, tinyFetch } from './utils'
 
 type Tab = {
@@ -67,28 +68,8 @@ export default function TextEditor() {
   const [tabs, setTabs] = React.useState<Tab[]>([])
 
   const monacoRef = React.useRef<Monaco | null>(null)
-  const tabRefs = React.useRef<Record<string, HTMLDivElement | null>>({})
-
-  React.useEffect(() => {
-    if (!activeTab) return
-    const el = tabRefs.current[activeTab]
-    const container = el?.parentElement
-    if (!el || !container) return
-
-    // Scroll only the tab strip — scrollIntoView can move the whole page.
-    const left = el.offsetLeft
-    const right = left + el.offsetWidth
-    const viewLeft = container.scrollLeft
-    const viewRight = viewLeft + container.clientWidth
-    if (left < viewLeft) {
-      container.scrollTo({ left, behavior: 'smooth' })
-    } else if (right > viewRight) {
-      container.scrollTo({
-        left: right - container.clientWidth,
-        behavior: 'smooth',
-      })
-    }
-  }, [activeTab])
+  const { registerTabRef, unregisterTabRef } =
+    useScrollActiveTabIntoView(activeTab)
 
   const [isVscodeApiReady, setIsVscodeApiReady] = React.useState(false)
 
@@ -110,12 +91,6 @@ export default function TextEditor() {
     const existing = tabs.find((tab) => tab.path === filePath.path)
     if (existing) {
       setActiveTab(existing.path)
-      setFilePath(null)
-      return
-    }
-
-    if (tabs.length >= 5) {
-      toast.error('max tabs reached')
       setFilePath(null)
       return
     }
@@ -143,7 +118,7 @@ export default function TextEditor() {
     }
 
     // Keep the monaco model — disposing breaks go-to-definition refs.
-    delete tabRefs.current[path]
+    unregisterTabRef(path)
     setTabs((prev) => prev.filter((t) => t.path !== path))
     queryClient.removeQueries({ queryKey: ['files', path] })
   }
@@ -196,9 +171,7 @@ export default function TextEditor() {
               key={tab.path}
               tab={tab}
               onClose={handleCloseTab}
-              ref={(el) => {
-                tabRefs.current[tab.path] = el
-              }}
+              ref={registerTabRef(tab.path)}
             />
           ))}
         </Tabs.List>
