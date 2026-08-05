@@ -7,6 +7,7 @@ import {
   forward,
 } from 'vscode-ws-jsonrpc/server'
 
+import { ensureInstalled, type Language } from '#/utils/environment'
 import { h } from '#/utils/h'
 import { setActive } from '#/utils/lifecycle'
 import { log } from '#/utils/log'
@@ -14,7 +15,7 @@ import { log } from '#/utils/log'
 const USER = 'coedit'
 const WORKSPACE = `/home/${USER}/workspace`
 
-const LANGUAGE_SERVERS: Record<string, string[]> = {
+const LANGUAGE_SERVERS: Record<Language, string[]> = {
   typescript: ['typescript-language-server', '--stdio'],
   go: ['gopls'],
   rust: ['rust-analyzer'],
@@ -66,14 +67,31 @@ class HonoSocketAdapter implements IWebSocket {
 const lsp = h().get(
   '/:language',
   upgradeWebSocket((c) => {
-    const language = c.req.param('language') ?? ''
+    const language = (c.req.param('language') ?? '') as Language
     const command = LANGUAGE_SERVERS[language]
     let adapter: HonoSocketAdapter | null = null
 
     return {
-      onOpen: (_evt, ws) => {
+      onOpen: async (_evt, ws) => {
         if (!command) {
           log.error(`unsupported lsp language: ${language}`)
+          ws.close()
+          return
+        }
+
+        const state = await ensureInstalled(language)
+
+        if (state.status === 'error') {
+          log.error(
+            { language, error: state.error },
+            'lsp: environment not ready'
+          )
+          ws.send(
+            JSON.stringify({
+              event: 'error',
+              message: `${language} language server isn't ready. Restart the environment from the navbar and try again.`,
+            })
+          )
           ws.close()
           return
         }

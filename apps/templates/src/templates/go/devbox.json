@@ -1,5 +1,5 @@
 {
-  "packages": ["go@1.22.2", "gopls@latest"],
+  "packages": ["go@1.22.2"],
   "env": {
     "GOPATH": "$PWD",
     "PATH": "$PATH:$PWD/bin"

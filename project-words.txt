@@ -44,6 +44,9 @@ certonly
 certbot
 replit
 ruspty
+nixpkgs
+mdevbox
+rustup
 
 # server
 Hono

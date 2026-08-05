@@ -3,6 +3,7 @@ import { WSContext } from 'hono/ws'
 
 import { genID } from '@coedit/id'
 
+import { ensureDevboxReady, peekDevboxState } from '#/utils/environment'
 import { h } from '#/utils/h'
 import { setActive } from '#/utils/lifecycle'
 import { log } from '#/utils/log'
@@ -96,34 +97,54 @@ function createTerm({
   const USER = 'coedit'
   const WORKSPACE = `/home/${USER}/workspace`
 
-  const pty = Bun.spawn(
-    [
-      'su',
-      USER,
-      '--login',
-      '--pty',
-      '-c',
-      `cd ${WORKSPACE}; [ -f devbox.json ] || devbox init && exec devbox shell`,
-    ],
-    {
-      terminal: {
-        cols: 80,
-        rows: 24,
-        data(_terminal, data) {
-          if (!data) return
-          ws.send(
-            sendData({ event: 'term', data: { id, data: data.toString() } })
+  // Opening a terminal never waits on devbox - peek at the current state
+  // (non-blocking) instead of awaiting ensureDevboxReady(). If it's not
+  // ready, open a plain shell immediately; devbox installation itself is
+  // owned by utils/environment.ts (boot warm-up / environment panel).
+  const env = peekDevboxState()
+  if (env.status === 'idle') void ensureDevboxReady()
+
+  // Always exec the system bash by absolute path, never bare `bash`
+  // resolved via PATH. `devbox shellenv` prepends Nix's own bash build to
+  // PATH, and that Nix bash doesn't correctly strip PS1's `\[`/`\]`
+  // non-printing markers when drawing the prompt.
+  const step =
+    env.status === 'ready'
+      ? 'eval "$(devbox shellenv 2>/dev/null || true)"'
+      : env.status === 'error'
+        ? dim(
+            33,
+            'devbox environment failed to set up - open the environment panel to see the error and restart it'
           )
-        },
+        : dim(
+            90,
+            'devbox environment is still setting up - opening a plain shell for now'
+          )
+
+  const shellCommand = `cd ${WORKSPACE}; ${step}; exec /usr/bin/bash -i`
+
+  const pty = Bun.spawn(['su', USER, '--login', '--pty', '-c', shellCommand], {
+    terminal: {
+      cols: 80,
+      rows: 24,
+      data(_terminal, data) {
+        if (!data) return
+        ws.send(
+          sendData({ event: 'term', data: { id, data: data.toString() } })
+        )
       },
-      env: {
-        TERM: 'xterm-256color',
-      },
-      onExit,
-    }
-  )
+    },
+    env: {
+      TERM: 'xterm-256color',
+    },
+    onExit,
+  })
 
   return pty
+}
+
+function dim(color: number, message: string) {
+  return `printf '\\033[${color}m${message}\\033[0m\\n'`
 }
 
 function killTerm(term: Bun.Subprocess) {

@@ -32,7 +32,9 @@ RUN chown -R "${NEW_USER}:${NEW_USER}" /usr/local/bin/devbox
 
 USER root
 RUN curl -sS https://starship.rs/install.sh | sh -s -- --yes
-RUN echo "eval '$(starship init bash)'" >> /home/coedit/.bashrc
+# Single-quoted so this is written literally and re-evaluated on every
+# shell start, instead of baking a snapshot at build time.
+RUN echo 'eval "$(starship init bash)"' >> /home/coedit/.bashrc
 COPY starship.toml /home/coedit/.config/
 RUN chown -R $NEW_USER:$NEW_USER /home/coedit/.config
 

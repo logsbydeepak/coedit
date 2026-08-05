@@ -194,7 +194,6 @@ export default function TextEditor() {
                   filePath={tab.path}
                   portalNode={portalNode}
                   activeTab={activeTab}
-                  monacoRef={monacoRef}
                   onDirtyChange={handleDirtyChange}
                 />
               </Tabs.Content>
@@ -377,7 +376,7 @@ function TextEditorWrapper({
 
   return (
     <div className="flex size-full flex-col overflow-hidden">
-      <div className="flex w-full shrink-0 items-center justify-between space-x-6 px-2 py-1">
+      <div className="flex w-full shrink-0 items-center justify-between space-x-6 px-2 py-0.5">
         <p className="overflow-hidden text-xs text-nowrap text-ellipsis text-gray-11">
           {filePath}
         </p>

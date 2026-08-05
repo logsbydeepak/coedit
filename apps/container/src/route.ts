@@ -4,6 +4,7 @@ import { secureHeaders } from 'hono/secure-headers'
 
 import { env } from './env'
 import { contentRoute } from './route/content'
+import { environmentRoute } from './route/environment'
 import { explorerRoute } from './route/explorer'
 import { lspRoute } from './route/lsp'
 import { terminalRoute } from './route/terminal'
@@ -17,6 +18,7 @@ const route = h()
   .route('/content', contentRoute)
   .route('/terminal', terminalRoute)
   .route('/lsp', lspRoute)
+  .route('/environment', environmentRoute)
 
 const errorResponse = new Response('Unauthorized', {
   status: 401,
