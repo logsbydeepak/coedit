@@ -1,4 +1,4 @@
-import { z, zReqString } from '@coedit/zschema'
+import { z, zReqString, zURL } from '@coedit/zschema'
 
 const schema = z.object({
   BETTER_AUTH_URL: zReqString,
@@ -6,15 +6,15 @@ const schema = z.object({
   GOOGLE_CLIENT_ID: zReqString,
   GOOGLE_CLIENT_SECRET: zReqString,
 
-  DB_URL: zReqString.url(),
+  DB_URL: zURL,
   RUNTIME: z.enum(['development', 'production']),
-  CORS_ORIGIN: zReqString.url(),
+  CORS_ORIGIN: zURL,
   COOKIE_DOMAIN: zReqString,
 
-  UPSTASH_REDIS_REST_URL: zReqString.url(),
+  UPSTASH_REDIS_REST_URL: zURL,
   UPSTASH_REDIS_REST_TOKEN: zReqString,
 
-  ORCHESTRATION_URL: zReqString.url(),
+  ORCHESTRATION_URL: zURL,
   ORCHESTRATION_MODE: z.enum(['mock', 'caddy']),
   MACHINE_SECRET: zReqString,
 

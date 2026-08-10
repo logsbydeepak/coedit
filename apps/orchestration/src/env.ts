@@ -1,13 +1,13 @@
-import { z, zReqString } from '@coedit/zschema'
+import { z, zReqString, zURL } from '@coedit/zschema'
 
 const schema = z.object({
   WORKDIR: zReqString,
   DOCKER_SOCKET_PATH: zReqString,
   ROOT_DOMAIN: zReqString,
-  USER_API: zReqString.url(),
-  CORS_ORIGIN: zReqString.url(),
+  USER_API: zURL,
+  CORS_ORIGIN: zURL,
 
-  UPSTASH_REDIS_REST_URL: zReqString.url(),
+  UPSTASH_REDIS_REST_URL: zURL,
   UPSTASH_REDIS_REST_TOKEN: zReqString,
 
   MACHINE_IP: zReqString,

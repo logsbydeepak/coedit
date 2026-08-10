@@ -1,8 +1,8 @@
-import { z, zReqString } from '@coedit/zschema'
+import { z, zURL } from '@coedit/zschema'
 
 const schema = z.object({
-  USER_API: zReqString.url(),
-  CORS_ORIGIN: zReqString.url(),
+  USER_API: zURL,
+  CORS_ORIGIN: zURL,
 })
 
 const parseEnv = schema.safeParse(process.env)
